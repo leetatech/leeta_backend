@@ -11,10 +11,11 @@ import (
 )
 
 type ServerConfig struct {
-	AppEnv   string `env:"APP_ENV" envDefault:"dev" envWhitelisted:"true"`
-	HTTPPort int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
-	Database DatabaseConfig
-	//Security         security.SecurityConfig
+	AppEnv     string `env:"APP_ENV" envDefault:"dev" envWhitelisted:"true"`
+	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
+	Database   DatabaseConfig
+	PrivateKey string `env:"PRIVATE_KEY"`
+	PublicKey  string `env:"PUBLIC_KEY"`
 }
 
 type DatabaseConfig struct {
@@ -39,10 +40,6 @@ func Read(logger zap.Logger) (*ServerConfig, error) {
 			return &serverConfig, err
 		}
 	}
-
-	//serverConfig.Security.JWTContextKey = security.JWTContextKey
-	//serverConfig.Security.JWTClaimsContextKey = security.JWTClaimsContextKey
-	//serverConfig.Security.JWTExpiration = security.JWTLifeTime
 
 	out := serverConfig.formartUri()
 	logger.Info(out)

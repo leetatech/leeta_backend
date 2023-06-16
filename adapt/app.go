@@ -51,7 +51,7 @@ func New(logger *zap.Logger) (*application, error) {
 
 	//defer app.db.Disconnect(ctx)
 
-	tokenHandler, err := library.NewMiddlewares()
+	tokenHandler, err := library.NewMiddlewares(app.config.PublicKey, app.config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
