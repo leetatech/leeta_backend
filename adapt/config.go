@@ -3,9 +3,11 @@ package adapt
 import (
 	"fmt"
 	"github.com/caarlos0/env"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type ServerConfig struct {
@@ -16,12 +18,12 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host     string `env:"DB_HOST"`
-	Port     string `env:"DB_PORT"`
-	Timeout  int    `env:"CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
-	DbName   string `env:"DB_NAME" envDefault:"leeta"`
-	UserName string `env:"DB_USERNAME"`
-	Password string `env:"DB_PASSWORD"`
+	Host     string `env:"MONGO_HOST" envDefault:"localhost:"`
+	Port     string `env:"MONGO_PORT" envDefault:"27017"`
+	Timeout  int    `env:"MONGO_CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
+	DbName   string `env:"MONGO_DB_NAME" envDefault:"leeta"`
+	UserName string `env:"MONGO_USERNAME" envDefault:"leeta"`
+	Password string `env:"MONGO_PASSWORD" envDefault:"leet"`
 	DbUrl    string `env:"DATABASE_URL" envDefault:"" envWhitelisted:"true"`
 }
 
@@ -65,18 +67,13 @@ func (config *ServerConfig) formartUri() string {
 	return fmt.Sprintf(format, host, port, timeout)
 }
 
-func (config *ServerConfig) GetUri() string {
-	if len(config.Database.DbUrl) > 0 {
-		return config.Database.DbUrl
-	}
-
-	format := "postgres://%s:%s@%s:%s/%s"
-	return fmt.Sprintf(
-		format,
-		config.Database.UserName,
-		config.Database.Password,
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.DbName,
-	)
+func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
+	return options.Client().
+		SetConnectTimeout(time.Duration(config.Database.Timeout) * time.Second).
+		SetHosts([]string{config.Database.Host + config.Database.Port}).
+		SetAuth(options.Credential{
+			AuthMechanism: "SCRAM-SHA-256",
+			Username:      config.Database.UserName,
+			Password:      config.Database.Password,
+		})
 }

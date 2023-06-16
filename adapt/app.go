@@ -2,7 +2,6 @@ package adapt
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
@@ -10,15 +9,19 @@ import (
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/infrastructure"
 	"github.com/leetatech/leeta_backend/services/order/interfaces"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"time"
 )
 
 type application struct {
 	logger       *zap.Logger
 	config       *ServerConfig
-	db           *sql.DB
+	db           *mongo.Client
+	ctx          context.Context
 	router       *chi.Mux
 	repositories library.Repositories
 }
@@ -28,20 +31,25 @@ type application struct {
 func New(logger *zap.Logger) (*application, error) {
 	var app application
 	var err error
-
 	app.logger = logger
 	app.config, err = app.buildConfig()
 
 	if err != nil {
 		return nil, err
 	}
-	//build application clients
-	app.db = app.buildSqlClient()
 
-	if err := app.db.PingContext(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	//build application clients
+	app.db = app.buildMongoClient(ctx)
+
+	if err := app.db.Ping(ctx, readpref.Primary()); err != nil {
 		app.logger.Info("msg", zap.String("msg", "failed to ping to database"))
 		log.Fatal(err)
 	}
+
+	//defer app.db.Disconnect(ctx)
 
 	tokenHandler, err := library.NewMiddlewares()
 	if err != nil {
@@ -56,12 +64,13 @@ func New(logger *zap.Logger) (*application, error) {
 	}
 	app.router = router
 
+	app.ctx = ctx
 	return &app, nil
 }
 
 // Run executes the application
 func (app *application) Run() error {
-	defer app.db.Close()
+	defer app.db.Disconnect(app.ctx)
 
 	app.router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte("Welcome to the leeta Server.."))
@@ -82,27 +91,11 @@ func (app *application) buildConfig() (*ServerConfig, error) {
 	return Read(*app.logger)
 }
 
-func (app *application) buildSqlClient() *sql.DB {
-	db := Database{Config: app.config, Log: app.logger}
-
-	dbConn, err := db.ConnectDB()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := db.RunMigration(dbConn); err != nil {
-		log.Fatal(err)
-	}
-
-	return dbConn
-}
-
 func (app *application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
-	orderPersistences := infrastructure.NewOrderPersistence(app.db, app.logger)
+	orderPersistence := infrastructure.NewOrderPersistence(app.db, app.config.Database.DbName, app.logger)
 
 	allRepositories := library.Repositories{
-		OrderRepository: orderPersistences,
+		OrderRepository: orderPersistence,
 	}
 	app.repositories = allRepositories
 
