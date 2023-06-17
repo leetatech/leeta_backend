@@ -52,11 +52,14 @@ func (t orderAppHandler) CreateOrder(ctx context.Context, request domain.Order) 
 	if err != nil {
 		fmt.Println("unable to get claims")
 	}
+
+	t.allRepository.OrderRepository.CreateOrder(request)
 	if t.validatePin(request.Status) != nil {
 		return nil, fmt.Errorf("%s", "invalid pin credential")
 	}
+
 	fmt.Println(claims)
-	return nil, err
+	return nil, nil
 }
 
 func encryptPassword(encryptor library.EncryptorManager) {

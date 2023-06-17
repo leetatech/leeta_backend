@@ -3,30 +3,39 @@ package adapt
 import (
 	"fmt"
 	"github.com/caarlos0/env"
+	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"net/url"
+	"os"
 	"strings"
+	"time"
 )
 
 type ServerConfig struct {
-	AppEnv   string `env:"APP_ENV" envDefault:"dev" envWhitelisted:"true"`
-	HTTPPort int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
-	Database DatabaseConfig
-	//Security         security.SecurityConfig
+	AppEnv     string `env:"APP_ENV" envDefault:"dev" envWhitelisted:"true"`
+	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
+	Database   DatabaseConfig
+	PrivateKey string `env:"PRIVATE_KEY"`
+	PublicKey  string `env:"PUBLIC_KEY"`
 }
 
 type DatabaseConfig struct {
-	Host     string `env:"DB_HOST"`
-	Port     string `env:"DB_PORT"`
-	Timeout  int    `env:"CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
-	DbName   string `env:"DB_NAME" envDefault:"leeta"`
-	UserName string `env:"DB_USERNAME"`
-	Password string `env:"DB_PASSWORD"`
+	Host     string `env:"MONGO_HOST" envDefault:"localhost:"`
+	Port     string `env:"MONGO_PORT" envDefault:"27017"`
+	Timeout  int    `env:"MONGO_CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
+	DbName   string `env:"MONGO_DB_NAME" envDefault:"leeta"`
+	UserName string `env:"MONGO_USERNAME" envDefault:"leeta"`
+	Password string `env:"MONGO_PASSWORD" envDefault:"leet"`
 	DbUrl    string `env:"DATABASE_URL" envDefault:"" envWhitelisted:"true"`
 }
 
 func Read(logger zap.Logger) (*ServerConfig, error) {
 	var serverConfig ServerConfig
+
+	if err := godotenv.Load("../local.env"); err != nil {
+		return nil, err
+	}
 
 	for _, target := range []interface{}{
 		&serverConfig,
@@ -37,10 +46,7 @@ func Read(logger zap.Logger) (*ServerConfig, error) {
 			return &serverConfig, err
 		}
 	}
-
-	//serverConfig.Security.JWTContextKey = security.JWTContextKey
-	//serverConfig.Security.JWTClaimsContextKey = security.JWTClaimsContextKey
-	//serverConfig.Security.JWTExpiration = security.JWTLifeTime
+	overrideWithCommandLine(serverConfig)
 
 	out := serverConfig.formartUri()
 	logger.Info(out)
@@ -65,18 +71,23 @@ func (config *ServerConfig) formartUri() string {
 	return fmt.Sprintf(format, host, port, timeout)
 }
 
-func (config *ServerConfig) GetUri() string {
-	if len(config.Database.DbUrl) > 0 {
-		return config.Database.DbUrl
+func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
+	return options.Client().
+		SetConnectTimeout(time.Duration(config.Database.Timeout) * time.Second).
+		SetHosts([]string{config.Database.Host + config.Database.Port}).
+		SetAuth(options.Credential{
+			AuthMechanism: "SCRAM-SHA-256",
+			Username:      config.Database.UserName,
+			Password:      config.Database.Password,
+		})
+}
+
+func overrideWithCommandLine(serverConfig ServerConfig) {
+	if privateKey := os.Getenv("PRIVATE_KEY"); privateKey != "" {
+		serverConfig.PrivateKey = privateKey
 	}
 
-	format := "postgres://%s:%s@%s:%s/%s"
-	return fmt.Sprintf(
-		format,
-		config.Database.UserName,
-		config.Database.Password,
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.DbName,
-	)
+	if publicKey := os.Getenv("PUBLIC_KEY"); publicKey != "" {
+		serverConfig.PublicKey = publicKey
+	}
 }

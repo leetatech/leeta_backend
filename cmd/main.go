@@ -7,6 +7,16 @@ import (
 	"os"
 )
 
+// @title			LEETA BACKEND API
+// @version		1.0
+// @description	This is the entire doc
+// @termsOfService	http://swagger.io/terms/
+// @contact.name	LEETA Engineering
+// @contact.email	leeta.org
+// @license.name	Apache 2.0
+// @license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+// @host			localhost:3000
+// @BasePath		/leeta
 func main() {
 	appLogger := logger.New()
 

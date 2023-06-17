@@ -2,17 +2,29 @@ package library
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gofrs/uuid"
 	"google.golang.org/grpc/metadata"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 )
+
+type UserClaims struct {
+	jwt.StandardClaims
+	SessionID string `json:"session_id"`
+	UserID    string `json:"user_id"`
+	Email     string `json:"email"`
+}
+
+type TokenHandler struct {
+	publicKey  *rsa.PublicKey
+	privateKey *rsa.PrivateKey
+}
 
 type TokenManager interface {
 	ParseToken(signedTokenString string) (*UserClaims, error)
@@ -24,19 +36,40 @@ var _ TokenManager = &TokenHandler{}
 
 var AuthenticatedUserMetadataKey = "AuthenticatedUser"
 
-func NewMiddlewares() (*TokenHandler, error) {
-	return &TokenHandler{Key: "randomkeydffesxzas"}, nil
+func NewMiddlewares(publicKey, privateKey string) (*TokenHandler, error) {
+	return generateKey(publicKey, privateKey)
 }
 
-type UserClaims struct {
-	jwt.StandardClaims
-	SessionID int64     `json:"session_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	Email     string    `json:"email"`
+func generateKey(publicKey, privateKey string) (*TokenHandler, error) {
+	tokenGeneratorPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKey))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse public key: %w", err)
+	}
+	tokenGeneratorPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse private key: %w", err)
+	}
+	return &TokenHandler{
+		publicKey:  tokenGeneratorPublicKey,
+		privateKey: tokenGeneratorPrivateKey,
+	}, nil
 }
 
-type TokenHandler struct {
-	Key string
+func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (string, error) {
+	claims.ExpiresAt = time.Now().Add(time.Minute * 15).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	return token.SignedString(handler.privateKey)
+}
+
+// BuildAuthResponse Set user details and generate token
+func (handler *TokenHandler) BuildAuthResponse(email, userID, sessionID string) (string, error) {
+	claims := UserClaims{
+		SessionID: sessionID,
+		Email:     email,
+		UserID:    userID,
+	}
+	return handler.GenerateTokenWithExpiration(&claims)
 }
 
 func (claims *UserClaims) Valid() error {
@@ -48,7 +81,7 @@ func (claims *UserClaims) Valid() error {
 
 func (handler *TokenHandler) ParseToken(signedTokenString string) (*UserClaims, error) {
 	t, err := jwt.ParseWithClaims(signedTokenString, &UserClaims{}, func(t *jwt.Token) (interface{}, error) {
-		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+		if t.Method.Alg() != jwt.SigningMethodRS256.Alg() {
 			return nil, errors.New("invalid signing algorithm")
 		}
 
@@ -56,7 +89,7 @@ func (handler *TokenHandler) ParseToken(signedTokenString string) (*UserClaims, 
 		if !ok {
 			return nil, errors.New("invalid key ID")
 		}
-		return []byte(handler.Key), nil
+		return handler.publicKey, nil
 	})
 	if err != nil {
 		return nil, err

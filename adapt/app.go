@@ -2,7 +2,6 @@ package adapt
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
@@ -10,40 +9,49 @@ import (
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/infrastructure"
 	"github.com/leetatech/leeta_backend/services/order/interfaces"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"time"
 )
 
-type application struct {
-	logger       *zap.Logger
-	config       *ServerConfig
-	db           *sql.DB
-	router       *chi.Mux
-	repositories library.Repositories
+type Application struct {
+	Logger       *zap.Logger
+	Config       *ServerConfig
+	Db           *mongo.Client
+	Ctx          context.Context
+	Router       *chi.Mux
+	Repositories library.Repositories
 }
 
 // New instances a new application
 // The application contains all the related components that allow the execution of the service
-func New(logger *zap.Logger) (*application, error) {
-	var app application
+func New(logger *zap.Logger) (*Application, error) {
+	var app Application
 	var err error
-
-	app.logger = logger
-	app.config, err = app.buildConfig()
+	app.Logger = logger
+	app.Config, err = app.buildConfig()
 
 	if err != nil {
 		return nil, err
 	}
-	//build application clients
-	app.db = app.buildSqlClient()
 
-	if err := app.db.PingContext(context.Background()); err != nil {
-		app.logger.Info("msg", zap.String("msg", "failed to ping to database"))
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	//build application clients
+	app.Db = app.buildMongoClient(ctx)
+
+	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
+		app.Logger.Info("msg", zap.String("msg", "failed to ping to database"))
 		log.Fatal(err)
 	}
 
-	tokenHandler, err := library.NewMiddlewares()
+	//defer app.db.Disconnect(ctx)
+
+	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -54,22 +62,23 @@ func New(logger *zap.Logger) (*application, error) {
 	if err != nil {
 		return nil, err
 	}
-	app.router = router
+	app.Router = router
 
+	app.Ctx = ctx
 	return &app, nil
 }
 
 // Run executes the application
-func (app *application) Run() error {
-	defer app.db.Close()
+func (app *Application) Run() error {
+	defer app.Db.Disconnect(app.Ctx)
 
-	app.router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
+	app.Router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte("Welcome to the leeta Server.."))
 	})
 
 	svr := http.Server{
-		Addr:    fmt.Sprintf(":%d", app.config.HTTPPort),
-		Handler: app.router,
+		Addr:    fmt.Sprintf(":%d", app.Config.HTTPPort),
+		Handler: app.Router,
 	}
 	err := svr.ListenAndServe()
 	if err != nil {
@@ -78,33 +87,17 @@ func (app *application) Run() error {
 	return nil
 }
 
-func (app *application) buildConfig() (*ServerConfig, error) {
-	return Read(*app.logger)
+func (app *Application) buildConfig() (*ServerConfig, error) {
+	return Read(*app.Logger)
 }
 
-func (app *application) buildSqlClient() *sql.DB {
-	db := Database{Config: app.config, Log: app.logger}
-
-	dbConn, err := db.ConnectDB()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := db.RunMigration(dbConn); err != nil {
-		log.Fatal(err)
-	}
-
-	return dbConn
-}
-
-func (app *application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
-	orderPersistences := infrastructure.NewOrderPersistence(app.db, app.logger)
+func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
+	orderPersistence := infrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 
 	allRepositories := library.Repositories{
-		OrderRepository: orderPersistences,
+		OrderRepository: orderPersistence,
 	}
-	app.repositories = allRepositories
+	app.Repositories = allRepositories
 
 	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)
 
