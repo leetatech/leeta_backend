@@ -13,12 +13,12 @@ type Database struct {
 	Log          *zap.Logger
 }
 
-func (app *application) buildMongoClient(ctx context.Context) *mongo.Client {
-	clientOpts := app.config.GetClientOptions()
+func (app *Application) buildMongoClient(ctx context.Context) *mongo.Client {
+	clientOpts := app.Config.GetClientOptions()
 	mongoClient, err := mongo.NewClient(clientOpts)
 	err = mongoClient.Connect(ctx)
 	if err != nil {
-		app.logger.Info("msg", zap.String("msg", "failed to connect to database"))
+		app.Logger.Info("msg", zap.String("msg", "failed to connect to database"))
 		log.Fatal(err)
 	}
 	return mongoClient

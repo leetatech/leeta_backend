@@ -81,7 +81,7 @@ func (claims *UserClaims) Valid() error {
 
 func (handler *TokenHandler) ParseToken(signedTokenString string) (*UserClaims, error) {
 	t, err := jwt.ParseWithClaims(signedTokenString, &UserClaims{}, func(t *jwt.Token) (interface{}, error) {
-		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+		if t.Method.Alg() != jwt.SigningMethodRS256.Alg() {
 			return nil, errors.New("invalid signing algorithm")
 		}
 

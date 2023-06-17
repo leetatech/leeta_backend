@@ -3,9 +3,11 @@ package adapt
 import (
 	"fmt"
 	"github.com/caarlos0/env"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -31,6 +33,10 @@ type DatabaseConfig struct {
 func Read(logger zap.Logger) (*ServerConfig, error) {
 	var serverConfig ServerConfig
 
+	if err := godotenv.Load("../local.env"); err != nil {
+		return nil, err
+	}
+
 	for _, target := range []interface{}{
 		&serverConfig,
 		&serverConfig.Database,
@@ -40,6 +46,7 @@ func Read(logger zap.Logger) (*ServerConfig, error) {
 			return &serverConfig, err
 		}
 	}
+	overrideWithCommandLine(serverConfig)
 
 	out := serverConfig.formartUri()
 	logger.Info(out)
@@ -73,4 +80,14 @@ func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 			Username:      config.Database.UserName,
 			Password:      config.Database.Password,
 		})
+}
+
+func overrideWithCommandLine(serverConfig ServerConfig) {
+	if privateKey := os.Getenv("PRIVATE_KEY"); privateKey != "" {
+		serverConfig.PrivateKey = privateKey
+	}
+
+	if publicKey := os.Getenv("PUBLIC_KEY"); publicKey != "" {
+		serverConfig.PublicKey = publicKey
+	}
 }
