@@ -2,7 +2,7 @@
 <b>Run</b>
 <ul>
     <li><i>cd cmd</i></li>
-    <li><i>DATABASE_URL="postgres://postgres:9363T@localhost:5433/leeta?sslmode=disable" PORT="3000" go run main.go</i></li>
+    <li><i>go run main.go</i></li>
 </ul>
 
 <b>Swagger Doc</b>

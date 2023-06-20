@@ -159,3 +159,19 @@ func (handler *TokenHandler) GetClaimsFromCtx(ctx context.Context) (*UserClaims,
 
 	return &claims, nil
 }
+
+func EncodeResult(w http.ResponseWriter, result interface{}, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+
+	data := struct {
+		Data interface{} `json:"data"`
+	}{
+		Data: result,
+	}
+
+	err := json.NewEncoder(w).Encode(&data)
+	if err != nil {
+		return
+	}
+}
