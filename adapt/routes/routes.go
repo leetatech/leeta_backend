@@ -5,18 +5,20 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	_ "github.com/leetatech/leeta_backend/docs"
+	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/order/interfaces"
+	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
 type AllHTTPHandlers struct {
-	Order *interfaces.HTTPHandler
+	Order *orderInterfaces.OrderHttpHandler
+	Auth  *authInterfaces.AuthHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order}
+	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth}
 }
 
 func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *library.TokenHandler, error) {
@@ -33,16 +35,23 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 	router.Use(middleware.Logger)
 
 	orderRouter := buildOrderEndpoints(*interfaces.Order, tokenHandler)
+	authRouter := buildAuthEndpoints(*interfaces.Auth)
 
 	router.Route("/leeta", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
+		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
 	})
 
 	return router, tokenHandler, nil
 }
+func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
+	router := chi.NewRouter()
+	router.Post("/signup", session.SignUpHandler)
+	return router
+}
 
-func buildOrderEndpoints(order interfaces.HTTPHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/make_order", order.CreateOrder)

@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
+	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
+	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
+	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
-	"github.com/leetatech/leeta_backend/services/order/infrastructure"
-	"github.com/leetatech/leeta_backend/services/order/interfaces"
+	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
+	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
@@ -92,18 +95,24 @@ func (app *Application) buildConfig() (*ServerConfig, error) {
 }
 
 func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
-	orderPersistence := infrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 
 	allRepositories := library.Repositories{
 		OrderRepository: orderPersistence,
+		AuthRepository:  authPersistence,
 	}
 	app.Repositories = allRepositories
 
 	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)
+	authApplications := authApplication.NewAuthApplication(tokenHandler, app.Logger, allRepositories)
 
-	orderInterfaces := interfaces.NewOrderHTTPHandler(orderApplications)
+	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
+	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
+
 	allInterfaces := routes.AllHTTPHandlers{
 		Order: orderInterfaces,
+		Auth:  authInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }

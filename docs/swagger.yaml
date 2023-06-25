@@ -1,5 +1,10 @@
 basePath: /leeta
 definitions:
+  DefaultSigningResponse:
+    properties:
+      auth_token:
+        type: string
+    type: object
   Order:
     properties:
       id:
@@ -15,6 +20,23 @@ definitions:
       ts:
         type: string
     type: object
+  SignUpRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      user_type:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  models.UserCategory:
+    enum:
+    - vendor
+    - buyer
+    type: string
+    x-enum-varnames:
+    - VendorCategory
+    - BuyerCategory
 host: localhost:3000
 info:
   contact:
@@ -50,4 +72,26 @@ paths:
       summary: Create Order
       tags:
       - Order
+  /session/signup:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users, both vendors and buyers to sign up
+      parameters:
+      - description: user sign up request body
+        in: body
+        name: domain.SignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: User Sign Up
+      tags:
+      - Session
 swagger: "2.0"

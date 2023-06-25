@@ -57,9 +57,51 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/session/signup": {
+            "post": {
+                "description": "The endpoint allows users, both vendors and buyers to sign up",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "User Sign Up",
+                "parameters": [
+                    {
+                        "description": "user sign up request body",
+                        "name": "domain.SignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "DefaultSigningResponse": {
+            "type": "object",
+            "properties": {
+                "auth_token": {
+                    "type": "string"
+                }
+            }
+        },
         "Order": {
             "type": "object",
             "properties": {
@@ -82,6 +124,31 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "SignUpRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user_type": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
+        "models.UserCategory": {
+            "type": "string",
+            "enum": [
+                "vendor",
+                "buyer"
+            ],
+            "x-enum-varnames": [
+                "VendorCategory",
+                "BuyerCategory"
+            ]
         }
     }
 }`

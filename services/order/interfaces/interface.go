@@ -2,9 +2,22 @@ package interfaces
 
 import (
 	"encoding/json"
+	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"net/http"
 )
+
+type OrderHttpHandler struct {
+	OrderApplication application.OrderApplication
+}
+
+func NewOrderHTTPHandler(orderApplication application.OrderApplication) *OrderHttpHandler {
+	return &OrderHttpHandler{
+		OrderApplication: orderApplication,
+	}
+
+}
 
 // CreateOrder godoc
 // @Summary Create Order
@@ -15,7 +28,7 @@ import (
 // @Param domain.Order body domain.Order true "create order request body"
 // @Success 200 {object} domain.Order
 // @Router /order/make_order [post]
-func (handler *HTTPHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
+func (handler *OrderHttpHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	var newOrder domain.Order
 
 	err := json.NewDecoder(r.Body).Decode(&newOrder)
@@ -26,5 +39,5 @@ func (handler *HTTPHandler) CreateOrder(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return
 	}
-	encodeResult(w, order, http.StatusOK)
+	library.EncodeResult(w, order, http.StatusOK)
 }
