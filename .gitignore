@@ -17,7 +17,7 @@ docs/
 .idea/sonarlint/securityhotspotstore/index.pb
 .DS_Store
 
-# Dependency directories (remove the comment below to include it)
+local.env
 .env
 local.yml
 .vscode
