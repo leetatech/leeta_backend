@@ -50,7 +50,7 @@ func (a authStoreHandler) CreateIdentity(identity models.Identity) error {
 func (a authStoreHandler) GetVendorByEmail(email string) (*models.Vendor, error) {
 	vendor := &models.Vendor{}
 	filter := bson.M{
-		"email": email,
+		"email.address": email,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -62,4 +62,16 @@ func (a authStoreHandler) GetVendorByEmail(email string) (*models.Vendor, error)
 	}
 
 	return vendor, nil
+}
+
+func (a authStoreHandler) CreateOTP(verification models.Verification) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := a.col(models.VerificationsCollectionName).InsertOne(ctx, verification)
+	if err != nil {
+		return err
+	}
+	return nil
 }

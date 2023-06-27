@@ -10,25 +10,37 @@ import (
 type ErrorCode int
 
 const (
-	DatabaseError         ErrorCode = 1001
-	DatabaseNoRecordError ErrorCode = 1002
-	UnmarshalError        ErrorCode = 1003
-	MarshalError          ErrorCode = 1004
+	DatabaseError           ErrorCode = 1001
+	DatabaseNoRecordError   ErrorCode = 1002
+	UnmarshalError          ErrorCode = 1003
+	MarshalError            ErrorCode = 1004
+	PasswordValidationError ErrorCode = 1005
+	EncryptionError         ErrorCode = 1006
+	DecryptionError         ErrorCode = 1007
+	DuplicateUserError      ErrorCode = 1008
 )
 
 var (
 	errorTypes = map[ErrorCode]string{
-		DatabaseError:         "DatabaseError",
-		DatabaseNoRecordError: "DatabaseNoRecordError",
-		UnmarshalError:        "UnmarshalError",
-		MarshalError:          "MarshalError",
+		DatabaseError:           "DatabaseError",
+		DatabaseNoRecordError:   "DatabaseNoRecordError",
+		UnmarshalError:          "UnmarshalError",
+		MarshalError:            "MarshalError",
+		PasswordValidationError: "PasswordValidationError",
+		EncryptionError:         "EncryptionError",
+		DecryptionError:         "DecryptionError",
+		DuplicateUserError:      "DuplicateUserError",
 	}
 
 	errorMessages = map[ErrorCode]string{
-		DatabaseError:         "An error occurred while reading from the database",
-		DatabaseNoRecordError: "No records found",
-		UnmarshalError:        "An error occurred while unmarshalling data",
-		MarshalError:          "An error occurred while marshaling data",
+		DatabaseError:           "An error occurred while reading from the database",
+		DatabaseNoRecordError:   "No records found",
+		UnmarshalError:          "An error occurred while unmarshalling data",
+		MarshalError:            "An error occurred while marshaling data",
+		PasswordValidationError: "An error occurred while validating password",
+		EncryptionError:         "An error occurred while encrypting",
+		DecryptionError:         "An error occurred while decrypting",
+		DuplicateUserError:      "An error occurred because user already exists",
 	}
 )
 
@@ -69,8 +81,16 @@ func ErrorResponseBody(code ErrorCode, err error) error {
 
 	// Capture stack trace if available
 	if err != nil {
-		errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err))
+		errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err).Error())
 	}
 
 	return errorResponse
+}
+
+func ErrorMessage(code ErrorCode) string {
+	return errorMessages[code]
+}
+
+func ErrorType(code ErrorCode) string {
+	return errorTypes[code]
 }

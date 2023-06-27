@@ -8,4 +8,5 @@ type AuthRepository interface {
 	CreateVendor(vendor models.Vendor) error
 	CreateIdentity(identity models.Identity) error
 	GetVendorByEmail(email string) (*models.Vendor, error)
+	CreateOTP(verifications models.Verification) error
 }

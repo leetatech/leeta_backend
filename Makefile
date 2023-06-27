@@ -41,6 +41,11 @@ stop_app:
 	@echo "Stopping the application..."
 	@pkill -f "main" || true
 
+
+#stop_app:
+#	@echo "Stopping the application..."
+#	@pkill -INT -f "go run main.go" || true
+
 check_docker:
 	@echo "Checking if Docker is installed..."
 	@if ! command -v $(DOCKER) &> /dev/null; then \
@@ -87,3 +92,14 @@ open_browser:
 wait_before_open_browser:
 	@echo "Waiting for 2 seconds before opening the browser..."
 	@sleep 2
+
+generate_keys:
+	openssl genrsa -out private.key 2048
+	openssl rsa -in private.key -pubout -out public.key
+	@PRIVATE_KEY="$$(cat private.key)"; \
+	PUBLIC_KEY="$$(cat public.key)"; \
+	echo "PRIVATE_KEY=\"$$PRIVATE_KEY\"" > local.env; \
+	echo >> local.env; \
+    echo >> local.env; \
+	echo "PUBLIC_KEY=\"$$PUBLIC_KEY\"" >> local.env; \
+	rm private.key public.key

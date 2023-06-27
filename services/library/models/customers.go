@@ -17,20 +17,20 @@ type Vendor struct {
 	Status          Statuses  `json:"status" bson:"status"`
 	StatusTimeStamp int64     `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64     `json:"ts" bson:"ts"`
-}
+} // @name Vendor
 
 // Phone model
 type Phone struct {
 	Primary  bool   `json:"primary" bson:"primary"`
 	Number   string `json:"number" bson:"number"`
 	Verified bool   `json:"verified" bson:"verified"`
-}
+} // @name Phone
 
 // Email model
 type Email struct {
 	Address  string `json:"address" bson:"address"`
 	Verified bool   `json:"verified" bson:"verified"`
-}
+} // @name Email
 
 // Address model
 type Address struct {
@@ -40,7 +40,7 @@ type Address struct {
 	LGA         string `json:"lga" bson:"lga"`
 	FullAddress string `json:"full_address" bson:"full_address"`
 	Verified    bool   `json:"verified" bson:"verified"`
-}
+} // @name Address
 
 // Business - vendor business
 type Business struct {
@@ -55,7 +55,7 @@ type Business struct {
 	Status          Statuses         `json:"status" bson:"status"`
 	StatusTimeStamp int64            `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64            `json:"ts" bson:"ts"`
-}
+} // @name Business
 
 /*
 **constants/enums

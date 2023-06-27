@@ -15,4 +15,4 @@ type Repositories struct {
 type DefaultResponse struct {
 	Success string `json:"success"`
 	Message string `json:"message"`
-}
+} // @name DefaultResponse

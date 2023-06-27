@@ -2,6 +2,7 @@ package library
 
 import (
 	"errors"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"golang.org/x/crypto/bcrypt"
 	"unicode"
 )
@@ -57,7 +58,8 @@ func (e *encryptorHandler) IsValidPassword(s string) error {
 	}
 	switch {
 	case !hasMinLen, !hasUpper, !hasLower, !hasNumber, !hasSpecial:
-		return errors.New("password must contain at least six character long, one uppercase letter, one lowercase letter, one digit, and one special character")
+
+		return leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, errors.New("password must contain at least six character long, one uppercase letter, one lowercase letter, one digit, and one special character"))
 	default:
 		return nil
 	}
