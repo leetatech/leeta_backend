@@ -9,7 +9,7 @@ type Identity struct {
 	CustomerID  string        `json:"customer_id" bson:"customer_id"`
 	Role        UserCategory  `json:"role" bson:"role"`
 	Credentials []Credentials `json:"credentials" bson:"credentials"`
-}
+} // @name Identity
 
 type Credentials struct {
 	Type            CredentialType   `json:"type" bson:"type"`
@@ -17,7 +17,7 @@ type Credentials struct {
 	Status          CredentialStatus `json:"status" bson:"status"`
 	StatusTimestamp int64            `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64            `json:"ts" bson:"ts"`
-}
+} // @name Credentials
 
 /*
 **constants/enums

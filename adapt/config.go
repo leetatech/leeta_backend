@@ -33,7 +33,7 @@ type DatabaseConfig struct {
 func Read(logger zap.Logger) (*ServerConfig, error) {
 	var serverConfig ServerConfig
 
-	if err := godotenv.Load("../personal.env"); err != nil {
+	if err := godotenv.Load("../local.env"); err != nil {
 		return nil, err
 	}
 

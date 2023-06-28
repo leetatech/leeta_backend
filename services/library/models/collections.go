@@ -1,6 +1,7 @@
 package models
 
 const (
-	IdentityCollectionName = "identity"
-	VendorCollectionName   = "vendor"
+	IdentityCollectionName      = "identity"
+	VendorCollectionName        = "vendor"
+	VerificationsCollectionName = "verifications"
 )

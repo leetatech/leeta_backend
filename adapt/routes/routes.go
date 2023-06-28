@@ -45,9 +45,11 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 
 	return router, tokenHandler, nil
 }
+
 func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Post("/signup", session.SignUpHandler)
+	router.Post("/otp/request", session.CreateOTPHandler)
 	return router
 }
 

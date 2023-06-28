@@ -31,13 +31,38 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 	var signUpRequest domain.SignUpRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusOK)
+		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.SignUp(signUpRequest)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusOK)
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	library.EncodeResult(w, token, http.StatusOK)
+}
+
+// CreateOTPHandler godoc
+// @Summary OTP Generation
+// @Description The endpoint allows the generation of OTP
+// @Tags OTP
+// @Accept json
+// @Produce json
+// @Param domain.OTPRequest body domain.OTPRequest true "request otp body"
+// @Success 200 {object} library.DefaultResponse
+// @Router /session/otp/request [post]
+func (handler *AuthHttpHandler) CreateOTPHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.OTPRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	token, err := handler.AuthApplication.CreateOTP(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 	library.EncodeResult(w, token, http.StatusOK)
