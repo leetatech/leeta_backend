@@ -47,8 +47,8 @@ stop_app:
 #	@pkill -INT -f "go run main.go" || true
 
 check_docker:
-	@echo "Checking if Docker is installed..."
-	@if ! command -v $(DOCKER) &> /dev/null; then \
+	@echo "Checking if Docker $(DOCKER) is installed..."
+	@if ! command -v $(DOCKER); then \
 		echo "Docker not found. Please install Docker."; \
 		exit 1; \
 	fi
