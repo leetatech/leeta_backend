@@ -13,7 +13,7 @@ MONGODB_IMAGE := mongo
 MONGODB_PORT := 27017
 
 # Database and user credentials
-DB_NAME := leeta
+DB_NAME := leetadb
 DB_USER := leeta
 DB_PASSWORD := leet
 DB_AUTH_MECHANISM := SCRAM-SHA-256
@@ -76,7 +76,7 @@ check_database:
 	@echo "Checking if database $(DB_NAME) exists..."
 	@if ! $(DOCKER) exec $(MONGODB_CONTAINER) mongosh --quiet --eval 'db.getMongo().getDBNames().includes("$(DB_NAME)")' | grep -q true; then \
 		echo "Creating database $(DB_NAME)..."; \
-		$(DOCKER) exec $(MONGODB_CONTAINER) mongosh --eval 'use "$(DB_NAME)"; db.runCommand({ ping: 1 })'; \
+		$(DOCKER) exec $(MONGODB_CONTAINER) mongosh --eval 'use $(DB_NAME); db.runCommand({ ping: 1 })'; \
 	else \
 		echo "Database $(DB_NAME) already exists."; \
 	fi
