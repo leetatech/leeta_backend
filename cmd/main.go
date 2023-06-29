@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+//go:generate -command swag go run github.com/swaggo/swag/cmd/swag@latest
+
 // @title			LEETA BACKEND API
 // @version		1.0
 // @description	This is the entire doc
