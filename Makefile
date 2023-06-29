@@ -1,7 +1,8 @@
 # Makefile for leeta_backend
 
 # Directories
-CMD_DIR := cmd
+CMD_DIR := ./cmd
+WORKDIR := $(shell pwd)
 
 # Docker commands
 DOCKER := docker
@@ -26,7 +27,7 @@ SWAGGER_URL := http://localhost:3000/leeta/swagger/index.html
 
 all: start
 
-start: check_docker check_mongodb create_user check_database init_swagger run_app wait_before_open_browser open_browser
+start: check_docker check_mongodb create_user check_database get_dependencies init_swagger run_app wait_before_open_browser open_browser
 	@echo "To start the application, run 'make run_app'"
 
 stop-mongo:
@@ -81,9 +82,15 @@ check_database:
 		echo "Database $(DB_NAME) already exists."; \
 	fi
 
+
+get_dependencies:
+	cd $(WORKDIR)/cmd/
+	go install github.com/swaggo/swag/cmd/swag@latest
+
 init_swagger:
 	@echo "Running Swagger initialization..."
-	@cd $(CMD_DIR) && swag init --parseDependency --parseInternal -o ../docs
+	@echo "Fetching swagger dependency $(GOPATH)"
+	go generate ./...
 
 open_browser:
 	@echo "Opening browser..."
