@@ -75,3 +75,14 @@ func (a authStoreHandler) CreateOTP(verification models.Verification) error {
 	}
 	return nil
 }
+
+func (a authStoreHandler) EarlyAccess(earlyAccess models.EarlyAccess) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := a.col(models.EarlyAccessCollectionName).InsertOne(ctx, earlyAccess)
+	if err != nil {
+		return err
+	}
+	return nil
+}

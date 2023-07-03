@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.uber.org/zap"
 	"time"
@@ -20,6 +21,7 @@ type authAppHandler struct {
 type AuthApplication interface {
 	SignUp(request domain.SignUpRequest) (*domain.DefaultSigningResponse, error)
 	CreateOTP(request domain.OTPRequest) (*library.DefaultResponse, error)
+	EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error)
 }
 
 func NewAuthApplication(tokenHandler library.TokenHandler, logger *zap.Logger, allRepository library.Repositories) AuthApplication {
@@ -49,6 +51,7 @@ func (a authAppHandler) SignUp(request domain.SignUpRequest) (*domain.DefaultSig
 		}
 	}
 
+	// TODO: send email to user
 	return nil, nil
 }
 
@@ -71,4 +74,16 @@ func (a authAppHandler) CreateOTP(request domain.OTPRequest) (*library.DefaultRe
 	}
 
 	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
+}
+
+func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error) {
+	err := a.allRepository.AuthRepository.EarlyAccess(request)
+	if err != nil {
+		a.logger.Error("EarlyAccess", zap.Any(leetError.ErrorType(leetError.DatabaseError), err), zap.Any(leetError.ErrorType(leetError.DatabaseError), leetError.ErrorMessage(leetError.DatabaseError)))
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	// TODO: send email to user
+
+	return &library.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
 }
