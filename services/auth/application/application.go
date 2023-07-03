@@ -42,14 +42,17 @@ func (a authAppHandler) SignUp(request domain.SigningRequest) (*domain.DefaultSi
 		a.logger.Error("Password Validation", zap.Error(err))
 		return nil, err
 	}
-
 	request.Password = hashedPassword
-	if models.IsValidUserCategory(request.UserType) {
-		switch request.UserType {
-		case models.VendorCategory:
 
-			return a.vendorSignUP(request)
-		}
+	category, err := models.SetUserCategory(request.UserType)
+	if err != nil {
+		return nil, err
+	}
+
+	switch category {
+	case models.VendorCategory:
+
+		return a.vendorSignUP(request)
 	}
 
 	// TODO: send email to user
@@ -90,11 +93,13 @@ func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.Defaul
 }
 
 func (a authAppHandler) SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	if models.IsValidUserCategory(request.UserType) {
-		switch request.UserType {
-		case models.VendorCategory:
-			return a.vendorSignIN(request)
-		}
+	category, err := models.SetUserCategory(request.UserType)
+	if err != nil {
+		return nil, err
+	}
+	switch category {
+	case models.VendorCategory:
+		return a.vendorSignIN(request)
 	}
 
 	// TODO: send email to user

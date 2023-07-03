@@ -24,6 +24,7 @@ const (
 	CredentialsValidationError ErrorCode = 1012
 	TokenGenerationError       ErrorCode = 1013
 	TokenValidationError       ErrorCode = 1014
+	UserCategoryError          ErrorCode = 1015
 )
 
 var (
@@ -42,6 +43,7 @@ var (
 		CredentialsValidationError: "CredentialsValidationError",
 		TokenGenerationError:       "TokenGenerationError",
 		TokenValidationError:       "TokenValidationError",
+		UserCategoryError:          "UserCategoryError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -59,6 +61,7 @@ var (
 		CredentialsValidationError: "An error occurred because the credentials are invalid",
 		TokenGenerationError:       "An error occurred while generating token",
 		TokenValidationError:       "An error occurred because the token is invalid",
+		UserCategoryError:          "An error occurred because the user category is invalid",
 	}
 )
 
