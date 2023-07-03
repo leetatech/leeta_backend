@@ -5,6 +5,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/auth/application"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/models"
 	"net/http"
 )
 
@@ -66,4 +67,29 @@ func (handler *AuthHttpHandler) CreateOTPHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	library.EncodeResult(w, token, http.StatusOK)
+}
+
+// EarlyAccessHandler godoc
+// @Summary Early Access
+// @Description The endpoint allows users to request for early access
+// @Tags EarlyAccess
+// @Accept json
+// @Produce json
+// @Param models.EarlyAccess body models.EarlyAccess true "request early access body"
+// @Success 200 {object} library.DefaultResponse
+// @Router /session/early_access [post]
+func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *http.Request) {
+	var request models.EarlyAccess
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.AuthApplication.EarlyAccess(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	library.EncodeResult(w, response, http.StatusOK)
 }
