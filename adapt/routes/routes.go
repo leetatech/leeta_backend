@@ -51,6 +51,7 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 
 	// Signing
 	router.Post("/signup", session.SignUpHandler)
+	router.Post("/signin", session.SignInHandler)
 
 	// otp
 	router.Post("/otp/request", session.CreateOTPHandler)

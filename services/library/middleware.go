@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/leetatech/leeta_backend/services/library/models"
 	"google.golang.org/grpc/metadata"
 	"log"
 	"net/http"
@@ -16,9 +17,10 @@ import (
 
 type UserClaims struct {
 	jwt.StandardClaims
-	SessionID string `json:"session_id"`
-	UserID    string `json:"user_id"`
-	Email     string `json:"email"`
+	SessionID string              `json:"session_id"`
+	UserID    string              `json:"user_id"`
+	Email     string              `json:"email"`
+	Role      models.UserCategory `json:"role"`
 }
 
 type TokenHandler struct {
@@ -63,11 +65,12 @@ func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (st
 }
 
 // BuildAuthResponse Set user details and generate token
-func (handler *TokenHandler) BuildAuthResponse(email, userID, sessionID string) (string, error) {
+func (handler *TokenHandler) BuildAuthResponse(email, userID, sessionID string, role models.UserCategory) (string, error) {
 	claims := UserClaims{
 		SessionID: sessionID,
 		Email:     email,
 		UserID:    userID,
+		Role:      role,
 	}
 	return handler.GenerateTokenWithExpiration(&claims)
 }

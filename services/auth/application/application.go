@@ -19,9 +19,10 @@ type authAppHandler struct {
 }
 
 type AuthApplication interface {
-	SignUp(request domain.SignUpRequest) (*domain.DefaultSigningResponse, error)
+	SignUp(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 	CreateOTP(request domain.OTPRequest) (*library.DefaultResponse, error)
 	EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error)
+	SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 }
 
 func NewAuthApplication(tokenHandler library.TokenHandler, logger *zap.Logger, allRepository library.Repositories) AuthApplication {
@@ -35,7 +36,7 @@ func NewAuthApplication(tokenHandler library.TokenHandler, logger *zap.Logger, a
 	}
 }
 
-func (a authAppHandler) SignUp(request domain.SignUpRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) SignUp(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
 	hashedPassword, err := a.passwordValidationEncryption(request.Password)
 	if err != nil {
 		a.logger.Error("Password Validation", zap.Error(err))
@@ -86,4 +87,16 @@ func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.Defaul
 	// TODO: send email to user
 
 	return &library.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
+}
+
+func (a authAppHandler) SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	if models.IsValidUserCategory(request.UserType) {
+		switch request.UserType {
+		case models.VendorCategory:
+			return a.vendorSignIN(request)
+		}
+	}
+
+	// TODO: send email to user
+	return nil, nil
 }

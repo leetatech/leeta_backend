@@ -25,11 +25,11 @@ func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHa
 // @Tags Session
 // @Accept json
 // @Produce json
-// @Param domain.SignUpRequest body domain.SignUpRequest true "user sign up request body"
+// @Param domain.SigningRequest body domain.SigningRequest true "user sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
 // @Router /session/signup [post]
 func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	var signUpRequest domain.SignUpRequest
+	var signUpRequest domain.SigningRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
@@ -92,4 +92,29 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 		return
 	}
 	library.EncodeResult(w, response, http.StatusOK)
+}
+
+// SignInHandler godoc
+// @Summary User Sign In
+// @Description The endpoint allows users, both vendors and buyers to sign in
+// @Tags Session
+// @Accept json
+// @Produce json
+// @Param domain.SigningRequest body domain.SigningRequest true "user sign in request body"
+// @Success 200 {object} domain.DefaultSigningResponse
+// @Router /session/signin [post]
+func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Request) {
+	var signInRequest domain.SigningRequest
+	err := json.NewDecoder(r.Body).Decode(&signInRequest)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	token, err := handler.AuthApplication.SignIn(signInRequest)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	library.EncodeResult(w, token, http.StatusOK)
 }
