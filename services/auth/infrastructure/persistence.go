@@ -86,3 +86,20 @@ func (a authStoreHandler) EarlyAccess(earlyAccess models.EarlyAccess) error {
 	}
 	return nil
 }
+
+func (a authStoreHandler) GetVendorIdentityByCustomerID(id string) (*models.Identity, error) {
+	identity := &models.Identity{}
+	filter := bson.M{
+		"customer_id": id,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := a.col(models.IdentityCollectionName).FindOne(ctx, filter).Decode(identity)
+	if err != nil {
+		return nil, err
+	}
+
+	return identity, nil
+}

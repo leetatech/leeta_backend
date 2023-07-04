@@ -10,4 +10,5 @@ type AuthRepository interface {
 	GetVendorByEmail(email string) (*models.Vendor, error)
 	CreateOTP(verifications models.Verification) error
 	EarlyAccess(earlyAccess models.EarlyAccess) error
+	GetVendorIdentityByCustomerID(id string) (*models.Identity, error)
 }

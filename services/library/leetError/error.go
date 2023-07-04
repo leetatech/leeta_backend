@@ -10,37 +10,58 @@ import (
 type ErrorCode int
 
 const (
-	DatabaseError           ErrorCode = 1001
-	DatabaseNoRecordError   ErrorCode = 1002
-	UnmarshalError          ErrorCode = 1003
-	MarshalError            ErrorCode = 1004
-	PasswordValidationError ErrorCode = 1005
-	EncryptionError         ErrorCode = 1006
-	DecryptionError         ErrorCode = 1007
-	DuplicateUserError      ErrorCode = 1008
+	DatabaseError              ErrorCode = 1001
+	DatabaseNoRecordError      ErrorCode = 1002
+	UnmarshalError             ErrorCode = 1003
+	MarshalError               ErrorCode = 1004
+	PasswordValidationError    ErrorCode = 1005
+	EncryptionError            ErrorCode = 1006
+	DecryptionError            ErrorCode = 1007
+	DuplicateUserError         ErrorCode = 1008
+	UserNotFoundError          ErrorCode = 1009
+	IdentityNotFoundError      ErrorCode = 1010
+	UserLockedError            ErrorCode = 1011
+	CredentialsValidationError ErrorCode = 1012
+	TokenGenerationError       ErrorCode = 1013
+	TokenValidationError       ErrorCode = 1014
+	UserCategoryError          ErrorCode = 1015
 )
 
 var (
 	errorTypes = map[ErrorCode]string{
-		DatabaseError:           "DatabaseError",
-		DatabaseNoRecordError:   "DatabaseNoRecordError",
-		UnmarshalError:          "UnmarshalError",
-		MarshalError:            "MarshalError",
-		PasswordValidationError: "PasswordValidationError",
-		EncryptionError:         "EncryptionError",
-		DecryptionError:         "DecryptionError",
-		DuplicateUserError:      "DuplicateUserError",
+		DatabaseError:              "DatabaseError",
+		DatabaseNoRecordError:      "DatabaseNoRecordError",
+		UnmarshalError:             "UnmarshalError",
+		MarshalError:               "MarshalError",
+		PasswordValidationError:    "PasswordValidationError",
+		EncryptionError:            "EncryptionError",
+		DecryptionError:            "DecryptionError",
+		DuplicateUserError:         "DuplicateUserError",
+		UserNotFoundError:          "UserNotFoundError",
+		IdentityNotFoundError:      "IdentityNotFoundError",
+		UserLockedError:            "UserLockedError",
+		CredentialsValidationError: "CredentialsValidationError",
+		TokenGenerationError:       "TokenGenerationError",
+		TokenValidationError:       "TokenValidationError",
+		UserCategoryError:          "UserCategoryError",
 	}
 
 	errorMessages = map[ErrorCode]string{
-		DatabaseError:           "An error occurred while reading from the database",
-		DatabaseNoRecordError:   "No records found",
-		UnmarshalError:          "An error occurred while unmarshalling data",
-		MarshalError:            "An error occurred while marshaling data",
-		PasswordValidationError: "An error occurred while validating password",
-		EncryptionError:         "An error occurred while encrypting",
-		DecryptionError:         "An error occurred while decrypting",
-		DuplicateUserError:      "An error occurred because user already exists",
+		DatabaseError:              "An error occurred while reading from the database",
+		DatabaseNoRecordError:      "An error occurred because no record was found",
+		UnmarshalError:             "An error occurred while unmarshalling data",
+		MarshalError:               "An error occurred while marshaling data",
+		PasswordValidationError:    "An error occurred while validating password",
+		EncryptionError:            "An error occurred while encrypting",
+		DecryptionError:            "An error occurred while decrypting",
+		DuplicateUserError:         "An error occurred because user already exists",
+		UserNotFoundError:          "An error occurred because this is not a registered user",
+		IdentityNotFoundError:      "An error occurred because this is not a registered identity",
+		UserLockedError:            "An error occurred because this user is locked",
+		CredentialsValidationError: "An error occurred because the credentials are invalid",
+		TokenGenerationError:       "An error occurred while generating token",
+		TokenValidationError:       "An error occurred because the token is invalid",
+		UserCategoryError:          "An error occurred because the user category is invalid",
 	}
 )
 
@@ -50,7 +71,7 @@ type ErrorResponse struct {
 	ErrorType      string    `json:"error_type"`
 	Message        string    `json:"message"`
 	Err            error     `json:"-"`
-	StackTrace     string    `json:"stack_trace,omitempty"`
+	StackTrace     string    `json:"-"`
 	TimeStamp      string    `json:"timestamp"`
 }
 
