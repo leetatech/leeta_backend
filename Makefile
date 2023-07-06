@@ -26,7 +26,7 @@ SWAGGER_URL := http://localhost:3000/leeta/swagger/index.html
 
 all: start
 
-start: check_docker check_mongodb create_user check_database init_swagger run_app wait_before_open_browser open_browser
+start: check_docker check_mongodb create_user check_database run_app wait_before_open_browser open_browser generate_docs
 	@echo "To start the application, run 'make run_app'"
 
 stop-mongo:
@@ -48,7 +48,7 @@ stop_app:
 
 check_docker:
 	@echo "Checking if Docker is installed..."
-	@if ! command -v $(DOCKER) &> /dev/null; then \
+	@if ! command -v $(DOCKER); then \
 		echo "Docker not found. Please install Docker."; \
 		exit 1; \
 	fi
@@ -58,9 +58,13 @@ check_mongodb:
 	@if ! $(DOCKER) ps -a --format '{{.Names}}' | grep -q $(MONGODB_CONTAINER); then \
 		echo "MongoDB container not found. Installing MongoDB on Docker..."; \
 		$(DOCKER) run -d -p $(MONGODB_PORT):$(MONGODB_PORT) --name $(MONGODB_CONTAINER) --env MONGO_INITDB_DATABASE=$(DB_NAME) $(MONGODB_IMAGE); \
+		$(check_mongodb) \
 	elif ! $(DOCKER) ps -f "name=$(MONGODB_CONTAINER)" --format '{{.Names}}' | grep -q $(MONGODB_CONTAINER); then \
 		echo "MongoDB container found but not running. Starting MongoDB container..."; \
 		$(DOCKER) start $(MONGODB_CONTAINER); \
+		$(check_mongodb) \
+	else \
+	  echo "mongo db database is running..."; \
 	fi
 
 create_user:
@@ -76,7 +80,7 @@ check_database:
 	@echo "Checking if database $(DB_NAME) exists..."
 	@if ! $(DOCKER) exec $(MONGODB_CONTAINER) mongosh --quiet --eval 'db.getMongo().getDBNames().includes("$(DB_NAME)")' | grep -q true; then \
 		echo "Creating database $(DB_NAME)..."; \
-		$(DOCKER) exec $(MONGODB_CONTAINER) mongosh --eval 'use "$(DB_NAME)"; db.runCommand({ ping: 1 })'; \
+		$(DOCKER) exec $(MONGODB_CONTAINER) mongosh --eval 'use $(DB_NAME); db.runCommand({ ping: 1 })'; \
 	else \
 		echo "Database $(DB_NAME) already exists."; \
 	fi
@@ -84,6 +88,9 @@ check_database:
 init_swagger:
 	@echo "Running Swagger initialization..."
 	@cd $(CMD_DIR) && swag init --parseDependency --parseInternal -o ../docs
+
+generate_docs:
+	go generate ./...
 
 open_browser:
 	@echo "Opening browser..."
