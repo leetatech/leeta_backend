@@ -18,7 +18,7 @@ import (
 // @contact.email	admin@getlleta.com
 // @license.name	Apache 3.0-or-later
 // @host			localhost:3000
-// @BasePath		/leeta
+// @BasePath		/api
 func main() {
 	appLogger := logger.New()
 
