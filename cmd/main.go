@@ -1,5 +1,8 @@
 package main
 
+//go:generate -command swag go run github.com/swaggo/swag/cmd/swag@latest
+//go:generate swag init --parseDependency --parseInternal -o ../docs
+
 import (
 	"fmt"
 	"github.com/leetatech/leeta_backend/adapt"
@@ -9,14 +12,13 @@ import (
 
 // @title			LEETA BACKEND API
 // @version		1.0
-// @description	This is the entire doc
+// @description	LEETA Application backend documentation
 // @termsOfService	http://swagger.io/terms/
-// @contact.name	LEETA Engineering
-// @contact.email	leeta.org
-// @license.name	Apache 2.0
-// @license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+// @contact.name	LEETA Technologies
+// @contact.email	admin@getlleta.com
+// @license.name	Apache 3.0-or-later
 // @host			localhost:3000
-// @BasePath		/leeta
+// @BasePath		/api
 func main() {
 	appLogger := logger.New()
 

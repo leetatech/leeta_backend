@@ -74,12 +74,7 @@ func (config *ServerConfig) formartUri() string {
 func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 	return options.Client().
 		SetConnectTimeout(time.Duration(config.Database.Timeout) * time.Second).
-		SetHosts([]string{config.Database.Host + config.Database.Port}).
-		SetAuth(options.Credential{
-			AuthMechanism: "SCRAM-SHA-256",
-			Username:      config.Database.UserName,
-			Password:      config.Database.Password,
-		})
+		SetHosts([]string{config.Database.Host + config.Database.Port})
 }
 
 func overrideWithCommandLine(serverConfig ServerConfig) {
