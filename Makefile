@@ -26,7 +26,7 @@ SWAGGER_URL := http://localhost:3000/leeta/swagger/index.html
 
 all: start
 
-start: check_docker check_mongodb create_user check_database run_app wait_before_open_browser open_browser generate_docs
+start: generate_keys check_docker check_mongodb create_user check_database generate_docs run_app
 	@echo "To start the application, run 'make run_app'"
 
 stop-mongo:
@@ -35,7 +35,7 @@ stop-mongo:
 
 run_app:
 	@echo "Running the application..."
-	@cd $(CMD_DIR) && go run main.go &
+	@cd $(CMD_DIR) && go run main.go
 
 stop_app:
 	@echo "Stopping the application..."
@@ -88,9 +88,6 @@ check_database:
 generate_docs:
 	go generate ./...
 
-open_browser:
-	@echo "Opening browser..."
-	@open $(SWAGGER_URL)
 
 wait_before_open_browser:
 	@echo "Waiting for 2 seconds before opening the browser..."
