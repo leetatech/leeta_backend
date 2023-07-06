@@ -85,10 +85,6 @@ check_database:
 		echo "Database $(DB_NAME) already exists."; \
 	fi
 
-init_swagger:
-	@echo "Running Swagger initialization..."
-	@cd $(CMD_DIR) && swag init --parseDependency --parseInternal -o ../docs
-
 generate_docs:
 	go generate ./...
 
