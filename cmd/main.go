@@ -1,7 +1,7 @@
 package main
 
 //go:generate -command swag go run github.com/swaggo/swag/cmd/swag@latest
-//go:generate swag init --parseDependency --parseInternal -o ../../docs
+//go:generate swag init --parseDependency --parseInternal -o ../docs
 
 import (
 	"fmt"
