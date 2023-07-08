@@ -118,3 +118,81 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 	}
 	library.EncodeResult(w, token, http.StatusOK)
 }
+
+// ForgotPasswordHandler godoc
+// @Summary Forgot Password
+// @Description The endpoint allows users to request for password reset
+// @Tags Password
+// @Accept json
+// @Produce json
+// @Param domain.ForgotPasswordRequest body domain.ForgotPasswordRequest true "request forgot password body"
+// @Success 200 {object} library.DefaultResponse
+// @Router /session/forgot_password [post]
+func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.ForgotPasswordRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.AuthApplication.ForgotPassword(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	library.EncodeResult(w, response, http.StatusOK)
+}
+
+// ValidateOTPHandler godoc
+// @Summary Validate OTP
+// @Description The endpoint allows users to validate OTP
+// @Tags OTP
+// @Accept json
+// @Produce json
+// @Param domain.OTPValidationRequest body domain.OTPValidationRequest true "request otp validation body"
+// @Success 200 {object} library.DefaultResponse
+// @Router /session/otp/validate [post]
+func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.OTPValidationRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.AuthApplication.ValidateOTP(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	library.EncodeResult(w, response, http.StatusOK)
+}
+
+// ResetPasswordHandler godoc
+// @Summary Reset Password
+// @Description The endpoint allows users to reset password
+// @Tags Password
+// @Accept json
+// @Produce json
+// @Param domain.ResetPasswordRequest body domain.ResetPasswordRequest true "request reset password body"
+// @Success 200 {object} domain.DefaultSigningResponse
+// @Router /session/reset_password [post]
+func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.ResetPasswordRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.AuthApplication.ResetPassword(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	library.EncodeResult(w, response, http.StatusOK)
+}

@@ -3,9 +3,11 @@ package infrastructure
 import (
 	"context"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"time"
 )
@@ -87,7 +89,7 @@ func (a authStoreHandler) EarlyAccess(earlyAccess models.EarlyAccess) error {
 	return nil
 }
 
-func (a authStoreHandler) GetVendorIdentityByCustomerID(id string) (*models.Identity, error) {
+func (a authStoreHandler) GetIdentityByCustomerID(id string) (*models.Identity, error) {
 	identity := &models.Identity{}
 	filter := bson.M{
 		"customer_id": id,
@@ -102,4 +104,48 @@ func (a authStoreHandler) GetVendorIdentityByCustomerID(id string) (*models.Iden
 	}
 
 	return identity, nil
+}
+
+func (a authStoreHandler) GetOTPForValidation(target string) (*models.Verification, error) {
+	var verification models.Verification
+
+	filter := bson.M{"target": target}
+	option := options.FindOneOptions{
+		Sort: bson.M{"_id": -1},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := a.col(models.VerificationsCollectionName).FindOne(ctx, filter, &option).Decode(&verification)
+	if err != nil {
+		switch err {
+		case mongo.ErrNoDocuments:
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+		}
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return &verification, nil
+}
+
+func (a authStoreHandler) ValidateOTP(verificationId string) error {
+	filter := bson.M{"id": verificationId}
+	update := bson.M{"$set": bson.M{"validated": true}}
+	_, err := a.col(models.VerificationsCollectionName).UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return nil
+}
+
+func (a authStoreHandler) UpdateCredential(customerID, password string) error {
+	filter := bson.M{"customer_id": customerID, "credentials.type": string(models.CredentialsTypeLogin)}
+	update := bson.M{"$set": bson.M{"credentials.$.password": password, "credentials.$.status": models.CredentialStatusActive, "credentials.$.update_ts": time.Now().Unix()}}
+	_, err := a.col(models.IdentityCollectionName).UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+	return nil
 }

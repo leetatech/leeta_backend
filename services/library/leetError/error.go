@@ -51,7 +51,7 @@ var (
 		DatabaseNoRecordError:      "An error occurred because no record was found",
 		UnmarshalError:             "An error occurred while unmarshalling data",
 		MarshalError:               "An error occurred while marshaling data",
-		PasswordValidationError:    "An error occurred while validating password",
+		PasswordValidationError:    "An error occurred while validating password. | Password must contain at least six character long, one uppercase letter, one lowercase letter, one digit, and one special character | password and confirm password don't match",
 		EncryptionError:            "An error occurred while encrypting",
 		DecryptionError:            "An error occurred while decrypting",
 		DuplicateUserError:         "An error occurred because user already exists",
@@ -60,7 +60,7 @@ var (
 		UserLockedError:            "An error occurred because this user is locked",
 		CredentialsValidationError: "An error occurred because the credentials are invalid",
 		TokenGenerationError:       "An error occurred while generating token",
-		TokenValidationError:       "An error occurred because the token is invalid",
+		TokenValidationError:       "An error occurred because the token is invalid | validated | expired",
 		UserCategoryError:          "An error occurred because the user category is invalid",
 	}
 )

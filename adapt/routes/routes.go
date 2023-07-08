@@ -37,7 +37,7 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 	orderRouter := buildOrderEndpoints(*interfaces.Order, tokenHandler)
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 
-	router.Route("/leeta", func(r chi.Router) {
+	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
 		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
@@ -55,6 +55,11 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 
 	// otp
 	router.Post("/otp/request", session.CreateOTPHandler)
+	router.Post("/otp/validate", session.ValidateOTPHandler)
+
+	// password
+	router.Post("/forgot_password", session.ForgotPasswordHandler)
+	router.Post("/reset_password", session.ResetPasswordHandler)
 
 	// earlyAccess
 	router.Post("/early_access", session.EarlyAccessHandler)

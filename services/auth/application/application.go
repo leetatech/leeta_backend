@@ -1,6 +1,8 @@
 package application
 
 import (
+	"errors"
+	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
@@ -23,6 +25,9 @@ type AuthApplication interface {
 	CreateOTP(request domain.OTPRequest) (*library.DefaultResponse, error)
 	EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error)
 	SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
+	ForgotPassword(request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
+	ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error)
+	ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
 }
 
 func NewAuthApplication(tokenHandler library.TokenHandler, logger *zap.Logger, allRepository library.Repositories) AuthApplication {
@@ -81,6 +86,7 @@ func (a authAppHandler) CreateOTP(request domain.OTPRequest) (*library.DefaultRe
 }
 
 func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error) {
+	request.Timestamp = time.Now().Unix()
 	err := a.allRepository.AuthRepository.EarlyAccess(request)
 	if err != nil {
 		a.logger.Error("EarlyAccess", zap.Any(leetError.ErrorType(leetError.DatabaseError), err), zap.Any(leetError.ErrorType(leetError.DatabaseError), leetError.ErrorMessage(leetError.DatabaseError)))
@@ -103,5 +109,100 @@ func (a authAppHandler) SignIn(request domain.SigningRequest) (*domain.DefaultSi
 	}
 
 	// TODO: send email to user
+	return nil, nil
+}
+
+func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
+	category, err := models.SetUserCategory(request.UserCategory)
+	if err != nil {
+		return nil, err
+	}
+	switch category {
+	case models.VendorCategory:
+		_, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+		if err != nil {
+			a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+		}
+	}
+
+	requestOTP := domain.OTPRequest{
+		Topic:        "ForgotPassword",
+		Type:         models.EMAIL,
+		Target:       request.Email,
+		UserCategory: request.UserCategory,
+	}
+
+	_, err = a.CreateOTP(requestOTP)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: send email to user
+
+	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
+}
+
+func (a authAppHandler) ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error) {
+	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(request.Target)
+	if err != nil {
+		a.logger.Error("ValidateOTP", zap.String("target", request.Target), zap.Error(err))
+		return nil, err
+	}
+	if verification.Validated {
+		newErr := errors.New("already validated otp")
+		a.logger.Error("ValidateOTP", zap.String(leetError.ErrorType(leetError.TokenValidationError), fmt.Sprintf("%s: %s", "target", request.Target)), zap.Error(newErr))
+
+		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr))
+	}
+
+	if verification.Code != request.Code {
+		newErr := errors.New("invalid otp")
+		a.logger.Error("ValidateOTP", zap.String(leetError.ErrorType(leetError.TokenValidationError), fmt.Sprintf("%s: %s", "target", request.Target)), zap.Error(leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)))
+
+		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)
+	}
+
+	if time.Unix(verification.ExpiresAt, 0).Before(time.Now()) {
+		newErr := errors.New("expired otp")
+		a.logger.Error("ValidateOTP", zap.String(leetError.ErrorType(leetError.TokenValidationError), fmt.Sprintf("%s: %s", "target", request.Target)), zap.Error(leetError.ErrorResponseBody(leetError.TokenValidationError, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr))))
+
+		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)
+	}
+
+	err = a.allRepository.AuthRepository.ValidateOTP(verification.ID)
+	if err != nil {
+		a.logger.Error("store validating verification", zap.Error(err), zap.String("verification_id", verification.ID))
+		return nil, err
+	}
+
+	// TODO: send email to user
+
+	return &library.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
+}
+
+func (a authAppHandler) ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error) {
+
+	if request.Password != request.ConfirmPassword {
+		a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.PasswordValidationError), errors.New("password and confirm password don't match")))
+
+		return nil, leetError.ErrorResponseBody(leetError.PasswordValidationError, errors.New("password and confirm password don't match"))
+	}
+
+	category, err := models.SetUserCategory(request.UserCategory)
+	if err != nil {
+		return nil, err
+	}
+	switch category {
+	case models.VendorCategory:
+		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+		if err != nil {
+			a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+		}
+
+		return a.resetPassword(vendor.ID, vendor.Email.Address, request.Password, request.UserCategory)
+	}
+
 	return nil, nil
 }

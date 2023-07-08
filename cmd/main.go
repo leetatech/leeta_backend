@@ -1,6 +1,6 @@
 package main
 
-//go:generate -command swag go run github.com/swaggo/swag/cmd/swag@latest
+//go:generate -command swag go run github.com/swaggo/swag/cmd/swag@v1.8.9
 //go:generate swag init --parseDependency --parseInternal -o ../docs
 
 import (

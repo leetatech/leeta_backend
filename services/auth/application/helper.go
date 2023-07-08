@@ -13,11 +13,12 @@ import (
 func (a authAppHandler) passwordValidationEncryption(password string) (string, error) {
 	err := a.encryptor.IsValidPassword(password)
 	if err != nil {
+		a.logger.Error("passwordValidationEncryption", zap.Error(err))
 		return "", err
 	}
 	passByte, err := a.encryptor.GenerateFromPasscode(password)
 	if err != nil {
-		return "", leetError.ErrorResponseBody(leetError.DecryptionError, err)
+		return "", leetError.ErrorResponseBody(leetError.EncryptionError, err)
 	}
 
 	return string(passByte), nil
@@ -97,7 +98,7 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	identity, err := a.allRepository.AuthRepository.GetVendorIdentityByCustomerID(vendor.ID)
+	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(vendor.ID)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("vendor_id", vendor.ID))
 		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
@@ -147,4 +148,32 @@ func (a authAppHandler) processLoginPasswordValidation(request domain.SigningReq
 
 	a.logger.Error("SignIn", zap.Error(leetError.ErrorResponseBody(leetError.CredentialsValidationError, errors.New("credential type is not login"))))
 	return leetError.ErrorResponseBody(leetError.CredentialsValidationError, errors.New("credential type is not login"))
+}
+
+func (a authAppHandler) resetPassword(customerID, email, passcode string, userCategory models.UserCategory) (*domain.DefaultSigningResponse, error) {
+
+	hashedPasscode, err := a.passwordValidationEncryption(passcode)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.allRepository.AuthRepository.UpdateCredential(customerID, hashedPasscode)
+	if err != nil {
+		a.logger.Error("resetPassword", zap.Any("UpdateCredential", err))
+		return nil, err
+	}
+
+	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(customerID)
+	if err != nil {
+		a.logger.Error("resetPassword", zap.Any("GetIdentityByCustomerID", err))
+		return nil, err
+	}
+
+	response, err := a.tokenHandler.BuildAuthResponse(email, customerID, identity.ID, userCategory)
+	if err != nil {
+		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
+		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
+	}
+
+	return &domain.DefaultSigningResponse{AuthToken: response}, nil
 }
