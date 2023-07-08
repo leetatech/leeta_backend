@@ -1,0 +1,24 @@
+name: LEETA Backend Service
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: configure
+      run: ./configure
+
+    - name: checkout repo
+      run: actions/checkout@main
+
+    - name: build application
+      run: make build
