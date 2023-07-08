@@ -59,7 +59,7 @@ func (e *encryptorHandler) IsValidPassword(s string) error {
 	switch {
 	case !hasMinLen, !hasUpper, !hasLower, !hasNumber, !hasSpecial:
 
-		return leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, errors.New("password must contain at least six character long, one uppercase letter, one lowercase letter, one digit, and one special character"))
+		return leetError.ErrorResponseBody(leetError.PasswordValidationError, errors.New("password must contain at least six character long, one uppercase letter, one lowercase letter, one digit, and one special character"))
 	default:
 		return nil
 	}

@@ -55,6 +55,11 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 
 	// otp
 	router.Post("/otp/request", session.CreateOTPHandler)
+	router.Post("/otp/validate", session.ValidateOTPHandler)
+
+	// password
+	router.Post("/forgot_password", session.ForgotPasswordHandler)
+	router.Post("/reset_password", session.ResetPasswordHandler)
 
 	// earlyAccess
 	router.Post("/early_access", session.EarlyAccessHandler)
