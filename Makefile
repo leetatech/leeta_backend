@@ -19,7 +19,7 @@ DB_PASSWORD := leet
 DB_AUTH_MECHANISM := SCRAM-SHA-256
 
 # URLs
-SWAGGER_URL := http://localhost:3000/leeta/swagger/index.html
+SWAGGER_URL := http://localhost:3000/api/swagger/index.html
 
 # Targets
 .PHONY: all start stop run_app stop_app
