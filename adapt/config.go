@@ -18,6 +18,7 @@ type ServerConfig struct {
 	Database   DatabaseConfig
 	PrivateKey string `env:"PRIVATE_KEY"`
 	PublicKey  string `env:"PUBLIC_KEY"`
+	Postmark   PostmarkConfig
 }
 
 type DatabaseConfig struct {
@@ -28,6 +29,11 @@ type DatabaseConfig struct {
 	UserName string `env:"MONGO_USERNAME" envDefault:"leeta"`
 	Password string `env:"MONGO_PASSWORD" envDefault:"leet"`
 	DbUrl    string `env:"DATABASE_URL" envDefault:"" envWhitelisted:"true"`
+}
+
+type PostmarkConfig struct {
+	URL string `env:"POSTMARK_URL" envDefault:"https://api.postmarkapp.com"`
+	Key string `env:"POSTMARK_KEY" envDefault:""`
 }
 
 func Read(logger zap.Logger) (*ServerConfig, error) {

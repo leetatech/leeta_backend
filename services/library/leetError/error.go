@@ -25,6 +25,7 @@ const (
 	TokenGenerationError       ErrorCode = 1013
 	TokenValidationError       ErrorCode = 1014
 	UserCategoryError          ErrorCode = 1015
+	EmailSendingError          ErrorCode = 1016
 )
 
 var (
@@ -44,6 +45,7 @@ var (
 		TokenGenerationError:       "TokenGenerationError",
 		TokenValidationError:       "TokenValidationError",
 		UserCategoryError:          "UserCategoryError",
+		EmailSendingError:          "EmailSendingError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -62,6 +64,7 @@ var (
 		TokenGenerationError:       "An error occurred while generating token",
 		TokenValidationError:       "An error occurred because the token is invalid | validated | expired",
 		UserCategoryError:          "An error occurred because the user category is invalid",
+		EmailSendingError:          "An error occurred while sending email",
 	}
 )
 

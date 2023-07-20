@@ -66,6 +66,7 @@ func (handler *AuthHttpHandler) CreateOTPHandler(w http.ResponseWriter, r *http.
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
+	token.Message = "OTP sent successfully"
 	library.EncodeResult(w, token, http.StatusOK)
 }
 
