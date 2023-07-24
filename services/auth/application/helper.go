@@ -99,8 +99,6 @@ func (a authAppHandler) accountVerification(userID, target, firstName, lastName 
 		return err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
 	message := models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
@@ -115,7 +113,6 @@ func (a authAppHandler) accountVerification(userID, target, firstName, lastName 
 	if err != nil {
 		return err
 	}
-	wg.Wait()
 	return nil
 }
 

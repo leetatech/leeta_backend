@@ -9,7 +9,6 @@ import (
 	"github.com/leetatech/leeta_backend/services/library/mailer"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.uber.org/zap"
-	"sync"
 	"time"
 )
 
@@ -102,13 +101,10 @@ func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.Defaul
 		TemplateID: library.EarlyAccessEmailTemplateID,
 		Ts:         time.Now().Unix(),
 	}
-	var wg sync.WaitGroup
-	wg.Add(1)
 	err = a.sendEmail(message)
 	if err != nil {
 		return nil, err
 	}
-	wg.Wait()
 
 	return &library.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
 }
@@ -155,8 +151,6 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
 	message := models.Message{
 		ID:         a.idGenerator.Generate(),
 		Target:     request.Email,
@@ -172,7 +166,6 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 	if err != nil {
 		return nil, err
 	}
-	wg.Wait()
 
 	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
 }
