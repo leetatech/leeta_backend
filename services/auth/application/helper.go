@@ -105,16 +105,13 @@ func (a authAppHandler) accountVerification(userID, target, firstName, lastName 
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
 		Target:     target,
-		Title:      "Account Verification",
 		TemplateID: library.SignUpEmailTemplateID,
 		DataMap: map[string]string{
-			"FirstName": firstName,
-			"LastName":  lastName,
-			"OTP":       otpResponse.Message,
+			"OTP": otpResponse.Message,
 		},
 		Ts: time.Now().Unix(),
 	}
-	err = a.sendEmail(message, &wg)
+	err = a.sendEmail(message)
 	if err != nil {
 		return err
 	}
@@ -151,21 +148,20 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
-	message := models.Message{
-		ID:         a.idGenerator.Generate(),
-		UserID:     vendor.ID,
-		Target:     vendor.Email.Address,
-		Title:      "Leeta Login Notification",
-		TemplateID: library.EarlyAccessEmailTemplateID,
-		Ts:         time.Now().Unix(),
-	}
-	var wg sync.WaitGroup
-	wg.Add(1)
-	err = a.sendEmail(message, &wg)
-	if err != nil {
-		return nil, err
-	}
-	wg.Wait()
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	UserID:     vendor.ID,
+	//	Target:     vendor.Email.Address,
+	//	TemplateID: library.EarlyAccessEmailTemplateID,
+	//	Ts:         time.Now().Unix(),
+	//}
+	//var wg sync.WaitGroup
+	//wg.Add(1)
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//wg.Wait()
 
 	return &domain.DefaultSigningResponse{
 		AuthToken: response,
@@ -221,24 +217,23 @@ func (a authAppHandler) resetPassword(customerID, firstName, lastName, email, pa
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	message := models.Message{
-		ID:         a.idGenerator.Generate(),
-		Target:     email,
-		Title:      "Reset Password",
-		TemplateID: library.ResetPasswordEmailTemplateID,
-		DataMap: map[string]string{
-			"FirstName": firstName,
-			"LastName":  lastName,
-		},
-		Ts: time.Now().Unix(),
-	}
-	err = a.sendEmail(message, &wg)
-	if err != nil {
-		return nil, err
-	}
-	wg.Wait()
+	//var wg sync.WaitGroup
+	//wg.Add(1)
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	Target:     email,
+	//	TemplateID: library.ResetPasswordEmailTemplateID,
+	//	DataMap: map[string]string{
+	//		"FirstName": firstName,
+	//		"LastName":  lastName,
+	//	},
+	//	Ts: time.Now().Unix(),
+	//}
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//wg.Wait()
 
 	return &domain.DefaultSigningResponse{AuthToken: response}, nil
 }
@@ -252,11 +247,14 @@ func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, er
 	}
 }
 
-func (a authAppHandler) sendEmail(message models.Message, wg *sync.WaitGroup) error {
-	defer wg.Done()
-	errChan := make(chan error)
-	go a.prepEmail(message, wg, errChan)
-	wg.Wait()
+func (a authAppHandler) sendEmail(message models.Message) error {
+	var prepWg sync.WaitGroup
+	//defer wg.Done()
+
+	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
+	prepWg.Add(1)
+	go a.prepEmail(message, &prepWg, errChan)
+	prepWg.Wait()
 
 	select {
 	case err := <-errChan:

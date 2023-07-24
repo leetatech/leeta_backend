@@ -48,13 +48,14 @@ func New(logger *zap.Logger) (*Application, error) {
 
 	//build application clients
 	app.Db = app.buildMongoClient(ctx)
-
 	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
 		app.Logger.Info("msg", zap.String("msg", "failed to ping to database"))
 		log.Fatal(err)
 	}
 
 	//defer app.db.Disconnect(ctx)
+
+	app.EmailClient = mailer.NewMailerClient(app.Config.Postmark.Key, app.Logger)
 
 	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey)
 	if err != nil {
@@ -70,8 +71,6 @@ func New(logger *zap.Logger) (*Application, error) {
 	app.Router = router
 
 	app.Ctx = ctx
-
-	app.EmailClient = mailer.NewMailerClient(app.Config.Postmark.Key, app.Logger)
 
 	return &app, nil
 }
@@ -108,7 +107,6 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 		AuthRepository:  authPersistence,
 	}
 	app.Repositories = allRepositories
-
 	request := library.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
 		Logger:        app.Logger,

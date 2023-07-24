@@ -98,14 +98,13 @@ func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.Defaul
 
 	message := models.Message{
 		ID:         a.idGenerator.Generate(),
-		Title:      "Early Access",
 		Target:     request.Email,
 		TemplateID: library.EarlyAccessEmailTemplateID,
 		Ts:         time.Now().Unix(),
 	}
 	var wg sync.WaitGroup
 	wg.Add(1)
-	err = a.sendEmail(message, &wg)
+	err = a.sendEmail(message)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +160,6 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 	message := models.Message{
 		ID:         a.idGenerator.Generate(),
 		Target:     request.Email,
-		Title:      "Forgot Password",
 		TemplateID: library.ForgotPasswordEmailTemplateID,
 		DataMap: map[string]string{
 			"FirstName": firstName,
@@ -170,7 +168,7 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 		},
 		Ts: time.Now().Unix(),
 	}
-	err = a.sendEmail(message, &wg)
+	err = a.sendEmail(message)
 	if err != nil {
 		return nil, err
 	}

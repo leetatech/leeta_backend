@@ -5,6 +5,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.uber.org/zap"
+	"net/http"
 )
 
 const (
@@ -14,9 +15,9 @@ const (
 )
 
 // Ensure implementation of EmailClient interface
-var _ MailerClient = (*emailClient)(nil)
+var _ MailerClient = (*EmailClient)(nil)
 
-type emailClient struct {
+type EmailClient struct {
 	RESTClient *resty.Client
 	logger     *zap.Logger
 }
@@ -34,19 +35,31 @@ func NewMailerClient(postmarkServerToken string, logger *zap.Logger) MailerClien
 	restClient.SetHeader("X-Postmark-Server-Token", postmarkServerToken)
 	restClient.SetDebug(true)
 
-	emailClient := emailClient{
+	client := EmailClient{
 		RESTClient: restClient,
 		logger:     logger,
 	}
-
-	return &emailClient
+	return &client
 }
 
-func (c *emailClient) SendEmailWithTemplate(message models.Message) error {
+func (c *EmailClient) SendEmailWithTemplate(message models.Message) error {
+	if c.RESTClient != nil {
+		c.logger.Info("RESTClient is initialized")
+	} else {
+		c.logger.Error("RESTClient is not initialized")
+	}
+
+	if c.RESTClient == nil {
+		return fmt.Errorf("RESTClient is not initialized")
+	}
+
+	if c.logger == nil {
+		return fmt.Errorf("logger is not initialized")
+	}
+
 	payload := map[string]interface{}{
 		"From":          fromLeeta,
 		"To":            message.Target,
-		"Subject":       message.Title,
 		"TemplateAlias": message.TemplateID,
 		"TemplateModel": message.DataMap,
 	}
@@ -65,7 +78,17 @@ func (c *emailClient) SendEmailWithTemplate(message models.Message) error {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
+	if resp == nil {
+		c.logger.Error("resp is nil")
+		return fmt.Errorf("resp is nil")
+	}
+
 	if resp.IsError() {
+		if resp.StatusCode() == http.StatusNotFound {
+			c.logger.Error("email template not found")
+			return fmt.Errorf("email template not found")
+		}
+
 		c.logger.Error("failed to send email", zap.Any("error", errorResponse))
 		return fmt.Errorf("failed to send email: %s", resp.Status())
 	}
