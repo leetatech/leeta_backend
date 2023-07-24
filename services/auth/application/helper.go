@@ -39,6 +39,7 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 					Address: request.Email,
 				},
 				Timestamp: timestamp,
+				Status:    models.SignedUp,
 			}
 			err = a.allRepository.AuthRepository.CreateVendor(vendor)
 			if err != nil {
@@ -145,6 +146,9 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
+
+	// TODO : Uncomment this code when when a decision is made to send email to vendor
+	// It is a security measure to send email to vendor when they login
 	//message := models.Message{
 	//	ID:         a.idGenerator.Generate(),
 	//	UserID:     vendor.ID,
@@ -152,13 +156,10 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 	//	TemplateID: library.EarlyAccessEmailTemplateID,
 	//	Ts:         time.Now().Unix(),
 	//}
-	//var wg sync.WaitGroup
-	//wg.Add(1)
 	//err = a.sendEmail(message)
 	//if err != nil {
 	//	return nil, err
 	//}
-	//wg.Wait()
 
 	return &domain.DefaultSigningResponse{
 		AuthToken: response,
@@ -214,8 +215,8 @@ func (a authAppHandler) resetPassword(customerID, firstName, lastName, email, pa
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
 
-	//var wg sync.WaitGroup
-	//wg.Add(1)
+	// TODO : Uncomment this code when when a decision is made to send email to vendor
+	// It is a security measure to send email to user when password is reset
 	//message := models.Message{
 	//	ID:         a.idGenerator.Generate(),
 	//	Target:     email,
@@ -230,7 +231,6 @@ func (a authAppHandler) resetPassword(customerID, firstName, lastName, email, pa
 	//if err != nil {
 	//	return nil, err
 	//}
-	//wg.Wait()
 
 	return &domain.DefaultSigningResponse{AuthToken: response}, nil
 }
@@ -246,7 +246,6 @@ func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, er
 
 func (a authAppHandler) sendEmail(message models.Message) error {
 	var prepWg sync.WaitGroup
-	//defer wg.Done()
 
 	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
 	prepWg.Add(1)

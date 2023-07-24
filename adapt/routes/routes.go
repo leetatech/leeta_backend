@@ -8,6 +8,7 @@ import (
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
+	userInterfaces "github.com/leetatech/leeta_backend/services/user/interfaces"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
@@ -15,10 +16,11 @@ import (
 type AllHTTPHandlers struct {
 	Order *orderInterfaces.OrderHttpHandler
 	Auth  *authInterfaces.AuthHttpHandler
+	User  *userInterfaces.UserHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth}
+	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User}
 }
 
 func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *library.TokenHandler, error) {
@@ -36,11 +38,13 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 
 	orderRouter := buildOrderEndpoints(*interfaces.Order, tokenHandler)
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
+	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
 
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
 		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
+		r.Mount("/user", userRouter)
 	})
 
 	return router, tokenHandler, nil
@@ -71,5 +75,27 @@ func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *l
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/make_order", order.CreateOrder)
+	return router
+}
+
+func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+	router := chi.NewRouter()
+
+	router.Mount("/vendor", buildVendorEndpoints(user, tokenHandler))
+
+	return router
+}
+
+func buildVendorEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+	router := chi.NewRouter()
+
+	// authentication group here
+	router.Group(func(r chi.Router) {
+		r.Use(tokenHandler.ValidateMiddleware)
+		r.Post("/verification", user.VendorVerificationHandler)
+	})
+
+	// non-authentication group here
+
 	return router
 }

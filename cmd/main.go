@@ -19,6 +19,9 @@ import (
 // @license.name	Apache 3.0-or-later
 // @host			localhost:3000
 // @BasePath		/api
+// @securityDefinitions.apikey BearerToken
+// @in header
+// @name authorization
 func main() {
 	appLogger := logger.New()
 

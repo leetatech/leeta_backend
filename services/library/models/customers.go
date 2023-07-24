@@ -1,22 +1,23 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
+)
 
 type Vendor struct {
-	ID              string    `json:"id" bson:"id"`
-	FirstName       string    `json:"first_name" bson:"first_name"`
-	LastName        string    `json:"last_name" bson:"last_name"`
-	Dob             string    `json:"dob" bson:"dob"`
-	Addresses       []Address `json:"addresses" bson:"addresses"`
-	Phones          []Phone   `json:"phones" bson:"phones"`
-	Email           Email     `json:"email" bson:"email"`
-	HasPIN          bool      `json:"has_pin" bson:"has_pin"`
-	PinBlocked      bool      `json:"pin_blocked" bson:"pin_blocked"`
-	IsBlocked       bool      `json:"is_blocked" bson:"is_blocked"`
-	BlockedReason   string    `json:"is_blocked_reason" bson:"is_blocked_reason"`
-	Status          Statuses  `json:"status" bson:"status"`
-	StatusTimeStamp int64     `json:"status_ts" bson:"status_ts"`
-	Timestamp       int64     `json:"ts" bson:"ts"`
+	ID              string   `json:"id" bson:"id"`
+	FirstName       string   `json:"first_name" bson:"first_name"`
+	LastName        string   `json:"last_name" bson:"last_name"`
+	Dob             string   `json:"dob" bson:"dob"`
+	Email           Email    `json:"email" bson:"email"`
+	HasPIN          bool     `json:"has_pin" bson:"has_pin"`
+	PinBlocked      bool     `json:"pin_blocked" bson:"pin_blocked"`
+	IsBlocked       bool     `json:"is_blocked" bson:"is_blocked"`
+	BlockedReason   string   `json:"is_blocked_reason" bson:"is_blocked_reason"`
+	Status          Statuses `json:"status" bson:"status"`
+	StatusTimeStamp int64    `json:"status_ts" bson:"status_ts"`
+	Timestamp       int64    `json:"ts" bson:"ts"`
 } // @name Vendor
 
 // Phone model
@@ -34,12 +35,12 @@ type Email struct {
 
 // Address model
 type Address struct {
-	State       string `json:"state" bson:"state"`
-	City        string `json:"city" bson:"city"`
-	Street      string `json:"street" bson:"street"`
-	LGA         string `json:"lga" bson:"lga"`
-	FullAddress string `json:"full_address" bson:"full_address"`
-	Verified    bool   `json:"verified" bson:"verified"`
+	State           string `json:"state" bson:"state"`
+	City            string `json:"city" bson:"city"`
+	LGA             string `json:"lga" bson:"lga"`
+	FullAddress     string `json:"full_address" bson:"full_address"`
+	ClosestLandmark string `json:"closest_landmark" bson:"closest_landmark"`
+	Verified        bool   `json:"verified" bson:"verified"`
 } // @name Address
 
 // Business - vendor business
@@ -50,8 +51,8 @@ type Business struct {
 	CAC             string           `json:"cac" bson:"cac"`
 	Category        BusinessCategory `json:"category" bson:"category"`
 	Description     string           `json:"description" bson:"description"`
-	Phone           Phone            `json:"phone" bson:"phone"`
-	Address         Address          `json:"address" bson:"address"`
+	Phone           []Phone          `json:"phone" bson:"phone"`
+	Address         []Address        `json:"address" bson:"address"`
 	Status          Statuses         `json:"status" bson:"status"`
 	StatusTimeStamp int64            `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64            `json:"ts" bson:"ts"`
@@ -82,16 +83,16 @@ const (
 	LNG BusinessCategory = "LPG"
 )
 
-func IsValidOnboardingStatuses(status Statuses) bool {
+func IsValidStatuses(status Statuses) bool {
 	return status == SignedUp || status == Registered || status == Verified || status == Onboarded || status == Rejected || status == Exited || status == Locked
 }
 
-func SetIsValidOnboardingStatuses(status Statuses) (Statuses, error) {
-	switch IsValidOnboardingStatuses(status) {
+func SetIsValidStatuses(status Statuses) (Statuses, error) {
+	switch IsValidStatuses(status) {
 	case true:
 		return status, nil
 	default:
-		return "", errors.New("invalid onboarding status")
+		return "", leetError.ErrorResponseBody(leetError.BusinessCategoryError, errors.New("invalid business category"))
 	}
 }
 
@@ -104,6 +105,6 @@ func SetBusinessCategory(category BusinessCategory) (BusinessCategory, error) {
 	case true:
 		return category, nil
 	default:
-		return "", errors.New("invalid business category")
+		return "", leetError.ErrorResponseBody(leetError.BusinessCategoryError, errors.New("invalid business category"))
 	}
 }

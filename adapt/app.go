@@ -13,6 +13,9 @@ import (
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
+	userApplication "github.com/leetatech/leeta_backend/services/user/application"
+	userInfrastructure "github.com/leetatech/leeta_backend/services/user/infrastructure"
+	userInterface "github.com/leetatech/leeta_backend/services/user/interfaces"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
@@ -57,7 +60,7 @@ func New(logger *zap.Logger) (*Application, error) {
 
 	app.EmailClient = mailer.NewMailerClient(app.Config.Postmark.Key, app.Logger)
 
-	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey)
+	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -101,10 +104,12 @@ func (app *Application) buildConfig() (*ServerConfig, error) {
 func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 
 	allRepositories := library.Repositories{
 		OrderRepository: orderPersistence,
 		AuthRepository:  authPersistence,
+		UserRepository:  userPersistence,
 	}
 	app.Repositories = allRepositories
 	request := library.DefaultApplicationRequest{
@@ -116,13 +121,16 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 
 	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)
 	authApplications := authApplication.NewAuthApplication(request)
+	userApplications := userApplication.NewUserApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
+	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
 
 	allInterfaces := routes.AllHTTPHandlers{
 		Order: orderInterfaces,
 		Auth:  authInterfaces,
+		User:  userInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }
