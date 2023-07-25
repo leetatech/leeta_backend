@@ -32,8 +32,8 @@ type DatabaseConfig struct {
 }
 
 type PostmarkConfig struct {
-	URL string `env:"POSTMARK_URL" envDefault:"https://api.postmarkapp.com"`
-	Key string `env:"POSTMARK_KEY" envDefault:"e5b61c88-7185-4f34-aaac-81c5c3c6fd2c"`
+	URL string `env:"POSTMARK_URL"`
+	Key string `env:"POSTMARK_KEY"`
 }
 
 func Read(logger zap.Logger) (*ServerConfig, error) {
@@ -91,5 +91,13 @@ func overrideWithCommandLine(serverConfig ServerConfig) {
 
 	if publicKey := os.Getenv("PUBLIC_KEY"); publicKey != "" {
 		serverConfig.PublicKey = publicKey
+	}
+
+	if postmarkURL := os.Getenv("POSTMARK_URL"); postmarkURL != "" {
+		serverConfig.Postmark.URL = postmarkURL
+	}
+
+	if postmarkKey := os.Getenv("POSTMARK_KEY"); postmarkKey != "" {
+		serverConfig.Postmark.Key = postmarkKey
 	}
 }
