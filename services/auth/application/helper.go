@@ -3,10 +3,12 @@ package application
 import (
 	"errors"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
+	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+	"sync"
 	"time"
 )
 
@@ -68,15 +70,8 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			requestOTP := domain.OTPRequest{
-				Topic:        "Sign Up",
-				Type:         models.EMAIL,
-				Target:       request.Email,
-				UserCategory: models.VendorCategory,
-			}
-			_, err = a.CreateOTP(requestOTP)
+			err = a.accountVerification(vendor.ID, vendor.Email.Address, vendor.FirstName, vendor.LastName)
 			if err != nil {
-				a.logger.Error("SignUp", zap.Any("CreateOTP", err))
 				return nil, err
 			}
 
@@ -89,6 +84,36 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 
 	a.logger.Error("vendorSignUP", zap.Error(leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)))
 	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)
+}
+
+func (a authAppHandler) accountVerification(userID, target, firstName, lastName string) error {
+	requestOTP := domain.OTPRequest{
+		Topic:        "Sign Up",
+		Type:         models.EMAIL,
+		Target:       target,
+		UserCategory: models.VendorCategory,
+	}
+	otpResponse, err := a.CreateOTP(requestOTP)
+	if err != nil {
+		a.logger.Error("SignUp", zap.Any("CreateOTP", err))
+		return err
+	}
+
+	message := models.Message{
+		ID:         a.idGenerator.Generate(),
+		UserID:     userID,
+		Target:     target,
+		TemplateID: library.SignUpEmailTemplateID,
+		DataMap: map[string]string{
+			"OTP": otpResponse.Message,
+		},
+		Ts: time.Now().Unix(),
+	}
+	err = a.sendEmail(message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
@@ -120,6 +145,19 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
+	// TODO : Uncomment this code when when a decision is made to send email to vendor
+	// It is a security measure to send email to vendor when they login
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	UserID:     vendor.ID,
+	//	Target:     vendor.Email.Address,
+	//	TemplateID: library.EarlyAccessEmailTemplateID,
+	//	Ts:         time.Now().Unix(),
+	//}
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return &domain.DefaultSigningResponse{
 		AuthToken: response,
@@ -150,7 +188,7 @@ func (a authAppHandler) processLoginPasswordValidation(request domain.SigningReq
 	return leetError.ErrorResponseBody(leetError.CredentialsValidationError, errors.New("credential type is not login"))
 }
 
-func (a authAppHandler) resetPassword(customerID, email, passcode string, userCategory models.UserCategory) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) resetPassword(customerID, firstName, lastName, email, passcode string, userCategory models.UserCategory) (*domain.DefaultSigningResponse, error) {
 
 	hashedPasscode, err := a.passwordValidationEncryption(passcode)
 	if err != nil {
@@ -175,5 +213,49 @@ func (a authAppHandler) resetPassword(customerID, email, passcode string, userCa
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
 
+	// TODO : Uncomment this code when when a decision is made to send email to vendor
+	// It is a security measure to send email to user when password is reset
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	Target:     email,
+	//	TemplateID: library.ResetPasswordEmailTemplateID,
+	//	DataMap: map[string]string{
+	//		"FirstName": firstName,
+	//		"LastName":  lastName,
+	//	},
+	//	Ts: time.Now().Unix(),
+	//}
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return nil, err
+	//}
+
 	return &domain.DefaultSigningResponse{AuthToken: response}, nil
+}
+
+func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, errChan chan<- error) {
+	defer wg.Done()
+	err := a.EmailClient.SendEmailWithTemplate(message)
+	if err != nil {
+		a.logger.Error("sendEmail", zap.Error(leetError.ErrorResponseBody(leetError.EmailSendingError, err)))
+		errChan <- err
+	}
+}
+
+func (a authAppHandler) sendEmail(message models.Message) error {
+	var prepWg sync.WaitGroup
+	//defer wg.Done()
+
+	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
+	prepWg.Add(1)
+	go a.prepEmail(message, &prepWg, errChan)
+	prepWg.Wait()
+
+	select {
+	case err := <-errChan:
+		a.logger.Error("sendEmail", zap.Error(leetError.ErrorResponseBody(leetError.EmailSendingError, err)))
+		return err
+	default:
+		return nil
+	}
 }

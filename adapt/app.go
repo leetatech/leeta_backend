@@ -9,6 +9,7 @@ import (
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/mailer"
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
@@ -26,6 +27,7 @@ type Application struct {
 	Db           *mongo.Client
 	Ctx          context.Context
 	Router       *chi.Mux
+	EmailClient  mailer.MailerClient
 	Repositories library.Repositories
 }
 
@@ -46,13 +48,14 @@ func New(logger *zap.Logger) (*Application, error) {
 
 	//build application clients
 	app.Db = app.buildMongoClient(ctx)
-
 	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
 		app.Logger.Info("msg", zap.String("msg", "failed to ping to database"))
 		log.Fatal(err)
 	}
 
 	//defer app.db.Disconnect(ctx)
+
+	app.EmailClient = mailer.NewMailerClient(app.Config.Postmark.Key, app.Logger)
 
 	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey)
 	if err != nil {
@@ -68,6 +71,7 @@ func New(logger *zap.Logger) (*Application, error) {
 	app.Router = router
 
 	app.Ctx = ctx
+
 	return &app, nil
 }
 
@@ -103,9 +107,15 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 		AuthRepository:  authPersistence,
 	}
 	app.Repositories = allRepositories
+	request := library.DefaultApplicationRequest{
+		TokenHandler:  tokenHandler,
+		Logger:        app.Logger,
+		AllRepository: allRepositories,
+		EmailClient:   app.EmailClient,
+	}
 
 	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)
-	authApplications := authApplication.NewAuthApplication(tokenHandler, app.Logger, allRepositories)
+	authApplications := authApplication.NewAuthApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)

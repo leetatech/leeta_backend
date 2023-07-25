@@ -6,6 +6,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"github.com/leetatech/leeta_backend/services/library/mailer"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.uber.org/zap"
 	"time"
@@ -17,6 +18,7 @@ type authAppHandler struct {
 	idGenerator   library.IDGenerator
 	otpGenerator  library.OtpGenerator
 	logger        *zap.Logger
+	EmailClient   mailer.MailerClient
 	allRepository library.Repositories
 }
 
@@ -30,14 +32,15 @@ type AuthApplication interface {
 	ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
 }
 
-func NewAuthApplication(tokenHandler library.TokenHandler, logger *zap.Logger, allRepository library.Repositories) AuthApplication {
+func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
 	return &authAppHandler{
-		tokenHandler:  tokenHandler,
+		tokenHandler:  request.TokenHandler,
 		encryptor:     library.NewEncryptor(),
 		idGenerator:   library.NewIDGenerator(),
 		otpGenerator:  library.NewOTPGenerator(),
-		logger:        logger,
-		allRepository: allRepository,
+		logger:        request.Logger,
+		EmailClient:   request.EmailClient,
+		allRepository: request.AllRepository,
 	}
 }
 
@@ -60,7 +63,6 @@ func (a authAppHandler) SignUp(request domain.SigningRequest) (*domain.DefaultSi
 		return a.vendorSignUP(request)
 	}
 
-	// TODO: send email to user
 	return nil, nil
 }
 
@@ -82,7 +84,7 @@ func (a authAppHandler) CreateOTP(request domain.OTPRequest) (*library.DefaultRe
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
+	return &library.DefaultResponse{Success: "success", Message: otpResponse.Code}, nil
 }
 
 func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error) {
@@ -93,7 +95,16 @@ func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.Defaul
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	// TODO: send email to user
+	message := models.Message{
+		ID:         a.idGenerator.Generate(),
+		Target:     request.Email,
+		TemplateID: library.EarlyAccessEmailTemplateID,
+		Ts:         time.Now().Unix(),
+	}
+	err = a.sendEmail(message)
+	if err != nil {
+		return nil, err
+	}
 
 	return &library.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
 }
@@ -108,7 +119,6 @@ func (a authAppHandler) SignIn(request domain.SigningRequest) (*domain.DefaultSi
 		return a.vendorSignIN(request)
 	}
 
-	// TODO: send email to user
 	return nil, nil
 }
 
@@ -117,13 +127,16 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 	if err != nil {
 		return nil, err
 	}
+	var firstName, lastName string
 	switch category {
 	case models.VendorCategory:
-		_, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
 		if err != nil {
 			a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 		}
+		firstName = vendor.FirstName
+		lastName = vendor.LastName
 	}
 
 	requestOTP := domain.OTPRequest{
@@ -133,12 +146,26 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 		UserCategory: request.UserCategory,
 	}
 
-	_, err = a.CreateOTP(requestOTP)
+	otpResponse, err := a.CreateOTP(requestOTP)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: send email to user
+	message := models.Message{
+		ID:         a.idGenerator.Generate(),
+		Target:     request.Email,
+		TemplateID: library.ForgotPasswordEmailTemplateID,
+		DataMap: map[string]string{
+			"FirstName": firstName,
+			"LastName":  lastName,
+			"OTP":       otpResponse.Message,
+		},
+		Ts: time.Now().Unix(),
+	}
+	err = a.sendEmail(message)
+	if err != nil {
+		return nil, err
+	}
 
 	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
 }
@@ -176,8 +203,6 @@ func (a authAppHandler) ValidateOTP(request domain.OTPValidationRequest) (*libra
 		return nil, err
 	}
 
-	// TODO: send email to user
-
 	return &library.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
 }
 
@@ -201,7 +226,7 @@ func (a authAppHandler) ResetPassword(request domain.ResetPasswordRequest) (*dom
 			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 		}
 
-		return a.resetPassword(vendor.ID, vendor.Email.Address, request.Password, request.UserCategory)
+		return a.resetPassword(vendor.ID, vendor.FirstName, vendor.LastName, vendor.Email.Address, request.Password, request.UserCategory)
 	}
 
 	return nil, nil
