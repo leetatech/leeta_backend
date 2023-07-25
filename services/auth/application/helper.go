@@ -146,6 +146,19 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
+	// TODO : Uncomment this code when when a decision is made to send email to vendor
+	// It is a security measure to send email to vendor when they login
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	UserID:     vendor.ID,
+	//	Target:     vendor.Email.Address,
+	//	TemplateID: library.EarlyAccessEmailTemplateID,
+	//	Ts:         time.Now().Unix(),
+	//}
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// TODO : Uncomment this code when when a decision is made to send email to vendor
 	// It is a security measure to send email to vendor when they login
