@@ -5,4 +5,5 @@ const (
 	VendorCollectionName        = "vendor"
 	VerificationsCollectionName = "verifications"
 	EarlyAccessCollectionName   = "early_access"
+	BusinessCollectionName      = "business"
 )

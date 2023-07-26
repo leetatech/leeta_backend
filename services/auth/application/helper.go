@@ -39,6 +39,7 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 					Address: request.Email,
 				},
 				Timestamp: timestamp,
+				Status:    models.SignedUp,
 			}
 			err = a.allRepository.AuthRepository.CreateVendor(vendor)
 			if err != nil {
@@ -159,6 +160,20 @@ func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.Def
 	//	return nil, err
 	//}
 
+	// TODO : Uncomment this code when when a decision is made to send email to vendor
+	// It is a security measure to send email to vendor when they login
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	UserID:     vendor.ID,
+	//	Target:     vendor.Email.Address,
+	//	TemplateID: library.EarlyAccessEmailTemplateID,
+	//	Ts:         time.Now().Unix(),
+	//}
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return nil, err
+	//}
+
 	return &domain.DefaultSigningResponse{
 		AuthToken: response,
 	}, nil
@@ -244,7 +259,6 @@ func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, er
 
 func (a authAppHandler) sendEmail(message models.Message) error {
 	var prepWg sync.WaitGroup
-	//defer wg.Done()
 
 	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
 	prepWg.Add(1)

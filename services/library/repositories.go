@@ -2,6 +2,7 @@ package library
 
 import (
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"
@@ -25,3 +26,7 @@ type DefaultApplicationRequest struct {
 	AllRepository Repositories
 	EmailClient   mailer.MailerClient
 }
+
+type DefaultErrorResponse struct {
+	Data leetError.ErrorResponse `json:"data"`
+} // @name DefaultErrorResponse

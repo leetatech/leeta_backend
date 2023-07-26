@@ -7,9 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ type UserClaims struct {
 type TokenHandler struct {
 	publicKey  *rsa.PublicKey
 	privateKey *rsa.PrivateKey
+	logger     *zap.Logger
 }
 
 type TokenManager interface {
@@ -38,11 +40,11 @@ var _ TokenManager = &TokenHandler{}
 
 var AuthenticatedUserMetadataKey = "AuthenticatedUser"
 
-func NewMiddlewares(publicKey, privateKey string) (*TokenHandler, error) {
-	return generateKey(publicKey, privateKey)
+func NewMiddlewares(publicKey, privateKey string, logger *zap.Logger) (*TokenHandler, error) {
+	return generateKey(publicKey, privateKey, logger)
 }
 
-func generateKey(publicKey, privateKey string) (*TokenHandler, error) {
+func generateKey(publicKey, privateKey string, logger *zap.Logger) (*TokenHandler, error) {
 	tokenGeneratorPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse public key: %w", err)
@@ -54,6 +56,7 @@ func generateKey(publicKey, privateKey string) (*TokenHandler, error) {
 	return &TokenHandler{
 		publicKey:  tokenGeneratorPublicKey,
 		privateKey: tokenGeneratorPrivateKey,
+		logger:     logger,
 	}, nil
 }
 
@@ -87,17 +90,11 @@ func (handler *TokenHandler) ParseToken(signedTokenString string) (*UserClaims, 
 		if t.Method.Alg() != jwt.SigningMethodRS256.Alg() {
 			return nil, errors.New("invalid signing algorithm")
 		}
-
-		_, ok := t.Header["kid"].(string)
-		if !ok {
-			return nil, errors.New("invalid key ID")
-		}
 		return handler.publicKey, nil
 	})
 	if err != nil {
 		return nil, err
 	}
-
 	if !t.Valid {
 		return nil, errors.New("invalid token")
 	}
@@ -118,29 +115,43 @@ func (handler *TokenHandler) ValidateMiddleware(next http.Handler) http.Handler 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorizationHeader := r.Header.Get("authorization")
 		if authorizationHeader != "" {
-			bearerToken := strings.Split(authorizationHeader, " ")
-			if len(bearerToken) == 2 {
-				if bearerToken[1] == "" {
-					log.Println("no token supplied")
-					next.ServeHTTP(w, r)
-					return
-				}
-
-				token, err := handler.ParseToken(bearerToken[1])
-				if err != nil {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				ctx, _ := handler.putClaimsOnContext(r.Context(), token)
-				next.ServeHTTP(w, r.WithContext(ctx))
-
-			}
+			handler.validateHeaderToken(authorizationHeader, next, w, r)
 		} else {
-			w.WriteHeader(http.StatusUnauthorized)
+			handler.logger.Error("ParseToken", zap.Error(errors.New("no token supplied")))
+			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
 			return
 		}
 
 	})
+}
+
+func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, next http.Handler, w http.ResponseWriter, r *http.Request) {
+	bearerToken := strings.Split(authorizationHeader, " ")
+	if len(bearerToken) == 1 {
+		handler.logger.Error("bearerToken", zap.Error(errors.New("no token supplied")))
+		EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
+	}
+
+	if len(bearerToken) == 2 {
+		if bearerToken[1] == "" {
+			handler.logger.Error("bearerToken", zap.Error(errors.New("token is empty")))
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		token, err := handler.ParseToken(bearerToken[1])
+		if err != nil {
+
+			handler.logger.Error("ParseToken", zap.Error(err))
+			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err), http.StatusUnauthorized)
+
+			return
+		}
+		ctx, _ := handler.putClaimsOnContext(r.Context(), token)
+		next.ServeHTTP(w, r.WithContext(ctx))
+
+	}
+
 }
 
 // GetClaimsFromCtx returns claims from an authenticated user

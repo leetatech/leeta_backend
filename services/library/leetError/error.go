@@ -26,6 +26,9 @@ const (
 	TokenValidationError       ErrorCode = 1014
 	UserCategoryError          ErrorCode = 1015
 	EmailSendingError          ErrorCode = 1016
+	BusinessCategoryError      ErrorCode = 1017
+	StatusesError              ErrorCode = 1018
+	ErrorUnauthorized          ErrorCode = 1019
 )
 
 var (
@@ -46,6 +49,9 @@ var (
 		TokenValidationError:       "TokenValidationError",
 		UserCategoryError:          "UserCategoryError",
 		EmailSendingError:          "EmailSendingError",
+		BusinessCategoryError:      "BusinessCategoryError",
+		StatusesError:              "StatusesError",
+		ErrorUnauthorized:          "ErrorUnauthorized",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -65,6 +71,9 @@ var (
 		TokenValidationError:       "An error occurred because the token is invalid | validated | expired",
 		UserCategoryError:          "An error occurred because the user category is invalid",
 		EmailSendingError:          "An error occurred while sending email",
+		BusinessCategoryError:      "An error occurred because the business category is invalid",
+		StatusesError:              "An error occurred because the statuses are invalid",
+		ErrorUnauthorized:          "An error occurred because the user is unauthorized",
 	}
 )
 
