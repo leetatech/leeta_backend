@@ -7,18 +7,34 @@ import (
 
 type Vendor struct {
 	ID              string   `json:"id" bson:"id"`
+	Identification  string   `json:"identification" bson:"identification"`
 	FirstName       string   `json:"first_name" bson:"first_name"`
 	LastName        string   `json:"last_name" bson:"last_name"`
-	Dob             string   `json:"dob" bson:"dob"`
 	Email           Email    `json:"email" bson:"email"`
 	HasPIN          bool     `json:"has_pin" bson:"has_pin"`
 	PinBlocked      bool     `json:"pin_blocked" bson:"pin_blocked"`
 	IsBlocked       bool     `json:"is_blocked" bson:"is_blocked"`
 	BlockedReason   string   `json:"is_blocked_reason" bson:"is_blocked_reason"`
+	AdminID         string   `json:"admin_id" bson:"admin_id"`
 	Status          Statuses `json:"status" bson:"status"`
 	StatusTimeStamp int64    `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64    `json:"ts" bson:"ts"`
 } // @name Vendor
+
+type Admin struct {
+	ID              string   `json:"id" bson:"id"`
+	Email           string   `json:"email" bson:"email"`
+	FirstName       string   `json:"first_name" bson:"first_name"`
+	LastName        string   `json:"last_name" bson:"last_name"`
+	DOB             string   `json:"dob" bson:"dob"`
+	Address         Address  `json:"address" bson:"address"`
+	Phone           string   `json:"phone" bson:"phone"`
+	Department      string   `json:"department"`
+	Role            string   `json:"role"`
+	Status          Statuses `json:"status" bson:"status"`
+	StatusTimestamp int64    `json:"status_ts" bson:"status_ts"`
+	Timestamp       int64    `json:"ts" bson:"ts"`
+} // @name Admin
 
 // Phone model
 type Phone struct {
@@ -35,13 +51,20 @@ type Email struct {
 
 // Address model
 type Address struct {
-	State           string `json:"state" bson:"state"`
-	City            string `json:"city" bson:"city"`
-	LGA             string `json:"lga" bson:"lga"`
-	FullAddress     string `json:"full_address" bson:"full_address"`
-	ClosestLandmark string `json:"closest_landmark" bson:"closest_landmark"`
-	Verified        bool   `json:"verified" bson:"verified"`
+	State           string      `json:"state" bson:"state"`
+	City            string      `json:"city" bson:"city"`
+	LGA             string      `json:"lga" bson:"lga"`
+	FullAddress     string      `json:"full_address" bson:"full_address"`
+	ClosestLandmark string      `json:"closest_landmark" bson:"closest_landmark"`
+	Coordinates     Coordinates `json:"coordinate" bson:"coordinate"`
+	Verified        bool        `json:"verified" bson:"verified"`
 } // @name Address
+
+// Coordinates model
+type Coordinates struct {
+	Latitude  float64 `json:"latitude" bson:"latitude"`
+	Longitude float64 `json:"longitude" bson:"longitude"`
+} // @name Coordinates
 
 // Business - vendor business
 type Business struct {

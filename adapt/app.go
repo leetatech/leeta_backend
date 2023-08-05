@@ -117,6 +117,7 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 		Logger:        app.Logger,
 		AllRepository: allRepositories,
 		EmailClient:   app.EmailClient,
+		Domain:        app.Config.Leeta.Domain,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)

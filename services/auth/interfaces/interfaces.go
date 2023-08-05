@@ -197,3 +197,28 @@ func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *h
 
 	library.EncodeResult(w, response, http.StatusOK)
 }
+
+// AdminSignUpHandler godoc
+// @Summary Admin Sign Up
+// @Description The endpoint allows admins to sign up
+// @Tags Session
+// @Accept json
+// @Produce json
+// @Param domain.AdminSignUpRequest body domain.AdminSignUpRequest true "admin sign up request body"
+// @Success 200 {object} domain.DefaultSigningResponse
+// @Router /session/signup [post]
+func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.AdminSignUpRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	token, err := handler.AuthApplication.AdminSignUp(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	library.EncodeResult(w, token, http.StatusOK)
+
+}

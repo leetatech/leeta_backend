@@ -25,6 +25,7 @@ type DefaultApplicationRequest struct {
 	Logger        *zap.Logger
 	AllRepository Repositories
 	EmailClient   mailer.MailerClient
+	Domain        string
 }
 
 type DefaultErrorResponse struct {

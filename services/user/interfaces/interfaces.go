@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/user/application"
-	"github.com/leetatech/leeta_backend/services/user/domain"
 	"net/http"
 )
 
@@ -31,14 +30,49 @@ func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHa
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /user/vendor/verification [post]
 func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter, r *http.Request) {
-	var verificationRequest domain.VendorVerificationRequest
-	err := json.NewDecoder(r.Body).Decode(&verificationRequest)
+	request, err := checkFormFileSpecification(r)
+	if err != nil {
+		return
+	}
+	err = json.NewDecoder(r.Body).Decode(request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	token, err := handler.UserApplication.VendorVerification(r.Context(), verificationRequest)
+	token, err := handler.UserApplication.VendorVerification(r.Context(), *request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	library.EncodeResult(w, token, http.StatusOK)
+}
+
+// AddVendorByAdminHandler godoc
+// @Summary Admin adds vendor and business
+// @Description The endpoint allows the admin to add a vendor and their business
+// @Tags user/admin/vendor
+// @Accept json
+// @Produce json
+// @Param domain.VendorVerificationRequest body domain.VendorVerificationRequest true "vendor verification request body"
+// @Security BearerToken
+// @Success 200 {object} library.DefaultResponse
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /user/admin/vendor [post]
+func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := checkFormFileSpecification(r)
+	if err != nil {
+		return
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	token, err := handler.UserApplication.AddVendorByAdmin(r.Context(), *request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

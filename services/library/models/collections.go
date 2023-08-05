@@ -6,4 +6,5 @@ const (
 	VerificationsCollectionName = "verifications"
 	EarlyAccessCollectionName   = "early_access"
 	BusinessCollectionName      = "business"
+	AdminCollectionName         = "admin"
 )

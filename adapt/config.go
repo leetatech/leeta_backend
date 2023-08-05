@@ -19,6 +19,7 @@ type ServerConfig struct {
 	PrivateKey string `env:"PRIVATE_KEY"`
 	PublicKey  string `env:"PUBLIC_KEY"`
 	Postmark   PostmarkConfig
+	Leeta      LeetaConfig
 }
 
 type DatabaseConfig struct {
@@ -36,10 +37,14 @@ type PostmarkConfig struct {
 	Key string `env:"POSTMARK_KEY"`
 }
 
+type LeetaConfig struct {
+	Domain string `env:"DOMAIN"`
+}
+
 func Read(logger zap.Logger) (*ServerConfig, error) {
 	var serverConfig ServerConfig
 
-	if err := godotenv.Load("../local.env"); err != nil {
+	if err := godotenv.Load("../personal.env"); err != nil {
 		return nil, err
 	}
 
@@ -47,6 +52,7 @@ func Read(logger zap.Logger) (*ServerConfig, error) {
 		&serverConfig,
 		&serverConfig.Database,
 		&serverConfig.Postmark,
+		&serverConfig.Leeta,
 		//&serverConfig.Security,
 	} {
 		if err := env.Parse(target); err != nil {
