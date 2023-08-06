@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"encoding/json"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/user/application"
 	"net/http"
@@ -34,11 +33,6 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 	if err != nil {
 		return
 	}
-	err = json.NewDecoder(r.Body).Decode(request)
-	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
 
 	token, err := handler.UserApplication.VendorVerification(r.Context(), *request)
 	if err != nil {
@@ -63,12 +57,6 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileSpecification(r)
 	if err != nil {
-		return
-	}
-
-	err = json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 

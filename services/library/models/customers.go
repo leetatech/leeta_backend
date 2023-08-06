@@ -7,7 +7,7 @@ import (
 
 type Vendor struct {
 	ID              string   `json:"id" bson:"id"`
-	Identification  string   `json:"identification" bson:"identification"`
+	Identity        string   `json:"identity" bson:"identity"`
 	FirstName       string   `json:"first_name" bson:"first_name"`
 	LastName        string   `json:"last_name" bson:"last_name"`
 	Email           Email    `json:"email" bson:"email"`

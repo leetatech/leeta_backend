@@ -50,6 +50,7 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 
 	vendorUpdateRequest := domain.VendorDetailsUpdateRequest{
 		ID:        claims.UserID,
+		Identity:  request.Identity,
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
 		Status:    models.Registered,
@@ -99,6 +100,7 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 
 	vendor := models.Vendor{
 		ID:        u.idGenerator.Generate(),
+		Identity:  request.Identity,
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
 		AdminID:   claims.UserID,
