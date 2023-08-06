@@ -20,9 +20,24 @@ func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHa
 // @Summary Vendor Verification
 // @Description The endpoint allows the verification process of vendor
 // @Tags user/vendor
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param domain.VendorVerificationRequest body domain.VendorVerificationRequest true "vendor verification request body"
+// @Param first_name formData string true "First name of the vendor"
+// @Param last_name formData string true "Last name of the vendor"
+// @Param business_name formData string true "Business name of the vendor"
+// @Param cac formData string true "CAC number of the vendor"
+// @Param business_category formData string true "Business category of the vendor"
+// @Param description formData string true "Description of the vendor"
+// @Param primary_phone formData bool true "Is the primary phone number"
+// @Param phone_number formData string true "Phone number of the vendor"
+// @Param state formData string true "State of the vendor"
+// @Param city formData string true "City of the vendor"
+// @Param lga formData string true "Local Government Area of the vendor"
+// @Param full_address formData string true "Full address of the vendor"
+// @Param closest_landmark formData string true "Closest landmark to the vendor's location"
+// @Param latitude formData string true "Latitude of the vendor's location"
+// @Param longitude formData string true "Longitude of the vendor's location"
+// @Param image formData file true "Image of the vendor"
 // @Security BearerToken
 // @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
@@ -46,9 +61,24 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 // @Summary Admin adds vendor and business
 // @Description The endpoint allows the admin to add a vendor and their business
 // @Tags user/admin/vendor
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param domain.VendorVerificationRequest body domain.VendorVerificationRequest true "vendor verification request body"
+// @Param first_name formData string true "First name of the vendor"
+// @Param last_name formData string true "Last name of the vendor"
+// @Param business_name formData string true "Business name of the vendor"
+// @Param cac formData string true "CAC number of the vendor"
+// @Param business_category formData string true "Business category of the vendor"
+// @Param description formData string true "Description of the vendor"
+// @Param primary_phone formData bool true "Is the primary phone number"
+// @Param phone_number formData string true "Phone number of the vendor"
+// @Param state formData string true "State of the vendor"
+// @Param city formData string true "City of the vendor"
+// @Param lga formData string true "Local Government Area of the vendor"
+// @Param full_address formData string true "Full address of the vendor"
+// @Param closest_landmark formData string true "Closest landmark to the vendor's location"
+// @Param latitude formData string true "Latitude of the vendor's location"
+// @Param longitude formData string true "Longitude of the vendor's location"
+// @Param image formData file true "Image of the vendor"
 // @Security BearerToken
 // @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
