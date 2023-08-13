@@ -14,4 +14,6 @@ type AuthRepository interface {
 	GetOTPForValidation(target string) (*models.Verification, error)
 	ValidateOTP(verificationId string) error
 	UpdateCredential(customerID, password string) error
+	GetAdminByEmail(email string) (*models.Admin, error)
+	CreateAdmin(admin models.Admin) error
 }

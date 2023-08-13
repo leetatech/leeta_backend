@@ -19,6 +19,7 @@ type authAppHandler struct {
 	otpGenerator  library.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
+	Domain        string
 	allRepository library.Repositories
 }
 
@@ -30,6 +31,8 @@ type AuthApplication interface {
 	ForgotPassword(request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
 	ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error)
 	ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
+	AdminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
+	//AdminSignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 }
 
 func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
@@ -40,6 +43,7 @@ func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplicati
 		otpGenerator:  library.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
+		Domain:        request.Domain,
 		allRepository: request.AllRepository,
 	}
 }
@@ -117,6 +121,8 @@ func (a authAppHandler) SignIn(request domain.SigningRequest) (*domain.DefaultSi
 	switch category {
 	case models.VendorCategory:
 		return a.vendorSignIN(request)
+	case models.AdminCategory:
+		return a.adminSignIN(request)
 	}
 
 	return nil, nil
@@ -231,3 +237,39 @@ func (a authAppHandler) ResetPassword(request domain.ResetPasswordRequest) (*dom
 
 	return nil, nil
 }
+
+func (a authAppHandler) AdminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
+	err := a.encryptor.IsValidEmailFormat(request.Email)
+	if err != nil {
+		a.logger.Error("AdminSignUp", zap.Error(err))
+		return nil, err
+	}
+
+	err = a.encryptor.IsLeetaDomain(request.Email, a.Domain)
+	if err != nil {
+		a.logger.Error("AdminSignUp", zap.Error(err))
+		return nil, err
+	}
+
+	hashedPassword, err := a.passwordValidationEncryption(request.Password)
+	if err != nil {
+		a.logger.Error("Password Validation", zap.Error(err))
+		return nil, err
+	}
+	request.Password = hashedPassword
+
+	return a.adminSignUp(request)
+}
+
+//func (a authAppHandler) AdminSignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+//	category, err := models.SetUserCategory(request.UserType)
+//	if err != nil {
+//		return nil, err
+//	}
+//	switch category {
+//	case models.VendorCategory:
+//		return a.vendorSignIN(request)
+//	}
+//
+//	return nil, nil
+//}

@@ -8,4 +8,5 @@ const (
 	EarlyAccessEmailTemplateID    = "EarlyAccess"
 	ForgotPasswordEmailTemplateID = "ForgotPassword"
 	ResetPasswordEmailTemplateID  = "ResetPassword"
+	AdminSignUpEmailTemplateID    = "AdminSignUp"
 )

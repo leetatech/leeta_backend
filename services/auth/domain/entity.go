@@ -35,3 +35,15 @@ type ResetPasswordRequest struct {
 	ConfirmPassword string              `json:"confirm_password" bson:"confirm_password"`
 	UserCategory    models.UserCategory `json:"userCategory" bson:"user_category"`
 } // @name ResetPasswordRequest
+
+type AdminSignUpRequest struct {
+	Email      string         `json:"email"`
+	Password   string         `json:"password"`
+	FirstName  string         `json:"first_name"`
+	LastName   string         `json:"last_name"`
+	DOB        string         `json:"dob" bson:"dob"`
+	Address    models.Address `json:"address" bson:"address"`
+	Phone      string         `json:"phone" bson:"phone"`
+	Department string         `json:"department"`
+	Role       string         `json:"role"`
+} // @name AdminSignUpRequest

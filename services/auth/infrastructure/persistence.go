@@ -149,3 +149,32 @@ func (a authStoreHandler) UpdateCredential(customerID, password string) error {
 	}
 	return nil
 }
+
+func (a authStoreHandler) CreateAdmin(admin models.Admin) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := a.col(models.AdminCollectionName).InsertOne(ctx, admin)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a authStoreHandler) GetAdminByEmail(email string) (*models.Admin, error) {
+	admin := &models.Admin{}
+	filter := bson.M{
+		"email": email,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := a.col(models.AdminCollectionName).FindOne(ctx, filter).Decode(admin)
+	if err != nil {
+		return nil, err
+	}
+
+	return admin, nil
+}

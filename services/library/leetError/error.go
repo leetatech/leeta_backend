@@ -29,6 +29,10 @@ const (
 	BusinessCategoryError      ErrorCode = 1017
 	StatusesError              ErrorCode = 1018
 	ErrorUnauthorized          ErrorCode = 1019
+	EmailFormatError           ErrorCode = 1020
+	ValidEmailHostError        ErrorCode = 1021
+	ValidLeetaDomainError      ErrorCode = 1022
+	FormParseError             ErrorCode = 1023
 )
 
 var (
@@ -52,6 +56,10 @@ var (
 		BusinessCategoryError:      "BusinessCategoryError",
 		StatusesError:              "StatusesError",
 		ErrorUnauthorized:          "ErrorUnauthorized",
+		EmailFormatError:           "EmailFormatError",
+		ValidEmailHostError:        "ValidEmailHostError",
+		ValidLeetaDomainError:      "ValidLeetaDomainError",
+		FormParseError:             "FormParseError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -74,6 +82,10 @@ var (
 		BusinessCategoryError:      "An error occurred because the business category is invalid",
 		StatusesError:              "An error occurred because the statuses are invalid",
 		ErrorUnauthorized:          "An error occurred because the user is unauthorized",
+		EmailFormatError:           "An error occurred because the email format is invalid",
+		ValidEmailHostError:        "An error occurred because the domain does not exist or cannot receive emails",
+		ValidLeetaDomainError:      "An error occurred because the domain does not belong to leeta or cannot receive emails",
+		FormParseError:             "An error occurred because the form parse failed or file retrieval failed",
 	}
 )
 

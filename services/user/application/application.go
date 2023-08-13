@@ -23,6 +23,7 @@ type userAppHandler struct {
 
 type UserApplication interface {
 	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error)
+	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error)
 }
 
 func NewUserApplication(request library.DefaultApplicationRequest) UserApplication {
@@ -43,8 +44,13 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
+	if claims.Role != models.VendorCategory {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
 	vendorUpdateRequest := domain.VendorDetailsUpdateRequest{
 		ID:        claims.UserID,
+		Identity:  request.Identity,
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
 		Status:    models.Registered,
@@ -62,6 +68,58 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 	business := models.Business{
 		ID:          u.idGenerator.Generate(),
 		VendorID:    claims.UserID,
+		Name:        request.Name,
+		CAC:         request.CAC,
+		Category:    category,
+		Description: request.Description,
+		Phone:       request.Phone,
+		Address:     request.Address,
+		Status:      models.Registered,
+		Timestamp:   time.Now().Unix(),
+	}
+	err = u.allRepository.UserRepository.RegisterVendorBusiness(business)
+	if err != nil {
+		return nil, err
+	}
+
+	return &library.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
+}
+
+func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error) {
+	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+	if claims.Role != models.AdminCategory {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+	_, err = u.allRepository.AuthRepository.GetAdminByEmail(claims.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	vendor := models.Vendor{
+		ID:        u.idGenerator.Generate(),
+		Identity:  request.Identity,
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+		AdminID:   claims.UserID,
+		Status:    models.Registered,
+		Timestamp: time.Now().Unix(),
+	}
+	err = u.allRepository.AuthRepository.CreateVendor(vendor)
+	if err != nil {
+		return nil, err
+	}
+
+	category, err := models.SetBusinessCategory(request.Category)
+	if err != nil {
+		return nil, err
+	}
+
+	business := models.Business{
+		ID:          u.idGenerator.Generate(),
+		VendorID:    vendor.ID,
 		Name:        request.Name,
 		CAC:         request.CAC,
 		Category:    category,
