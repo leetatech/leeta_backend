@@ -1,0 +1,620 @@
+basePath: /api
+definitions:
+  Address:
+    properties:
+      city:
+        type: string
+      closest_landmark:
+        type: string
+      coordinate:
+        $ref: '#/definitions/Coordinates'
+      full_address:
+        type: string
+      lga:
+        type: string
+      state:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  AdminSignUpRequest:
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      department:
+        type: string
+      dob:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+    type: object
+  Coordinates:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+    type: object
+  DefaultErrorResponse:
+    properties:
+      data:
+        $ref: '#/definitions/leetError.ErrorResponse'
+    type: object
+  DefaultResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
+  DefaultSigningResponse:
+    properties:
+      auth_token:
+        type: string
+    type: object
+  EarlyAccess:
+    properties:
+      email:
+        type: string
+      ts:
+        type: integer
+    type: object
+  ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  OTPRequest:
+    properties:
+      target:
+        type: string
+      topic:
+        type: string
+      type:
+        $ref: '#/definitions/models.MessageDeliveryType'
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  OTPValidationRequest:
+    properties:
+      code:
+        type: string
+      target:
+        type: string
+    type: object
+  Order:
+    properties:
+      id:
+        type: string
+      source_account_id:
+        type: string
+      source_user_id:
+        type: string
+      status:
+        type: string
+      status_ts:
+        type: integer
+      ts:
+        type: string
+    type: object
+  ResetPasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  SigningRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      user_type:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  leetError.ErrorCode:
+    enum:
+    - 1001
+    - 1002
+    - 1003
+    - 1004
+    - 1005
+    - 1006
+    - 1007
+    - 1008
+    - 1009
+    - 1010
+    - 1011
+    - 1012
+    - 1013
+    - 1014
+    - 1015
+    - 1016
+    - 1017
+    - 1018
+    - 1019
+    - 1020
+    - 1021
+    - 1022
+    - 1023
+    type: integer
+    x-enum-varnames:
+    - DatabaseError
+    - DatabaseNoRecordError
+    - UnmarshalError
+    - MarshalError
+    - PasswordValidationError
+    - EncryptionError
+    - DecryptionError
+    - DuplicateUserError
+    - UserNotFoundError
+    - IdentityNotFoundError
+    - UserLockedError
+    - CredentialsValidationError
+    - TokenGenerationError
+    - TokenValidationError
+    - UserCategoryError
+    - EmailSendingError
+    - BusinessCategoryError
+    - StatusesError
+    - ErrorUnauthorized
+    - EmailFormatError
+    - ValidEmailHostError
+    - ValidLeetaDomainError
+    - FormParseError
+  leetError.ErrorResponse:
+    properties:
+      code:
+        $ref: '#/definitions/leetError.ErrorCode'
+      error_reference:
+        type: string
+      error_type:
+        type: string
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  models.MessageDeliveryType:
+    enum:
+    - SMS
+    - EMAIL
+    - PUSH
+    type: string
+    x-enum-varnames:
+    - SMS
+    - EMAIL
+    - PUSH
+  models.UserCategory:
+    enum:
+    - vendor
+    - buyer
+    - admin_leeta
+    type: string
+    x-enum-varnames:
+    - VendorCategory
+    - BuyerCategory
+    - AdminCategory
+host: localhost:3000
+info:
+  contact:
+    email: admin@getlleta.com
+    name: LEETA Technologies
+  description: LEETA Application backend documentation
+  license:
+    name: Apache 3.0-or-later
+  termsOfService: http://swagger.io/terms/
+  title: LEETA BACKEND API
+  version: "1.0"
+paths:
+  /order/make_order:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes a domain.Order request and creates a new order
+      parameters:
+      - description: create order request body
+        in: body
+        name: domain.Order
+        required: true
+        schema:
+          $ref: '#/definitions/Order'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Order'
+      summary: Create Order
+      tags:
+      - Order
+  /session/early_access:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for early access
+      parameters:
+      - description: request early access body
+        in: body
+        name: models.EarlyAccess
+        required: true
+        schema:
+          $ref: '#/definitions/EarlyAccess'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Early Access
+      tags:
+      - EarlyAccess
+  /session/forgot_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for password reset
+      parameters:
+      - description: request forgot password body
+        in: body
+        name: domain.ForgotPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Forgot Password
+      tags:
+      - Password
+  /session/otp/request:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows the generation of OTP
+      parameters:
+      - description: request otp body
+        in: body
+        name: domain.OTPRequest
+        required: true
+        schema:
+          $ref: '#/definitions/OTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: OTP Generation
+      tags:
+      - OTP
+  /session/otp/validate:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to validate OTP
+      parameters:
+      - description: request otp validation body
+        in: body
+        name: domain.OTPValidationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/OTPValidationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Validate OTP
+      tags:
+      - OTP
+  /session/reset_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to reset password
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.ResetPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Reset Password
+      tags:
+      - Password
+  /session/signin:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users, both vendors and buyers to sign in
+      parameters:
+      - description: user sign in request body
+        in: body
+        name: domain.SigningRequest
+        required: true
+        schema:
+          $ref: '#/definitions/SigningRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: User Sign In
+      tags:
+      - Session
+  /session/signup:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows admins to sign up
+      parameters:
+      - description: admin sign up request body
+        in: body
+        name: domain.AdminSignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AdminSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Admin Sign Up
+      tags:
+      - Session
+  /user/admin/vendor:
+    post:
+      consumes:
+      - multipart/form-data
+      description: The endpoint allows the admin to add a vendor and their business
+      parameters:
+      - description: First name of the vendor
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Last name of the vendor
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Business name of the vendor
+        in: formData
+        name: business_name
+        required: true
+        type: string
+      - description: CAC number of the vendor
+        in: formData
+        name: cac
+        required: true
+        type: string
+      - description: Business category of the vendor
+        in: formData
+        name: business_category
+        required: true
+        type: string
+      - description: Description of the vendor
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Is the primary phone number
+        in: formData
+        name: primary_phone
+        required: true
+        type: boolean
+      - description: Phone number of the vendor
+        in: formData
+        name: phone_number
+        required: true
+        type: string
+      - description: State of the vendor
+        in: formData
+        name: state
+        required: true
+        type: string
+      - description: City of the vendor
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Local Government Area of the vendor
+        in: formData
+        name: lga
+        required: true
+        type: string
+      - description: Full address of the vendor
+        in: formData
+        name: full_address
+        required: true
+        type: string
+      - description: Closest landmark to the vendor's location
+        in: formData
+        name: closest_landmark
+        required: true
+        type: string
+      - description: Latitude of the vendor's location
+        in: formData
+        name: latitude
+        required: true
+        type: string
+      - description: Longitude of the vendor's location
+        in: formData
+        name: longitude
+        required: true
+        type: string
+      - description: Image of the vendor
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Admin adds vendor and business
+      tags:
+      - user/admin/vendor
+  /user/vendor/verification:
+    post:
+      consumes:
+      - multipart/form-data
+      description: The endpoint allows the verification process of vendor
+      parameters:
+      - description: First name of the vendor
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Last name of the vendor
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Business name of the vendor
+        in: formData
+        name: business_name
+        required: true
+        type: string
+      - description: CAC number of the vendor
+        in: formData
+        name: cac
+        required: true
+        type: string
+      - description: Business category of the vendor
+        in: formData
+        name: business_category
+        required: true
+        type: string
+      - description: Description of the vendor
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Is the primary phone number
+        in: formData
+        name: primary_phone
+        required: true
+        type: boolean
+      - description: Phone number of the vendor
+        in: formData
+        name: phone_number
+        required: true
+        type: string
+      - description: State of the vendor
+        in: formData
+        name: state
+        required: true
+        type: string
+      - description: City of the vendor
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Local Government Area of the vendor
+        in: formData
+        name: lga
+        required: true
+        type: string
+      - description: Full address of the vendor
+        in: formData
+        name: full_address
+        required: true
+        type: string
+      - description: Closest landmark to the vendor's location
+        in: formData
+        name: closest_landmark
+        required: true
+        type: string
+      - description: Latitude of the vendor's location
+        in: formData
+        name: latitude
+        required: true
+        type: string
+      - description: Longitude of the vendor's location
+        in: formData
+        name: longitude
+        required: true
+        type: string
+      - description: Image of the vendor
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Vendor Verification
+      tags:
+      - user/vendor
+securityDefinitions:
+  BearerToken:
+    in: header
+    name: authorization
+    type: apiKey
+swagger: "2.0"

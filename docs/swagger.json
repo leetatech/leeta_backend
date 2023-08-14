@@ -1,0 +1,908 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "LEETA Application backend documentation",
+        "title": "LEETA BACKEND API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "LEETA Technologies",
+            "email": "admin@getlleta.com"
+        },
+        "license": {
+            "name": "Apache 3.0-or-later"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/api",
+    "paths": {
+        "/order/make_order": {
+            "post": {
+                "description": "The endpoint takes a domain.Order request and creates a new order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Create Order",
+                "parameters": [
+                    {
+                        "description": "create order request body",
+                        "name": "domain.Order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Order"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Order"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/early_access": {
+            "post": {
+                "description": "The endpoint allows users to request for early access",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "EarlyAccess"
+                ],
+                "summary": "Early Access",
+                "parameters": [
+                    {
+                        "description": "request early access body",
+                        "name": "models.EarlyAccess",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EarlyAccess"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/forgot_password": {
+            "post": {
+                "description": "The endpoint allows users to request for password reset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "request forgot password body",
+                        "name": "domain.ForgotPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/otp/request": {
+            "post": {
+                "description": "The endpoint allows the generation of OTP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "OTP Generation",
+                "parameters": [
+                    {
+                        "description": "request otp body",
+                        "name": "domain.OTPRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/OTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/otp/validate": {
+            "post": {
+                "description": "The endpoint allows users to validate OTP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Validate OTP",
+                "parameters": [
+                    {
+                        "description": "request otp validation body",
+                        "name": "domain.OTPValidationRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/OTPValidationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/reset_password": {
+            "post": {
+                "description": "The endpoint allows users to reset password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password"
+                ],
+                "summary": "Reset Password",
+                "parameters": [
+                    {
+                        "description": "request reset password body",
+                        "name": "domain.ResetPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/signin": {
+            "post": {
+                "description": "The endpoint allows users, both vendors and buyers to sign in",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "User Sign In",
+                "parameters": [
+                    {
+                        "description": "user sign in request body",
+                        "name": "domain.SigningRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/SigningRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/signup": {
+            "post": {
+                "description": "The endpoint allows admins to sign up",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Admin Sign Up",
+                "parameters": [
+                    {
+                        "description": "admin sign up request body",
+                        "name": "domain.AdminSignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminSignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/admin/vendor": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint allows the admin to add a vendor and their business",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user/admin/vendor"
+                ],
+                "summary": "Admin adds vendor and business",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "First name of the vendor",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last name of the vendor",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Business name of the vendor",
+                        "name": "business_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CAC number of the vendor",
+                        "name": "cac",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Business category of the vendor",
+                        "name": "business_category",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description of the vendor",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is the primary phone number",
+                        "name": "primary_phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number of the vendor",
+                        "name": "phone_number",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "State of the vendor",
+                        "name": "state",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "City of the vendor",
+                        "name": "city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Local Government Area of the vendor",
+                        "name": "lga",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full address of the vendor",
+                        "name": "full_address",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Closest landmark to the vendor's location",
+                        "name": "closest_landmark",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Latitude of the vendor's location",
+                        "name": "latitude",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Longitude of the vendor's location",
+                        "name": "longitude",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image of the vendor",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/vendor/verification": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint allows the verification process of vendor",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user/vendor"
+                ],
+                "summary": "Vendor Verification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "First name of the vendor",
+                        "name": "first_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last name of the vendor",
+                        "name": "last_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Business name of the vendor",
+                        "name": "business_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CAC number of the vendor",
+                        "name": "cac",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Business category of the vendor",
+                        "name": "business_category",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Description of the vendor",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is the primary phone number",
+                        "name": "primary_phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number of the vendor",
+                        "name": "phone_number",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "State of the vendor",
+                        "name": "state",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "City of the vendor",
+                        "name": "city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Local Government Area of the vendor",
+                        "name": "lga",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full address of the vendor",
+                        "name": "full_address",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Closest landmark to the vendor's location",
+                        "name": "closest_landmark",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Latitude of the vendor's location",
+                        "name": "latitude",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Longitude of the vendor's location",
+                        "name": "longitude",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image of the vendor",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Address": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "closest_landmark": {
+                    "type": "string"
+                },
+                "coordinate": {
+                    "$ref": "#/definitions/Coordinates"
+                },
+                "full_address": {
+                    "type": "string"
+                },
+                "lga": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "AdminSignUpRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "Coordinates": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                }
+            }
+        },
+        "DefaultErrorResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/leetError.ErrorResponse"
+                }
+            }
+        },
+        "DefaultResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "DefaultSigningResponse": {
+            "type": "object",
+            "properties": {
+                "auth_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "EarlyAccess": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "ts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ForgotPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "userCategory": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
+        "OTPRequest": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.MessageDeliveryType"
+                },
+                "userCategory": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
+        "OTPValidationRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "target": {
+                    "type": "string"
+                }
+            }
+        },
+        "Order": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "source_account_id": {
+                    "type": "string"
+                },
+                "source_user_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "ts": {
+                    "type": "string"
+                }
+            }
+        },
+        "ResetPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "userCategory": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
+        "SigningRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user_type": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
+        "leetError.ErrorCode": {
+            "type": "integer",
+            "enum": [
+                1001,
+                1002,
+                1003,
+                1004,
+                1005,
+                1006,
+                1007,
+                1008,
+                1009,
+                1010,
+                1011,
+                1012,
+                1013,
+                1014,
+                1015,
+                1016,
+                1017,
+                1018,
+                1019,
+                1020,
+                1021,
+                1022,
+                1023
+            ],
+            "x-enum-varnames": [
+                "DatabaseError",
+                "DatabaseNoRecordError",
+                "UnmarshalError",
+                "MarshalError",
+                "PasswordValidationError",
+                "EncryptionError",
+                "DecryptionError",
+                "DuplicateUserError",
+                "UserNotFoundError",
+                "IdentityNotFoundError",
+                "UserLockedError",
+                "CredentialsValidationError",
+                "TokenGenerationError",
+                "TokenValidationError",
+                "UserCategoryError",
+                "EmailSendingError",
+                "BusinessCategoryError",
+                "StatusesError",
+                "ErrorUnauthorized",
+                "EmailFormatError",
+                "ValidEmailHostError",
+                "ValidLeetaDomainError",
+                "FormParseError"
+            ]
+        },
+        "leetError.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/leetError.ErrorCode"
+                },
+                "error_reference": {
+                    "type": "string"
+                },
+                "error_type": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MessageDeliveryType": {
+            "type": "string",
+            "enum": [
+                "SMS",
+                "EMAIL",
+                "PUSH"
+            ],
+            "x-enum-varnames": [
+                "SMS",
+                "EMAIL",
+                "PUSH"
+            ]
+        },
+        "models.UserCategory": {
+            "type": "string",
+            "enum": [
+                "vendor",
+                "buyer",
+                "admin_leeta"
+            ],
+            "x-enum-varnames": [
+                "VendorCategory",
+                "BuyerCategory",
+                "AdminCategory"
+            ]
+        }
+    },
+    "securityDefinitions": {
+        "BearerToken": {
+            "type": "apiKey",
+            "name": "authorization",
+            "in": "header"
+        }
+    }
+}
