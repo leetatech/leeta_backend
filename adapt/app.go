@@ -90,6 +90,8 @@ func (app *Application) Run() error {
 		Addr:    fmt.Sprintf(":%d", app.Config.HTTPPort),
 		Handler: app.Router,
 	}
+	log.Println("Application running on port ", app.Config.HTTPPort)
+	log.Println("Access swagger docs on {PORT}/api/swagger/", app.Config.HTTPPort) //should be updated if route is ever changed
 	err := svr.ListenAndServe()
 	if err != nil {
 		return err
