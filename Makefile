@@ -87,7 +87,7 @@ check_database:
 
 generate_docs:
 	@echo "Current working directory: $(PWD)"
-	go generate $(PWD)/cmd/
+	go generate /home/admin/go/src/leeta_backend/...
 
 
 wait_before_open_browser:
