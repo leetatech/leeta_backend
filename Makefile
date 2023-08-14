@@ -87,7 +87,7 @@ check_database:
 
 generate_docs:
 	@echo "Current working directory: $(PWD)"
-	go generate $(PWD)/...
+	go generate $(PWD)/cmd/
 
 
 wait_before_open_browser:
