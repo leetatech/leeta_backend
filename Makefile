@@ -86,7 +86,8 @@ check_database:
 	fi
 
 generate_docs:
-	go generate ./...
+	@echo "Current working directory: $(PWD)"
+	go generate $(PWD)/...
 
 
 wait_before_open_browser:
