@@ -31,6 +31,6 @@ func SetIsValidMessageDeliveryType(deliveryType MessageDeliveryType) (MessageDel
 	case true:
 		return deliveryType, nil
 	default:
-		return "", errors.New("invalid onboarding status")
+		return "", errors.New("invalid product status")
 	}
 }

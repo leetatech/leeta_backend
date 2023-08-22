@@ -33,6 +33,7 @@ const (
 	ValidEmailHostError        ErrorCode = 1021
 	ValidLeetaDomainError      ErrorCode = 1022
 	FormParseError             ErrorCode = 1023
+	OrderStatusesError         ErrorCode = 1024
 )
 
 var (
@@ -60,6 +61,7 @@ var (
 		ValidEmailHostError:        "ValidEmailHostError",
 		ValidLeetaDomainError:      "ValidLeetaDomainError",
 		FormParseError:             "FormParseError",
+		OrderStatusesError:         "OrderStatusesError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -86,6 +88,7 @@ var (
 		ValidEmailHostError:        "An error occurred because the domain does not exist or cannot receive emails",
 		ValidLeetaDomainError:      "An error occurred because the domain does not belong to leeta or cannot receive emails",
 		FormParseError:             "An error occurred because the form parse failed or file retrieval failed",
+		OrderStatusesError:         "An error occurred because the order status is invalid",
 	}
 )
 
