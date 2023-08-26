@@ -16,3 +16,8 @@ type OrderResponse struct {
 	CustomerDetails models.Customer `json:"customer_details"`
 	ProductDetails  models.Product  `json:"product_details"`
 } // @name OrderResponse
+
+type UpdateOrderStatusRequest struct {
+	OrderId     string               `json:"order_id" bson:"order_id"`
+	OrderStatus models.OrderStatuses `json:"order_status" bson:"order_status"`
+}

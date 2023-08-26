@@ -13,6 +13,7 @@ import (
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
+	productInfrastructure "github.com/leetatech/leeta_backend/services/product/infrastructure"
 	userApplication "github.com/leetatech/leeta_backend/services/user/application"
 	userInfrastructure "github.com/leetatech/leeta_backend/services/user/infrastructure"
 	userInterface "github.com/leetatech/leeta_backend/services/user/interfaces"
@@ -107,12 +108,15 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 
 	allRepositories := library.Repositories{
-		OrderRepository: orderPersistence,
-		AuthRepository:  authPersistence,
-		UserRepository:  userPersistence,
+		OrderRepository:   orderPersistence,
+		AuthRepository:    authPersistence,
+		UserRepository:    userPersistence,
+		ProductRepository: productPersistence,
 	}
+
 	app.Repositories = allRepositories
 	request := library.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,

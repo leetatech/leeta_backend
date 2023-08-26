@@ -141,9 +141,12 @@ func (a authStoreHandler) ValidateOTP(verificationId string) error {
 }
 
 func (a authStoreHandler) UpdateCredential(customerID, password string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	filter := bson.M{"customer_id": customerID, "credentials.type": string(models.CredentialsTypeLogin)}
 	update := bson.M{"$set": bson.M{"credentials.$.password": password, "credentials.$.status": models.CredentialStatusActive, "credentials.$.update_ts": time.Now().Unix()}}
-	_, err := a.col(models.IdentityCollectionName).UpdateOne(context.Background(), filter, update)
+	_, err := a.col(models.IdentityCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
