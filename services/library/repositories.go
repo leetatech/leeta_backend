@@ -7,6 +7,7 @@ import (
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
 	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -33,3 +34,15 @@ type DefaultApplicationRequest struct {
 type DefaultErrorResponse struct {
 	Data leetError.ErrorResponse `json:"data"`
 } // @name DefaultErrorResponse
+
+func GetPaginatedOpts(limit, page int64) *options.FindOptions {
+	l := limit
+	skip := page*limit - limit
+	fOpt := options.FindOptions{Limit: &l, Skip: &skip}
+
+	return &fOpt
+}
+
+type BoundryObjectID struct {
+	ID string `json:"id" bson:"id"`
+}

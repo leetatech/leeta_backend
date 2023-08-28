@@ -9,4 +9,5 @@ const (
 	AdminCollectionName         = "admin"
 	ProductCollectionName       = "product"
 	OrderCollectionName         = "order"
+	CustomerCollectionName      = "customer"
 )

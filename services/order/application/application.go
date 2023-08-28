@@ -2,71 +2,135 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"github.com/leetatech/leeta_backend/services/library/mailer"
+	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
-)
-
-/**
-
-
-
-
-// PLACEHOLDERS
-
-
-
-
-**/
-
-var (
-	universalPassword          string = "leeta"
-	universalEncryptedPassword string
+	"go.uber.org/zap"
+	"time"
 )
 
 type orderAppHandler struct {
 	tokenHandler  library.TokenHandler
 	encryptor     library.EncryptorManager
+	idGenerator   library.IDGenerator
+	otpGenerator  library.OtpGenerator
+	logger        *zap.Logger
+	EmailClient   mailer.MailerClient
 	allRepository library.Repositories
 }
 
 type OrderApplication interface {
-	CreateOrder(ctx context.Context, request domain.Order) (*library.DefaultResponse, error)
+	CreateOrder(ctx context.Context, request domain.OrderRequest) (*library.DefaultResponse, error)
+	UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*library.DefaultResponse, error)
+	GetOrderByID(ctx context.Context, id string) (*models.Order, error)
+	GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error)
 }
 
-func NewOrderApplication(tokenHandler library.TokenHandler, allRepository library.Repositories) OrderApplication {
-	encryptor := library.NewEncryptor()
-
-	// random password
-	encryptPassword(encryptor)
-
+func NewOrderApplication(request library.DefaultApplicationRequest) OrderApplication {
 	return &orderAppHandler{
-		tokenHandler:  tokenHandler,
-		encryptor:     encryptor,
-		allRepository: allRepository,
+		tokenHandler:  request.TokenHandler,
+		encryptor:     library.NewEncryptor(),
+		idGenerator:   library.NewIDGenerator(),
+		otpGenerator:  library.NewOTPGenerator(),
+		logger:        request.Logger,
+		EmailClient:   request.EmailClient,
+		allRepository: request.AllRepository,
 	}
 }
 
-func (t orderAppHandler) CreateOrder(ctx context.Context, request domain.Order) (*library.DefaultResponse, error) {
-	claims, err := t.tokenHandler.GetClaimsFromCtx(ctx)
+func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRequest) (*library.DefaultResponse, error) {
+	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
-		fmt.Println("unable to get claims")
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	t.allRepository.OrderRepository.CreateOrder(request)
-	if t.validatePin(request.Status) != nil {
-		return nil, fmt.Errorf("%s", "invalid pin credential")
+	product, err := o.allRepository.ProductRepository.GetProductByID(request.ProductID)
+	if err != nil {
+		return nil, err
 	}
 
-	fmt.Println(claims)
-	return nil, nil
+	vendor, err := o.allRepository.UserRepository.GetVendorByID(product.VendorID)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO delivery fees based on location
+	deliveryFee := 1000.00
+	totalCost := deliveryFee + product.Vat
+
+	order := models.Order{
+		ID:          o.idGenerator.Generate(),
+		ProductID:   request.ProductID,
+		CustomerID:  claims.UserID,
+		VendorID:    vendor.ID,
+		VAT:         product.Vat,
+		DeliveryFee: deliveryFee,
+		Total:       totalCost,
+		Status:      models.OrderPending,
+		StatusTs:    time.Now().Unix(),
+		Ts:          time.Now().Unix(),
+	}
+	err = o.allRepository.OrderRepository.CreateOrder(ctx, order)
+	if err != nil {
+		return nil, err
+	}
+	return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
+
 }
 
-func encryptPassword(encryptor library.EncryptorManager) {
-	byteValueOfPassword, _ := encryptor.GenerateFromPasscode(universalPassword)
-	universalEncryptedPassword = string(byteValueOfPassword)
+func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*library.DefaultResponse, error) {
+	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	if claims.Role != models.AdminCategory {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+	_, err = o.allRepository.AuthRepository.GetAdminByEmail(claims.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = models.SetOrderStatus(request.OrderStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &library.DefaultResponse{Success: "success", Message: "Order status successfully updated"}, nil
 }
 
-func (t orderAppHandler) validatePin(pin string) error {
-	return t.encryptor.ComparePasscode(pin, "")
+func (o orderAppHandler) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {
+	_, err := o.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	order, err := o.allRepository.OrderRepository.GetOrderByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
+}
+
+func (o orderAppHandler) GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error) {
+	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	orders, err := o.allRepository.OrderRepository.GetCustomerOrdersByStatus(ctx, domain.GetCustomerOrders{UserId: claims.UserID, GetCustomerOrdersRequest: request})
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }

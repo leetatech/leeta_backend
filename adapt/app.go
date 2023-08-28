@@ -49,7 +49,6 @@ func New(logger *zap.Logger) (*Application, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	//build application clients
 	app.Db = app.buildMongoClient(ctx)
 	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
@@ -126,7 +125,7 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 		Domain:        app.Config.Leeta.Domain,
 	}
 
-	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)
+	orderApplications := orderApplication.NewOrderApplication(request)
 	authApplications := authApplication.NewAuthApplication(request)
 	userApplications := userApplication.NewUserApplication(request)
 

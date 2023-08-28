@@ -7,6 +7,7 @@ import (
 
 type Product struct {
 	ID                  string           `json:"id" bson:"id"`
+	VendorID            string           `json:"vendor_id" bson:"vendor_id"`
 	ParentCategory      BusinessCategory `json:"parent_category" bson:"parent_category"`
 	SubCategory         string           `json:"sub_category" bson:"sub_category"`
 	Images              []string         `json:"images" bson:"images"`
@@ -22,7 +23,7 @@ type Product struct {
 	Status              string           `json:"status" bson:"status"`
 	StatusTs            int64            `json:"status_ts" bson:"status_ts"`
 	Ts                  int64            `json:"ts" bson:"ts"`
-}
+} // @name Product
 
 // ProductCategory type
 type ProductCategory string

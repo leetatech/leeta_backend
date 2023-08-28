@@ -1,9 +1,13 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import (
+	"context"
+	"github.com/leetatech/leeta_backend/services/library/models"
+)
 
 type OrderRepository interface {
-	CreateOrder(request OrderRequest) error
-	UpdateOrderStatus(request UpdateOrderStatusRequest) error
-	GetOrderByID(id string) (*models.Order, error)
+	CreateOrder(ctx context.Context, request models.Order) error
+	UpdateOrderStatus(ctx context.Context, request UpdateOrderStatusRequest) error
+	GetOrderByID(ctx context.Context, id string) (*models.Order, error)
+	GetCustomerOrdersByStatus(ctx context.Context, request GetCustomerOrders) ([]OrderResponse, error)
 }

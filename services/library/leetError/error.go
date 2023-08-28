@@ -94,7 +94,8 @@ var (
 
 type ErrorResponse struct {
 	ErrorReference uuid.UUID `json:"error_reference"`
-	Code           ErrorCode `json:"code"`
+	ErrorCode      ErrorCode `json:"error_code"`
+	code           ErrorCode `json:"code"`
 	ErrorType      string    `json:"error_type"`
 	Message        string    `json:"message"`
 	Err            error     `json:"-"`
@@ -120,7 +121,7 @@ func (err ErrorResponse) Wrap(message string) error {
 func ErrorResponseBody(code ErrorCode, err error) error {
 	errorResponse := ErrorResponse{
 		ErrorReference: uuid.New(),
-		Code:           code,
+		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
 		Message:        errorMessages[code],
 		Err:            err,
@@ -141,4 +142,9 @@ func ErrorMessage(code ErrorCode) string {
 
 func ErrorType(code ErrorCode) string {
 	return errorTypes[code]
+}
+
+// Code getter
+func (err ErrorResponse) Code() ErrorCode {
+	return err.code
 }

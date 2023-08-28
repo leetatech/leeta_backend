@@ -51,7 +51,7 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 
 	token, err := handler.UserApplication.VendorVerification(r.Context(), *request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		library.CheckErrorType(err, w)
 		return
 	}
 	library.EncodeResult(w, token, http.StatusOK)
@@ -92,7 +92,7 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 
 	token, err := handler.UserApplication.AddVendorByAdmin(r.Context(), *request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		library.CheckErrorType(err, w)
 		return
 	}
 	library.EncodeResult(w, token, http.StatusOK)

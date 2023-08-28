@@ -19,7 +19,7 @@ type Customer struct {
 	Status          Statuses `json:"status" bson:"status"`
 	StatusTimeStamp int64    `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64    `json:"ts" bson:"ts"`
-}
+} // @name Customer
 
 type Vendor struct {
 	ID              string   `json:"id" bson:"id"`

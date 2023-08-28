@@ -7,12 +7,6 @@ import (
 	"log"
 )
 
-type Database struct {
-	MongoClient  *mongo.Client
-	DatabaseName string
-	Log          *zap.Logger
-}
-
 func (app *Application) buildMongoClient(ctx context.Context) *mongo.Client {
 	clientOpts := app.Config.GetClientOptions()
 	mongoClient, err := mongo.NewClient(clientOpts)

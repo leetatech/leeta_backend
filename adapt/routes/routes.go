@@ -75,7 +75,10 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/make_order", order.CreateOrder)
+	router.Post("/make_order", order.CreateOrderHandler)
+	router.Put("/status", order.UpdateOrderStatusHandler)
+	router.Get("/id/{order_id}", order.GetOrderByIDHandler)
+	router.Get("/", order.GetCustomerOrdersByStatusHandler)
 	return router
 }
 

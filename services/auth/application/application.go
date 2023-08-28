@@ -32,7 +32,6 @@ type AuthApplication interface {
 	ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error)
 	ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
-	//AdminSignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 }
 
 func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
@@ -260,16 +259,3 @@ func (a authAppHandler) AdminSignUp(request domain.AdminSignUpRequest) (*domain.
 
 	return a.adminSignUp(request)
 }
-
-//func (a authAppHandler) AdminSignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-//	category, err := models.SetUserCategory(request.UserType)
-//	if err != nil {
-//		return nil, err
-//	}
-//	switch category {
-//	case models.VendorCategory:
-//		return a.vendorSignIN(request)
-//	}
-//
-//	return nil, nil
-//}

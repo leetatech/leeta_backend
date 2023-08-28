@@ -61,7 +61,7 @@ func generateKey(publicKey, privateKey string, logger *zap.Logger) (*TokenHandle
 }
 
 func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (string, error) {
-	claims.ExpiresAt = time.Now().Add(time.Minute * 15).Unix()
+	claims.ExpiresAt = time.Now().Add(time.Hour * 24).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	return token.SignedString(handler.privateKey)
