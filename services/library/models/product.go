@@ -30,16 +30,16 @@ type ProductCategory string
 
 const (
 	LPGProductCategory ProductCategory = "LPG"
-	LNGProductCategory ProductCategory = "LPG"
+	LNGProductCategory ProductCategory = "LNG"
 )
 
 // ProductSubCategory type
 type ProductSubCategory string
 
 const (
-	CylinderSubCategory    ProductSubCategory = "GAS CYLINDER"
-	CookerSubCategory      ProductSubCategory = "GAS COOKER"
-	AccessoriesSubCategory ProductSubCategory = "GAS ACCESSORIES"
+	CylinderSubCategory    ProductSubCategory = "CYLINDER"
+	CookerSubCategory      ProductSubCategory = "COOKER"
+	AccessoriesSubCategory ProductSubCategory = "ACCESSORIES"
 )
 
 func IsValidProductCategory(category ProductCategory) bool {

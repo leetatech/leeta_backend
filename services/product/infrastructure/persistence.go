@@ -24,7 +24,7 @@ func NewProductPersistence(client *mongo.Client, databaseName string, logger *za
 	return &productStoreHandler{client: client, databaseName: databaseName, logger: logger}
 }
 
-func (p productStoreHandler) CreateProduct(request models.Product) error {
+func (p productStoreHandler) CreateProduct(ctx context.Context, request models.Product) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -35,7 +35,7 @@ func (p productStoreHandler) CreateProduct(request models.Product) error {
 	return nil
 }
 
-func (p productStoreHandler) GetProductByID(id string) (*models.Product, error) {
+func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
 	product := &models.Product{}
 	filter := bson.M{
 		"id": id,
@@ -50,4 +50,9 @@ func (p productStoreHandler) GetProductByID(id string) (*models.Product, error) 
 	}
 
 	return product, nil
+}
+
+func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, vendorID string) ([]models.Product, error) {
+	//TODO implement me
+	panic("implement me")
 }

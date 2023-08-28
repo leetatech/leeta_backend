@@ -25,10 +25,11 @@ const (
 	OrderPending   OrderStatuses = "PENDING"   // order has been created and processing
 	OrderRejected  OrderStatuses = "REJECTED"  // order has been rejected by vendor or customer
 	OrderCompleted OrderStatuses = "COMPLETED" // order has been processed and delivered
+	OrderApproved  OrderStatuses = "APPROVED"  // order has been processed, delivered, and verified by the customer
 )
 
 func IsValidOrderStatus(status OrderStatuses) bool {
-	return status == OrderPending || status == OrderRejected || status == OrderCompleted
+	return status == OrderPending || status == OrderRejected || status == OrderCompleted || status == OrderApproved
 }
 
 func SetOrderStatus(status OrderStatuses) (OrderStatuses, error) {
