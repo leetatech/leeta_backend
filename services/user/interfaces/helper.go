@@ -1,40 +1,14 @@
 package interfaces
 
 import (
-	"bytes"
-	"encoding/base64"
 	"errors"
+	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
-	"image"
-	"image/jpeg"
-	"image/png"
 	"net/http"
 	"strconv"
-	"strings"
 )
-
-func encodeImageToBase64(img image.Image, format string) (string, error) {
-	var buf bytes.Buffer
-
-	switch format {
-	case "jpeg":
-		err := jpeg.Encode(&buf, img, nil)
-		if err != nil {
-			return "", err
-		}
-	case "png":
-		err := png.Encode(&buf, img)
-		if err != nil {
-			return "", err
-		}
-	default:
-		return "", errors.New("unsupported image format")
-	}
-
-	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
-}
 
 func checkFormFileSpecification(r *http.Request) (*domain.VendorVerificationRequest, error) {
 	err := r.ParseMultipartForm(10 << 20)
@@ -66,36 +40,17 @@ func checkFormFileSpecification(r *http.Request) (*domain.VendorVerificationRequ
 	}
 	defer file.Close()
 
-	contentType := header.Header.Get("Content-Type")
-	imageFormat := ""
-	switch {
-	case strings.HasPrefix(contentType, "image/jpeg"):
-		imageFormat = "jpeg"
-
-	case strings.HasPrefix(contentType, "image/png"):
-		imageFormat = "png"
-
-	default:
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("invalid image format. Only JPEG and PNG images are allowed"))
-	}
-
-	const maxImageSize = 5 * 1024 * 1024 // 5MB
-	if header.Size > maxImageSize {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("image size exceeds the maximum limit of 5MB"))
-	}
-
-	img, _, err := image.Decode(file)
+	imageFormat, err := library.CheckImageFormat(header)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("failed to decode the image"))
+		return nil, err
 	}
 
-	minWidth := 800
-	minHeight := 800
-	if img.Bounds().Dx() < minWidth || img.Bounds().Dy() < minHeight {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("image dimensions should be at least 800x800 pixels"))
+	img, err := library.CheckImageSizeAndDimension(header, file, 800, 800)
+	if err != nil {
+		return nil, err
 	}
 
-	encodedImage, err := encodeImageToBase64(img, imageFormat)
+	encodedImage, err := library.EncodeImageToBase64(img, imageFormat)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
 	}

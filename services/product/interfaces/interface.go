@@ -1,0 +1,116 @@
+package interfaces
+
+import (
+	"encoding/json"
+	"github.com/go-chi/chi/v5"
+	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/product/application"
+	"github.com/leetatech/leeta_backend/services/product/domain"
+	"net/http"
+)
+
+type ProductHttpHandler struct {
+	ProductApplication application.ProductApplication
+}
+
+func NewProductHTTPHandler(productApplication application.ProductApplication) *ProductHttpHandler {
+	return &ProductHttpHandler{
+		ProductApplication: productApplication,
+	}
+
+}
+
+// CreateProductHandler godoc
+// @Summary Create Product
+// @Description The endpoint takes the product request and creates a new product
+// @Tags Product
+// @Accept multipart/form-data
+// @Produce json
+// @Param vendor_id formData string true "Vendor ID"
+// @Param parent_category formData string true "Product parent category"
+// @Param sub_category formData string true "Product subcategory"
+// @Param name formData string true "Product name"
+// @Param weight formData string true "Product weight"
+// @Param description formData string true "Product description"
+// @Param original_price formData string true "Product Price"
+// @Param vat formData string true "Product vat"
+// @Param original_price_and_vat formData string true "Product vat with original price"
+// @Param discount formData string true "product discount availability"
+// @Param discount_price formData string true "discount price"
+// @Param status formData string true "product status"
+// @Param images formData file true "Images of the product" format(multi)
+// @Security BearerToken
+// @Success 200 {object} library.DefaultResponse
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /product/create [post]
+func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := checkFormFileAndAddProducts(r)
+	if err != nil {
+		return
+	}
+
+	resp, err := handler.ProductApplication.CreateProduct(r.Context(), *request)
+	if err != nil {
+		library.CheckErrorType(err, w)
+		return
+	}
+	library.EncodeResult(w, resp, http.StatusOK)
+}
+
+// GetProductByIDHandler godoc
+// @Summary Get Vendor Product By id
+// @Description The endpoint takes the product id and then returns the requested product
+// @Tags Product
+// @Accept json
+// @produce json
+// @Param			product_id	path		string	true	"product id"
+// @Security BearerToken
+// @success 200 {object} models.Product
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /product/id/{product_id} [get]
+func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		product *models.Product
+		err     error
+	)
+	productID := chi.URLParam(r, "product_id")
+
+	product, err = handler.ProductApplication.GetProductByID(r.Context(), productID)
+	if err != nil {
+		library.CheckErrorType(err, w)
+		return
+	}
+
+	library.EncodeResult(w, product, http.StatusOK)
+}
+
+// GetAllVendorProductsHandler godoc
+// @Summary Get All Vendor Products By Status
+// @Description The endpoint takes the vendor ID, product status, pages and limit and then returns the requested products
+// @Tags Product
+// @Accept json
+// @produce json
+// @param domain.GetVendorProductsRequest body domain.GetVendorProductsRequest true "get all vendor products request body"
+// @Security BearerToken
+// @success 200 {object} domain.GetVendorProductsResponse
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /product/ [get]
+func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.GetVendorProductsRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	products, err := handler.ProductApplication.GetAllVendorProducts(r.Context(), request)
+	if err != nil {
+		library.CheckErrorType(err, w)
+		return
+	}
+	library.EncodeResult(w, products, http.StatusOK)
+}

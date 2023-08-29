@@ -34,6 +34,9 @@ const (
 	ValidLeetaDomainError      ErrorCode = 1022
 	FormParseError             ErrorCode = 1023
 	OrderStatusesError         ErrorCode = 1024
+	ProductCategoryError       ErrorCode = 1025
+	ProductSubCategoryError    ErrorCode = 1026
+	ProductStatusError         ErrorCode = 1027
 )
 
 var (
@@ -62,6 +65,9 @@ var (
 		ValidLeetaDomainError:      "ValidLeetaDomainError",
 		FormParseError:             "FormParseError",
 		OrderStatusesError:         "OrderStatusesError",
+		ProductCategoryError:       "ProductCategoryError",
+		ProductSubCategoryError:    "ProductSubCategoryError",
+		ProductStatusError:         "ProductStatusError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -89,6 +95,9 @@ var (
 		ValidLeetaDomainError:      "An error occurred because the domain does not belong to leeta or cannot receive emails",
 		FormParseError:             "An error occurred because the form parse failed or file retrieval failed",
 		OrderStatusesError:         "An error occurred because the order status is invalid",
+		ProductCategoryError:       "An error occurred because the product category is invalid",
+		ProductSubCategoryError:    "An error occurred because the product subcategory is invalid",
+		ProductStatusError:         "An error occurred because the product status is invalid",
 	}
 )
 

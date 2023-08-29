@@ -46,7 +46,10 @@ func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRe
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	product, err := o.allRepository.ProductRepository.GetProductByID(request.ProductID)
+	// TODO ensure that it's a customer that is making the order
+	// to be done when the user part begins
+
+	product, err := o.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +80,6 @@ func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRe
 		return nil, err
 	}
 	return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
-
 }
 
 func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*library.DefaultResponse, error) {

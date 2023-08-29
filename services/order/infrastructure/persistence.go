@@ -47,7 +47,8 @@ func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain
 	}
 	update := bson.M{
 		"$set": bson.M{
-			"status": request.OrderStatus,
+			"status":    request.OrderStatus,
+			"status_ts": time.Now().Unix(),
 		},
 	}
 

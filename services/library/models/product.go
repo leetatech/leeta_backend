@@ -6,23 +6,23 @@ import (
 )
 
 type Product struct {
-	ID                  string           `json:"id" bson:"id"`
-	VendorID            string           `json:"vendor_id" bson:"vendor_id"`
-	ParentCategory      BusinessCategory `json:"parent_category" bson:"parent_category"`
-	SubCategory         string           `json:"sub_category" bson:"sub_category"`
-	Images              []string         `json:"images" bson:"images"`
-	Name                string           `json:"name" bson:"name"`
-	Weight              string           `json:"weight" bson:"weight"`
-	Description         string           `json:"description" bson:"description"`
-	OriginalPrice       float64          `json:"original_price" bson:"original_price"`
-	Vat                 float64          `json:"vat" bson:"vat"`
-	OriginalPriceAndVat float64          `json:"original_price_and_vat" bson:"original_price_and_vat"`
-	Discount            bool             `json:"discount" bson:"discount"`
-	DiscountPrice       float64          `json:"discount_price" bson:"discount_price"`
-	FinalPrice          float64          `json:"final_price" bson:"final_price"`
-	Status              string           `json:"status" bson:"status"`
-	StatusTs            int64            `json:"status_ts" bson:"status_ts"`
-	Ts                  int64            `json:"ts" bson:"ts"`
+	ID                  string             `json:"id" bson:"id"`
+	VendorID            string             `json:"vendor_id" bson:"vendor_id"`
+	ParentCategory      ProductCategory    `json:"parent_category" bson:"parent_category"`
+	SubCategory         ProductSubCategory `json:"sub_category" bson:"sub_category"`
+	Images              []string           `json:"images" bson:"images"`
+	Name                string             `json:"name" bson:"name"`
+	Weight              string             `json:"weight" bson:"weight"`
+	Description         string             `json:"description" bson:"description"`
+	OriginalPrice       float64            `json:"original_price" bson:"original_price"`
+	Vat                 float64            `json:"vat" bson:"vat"`
+	OriginalPriceAndVat float64            `json:"original_price_and_vat" bson:"original_price_and_vat"`
+	Discount            bool               `json:"discount" bson:"discount"`
+	DiscountPrice       float64            `json:"discount_price" bson:"discount_price"`
+	FinalPrice          float64            `json:"final_price" bson:"final_price"`
+	Status              ProductStatus      `json:"status" bson:"status"`
+	StatusTs            int64              `json:"status_ts" bson:"status_ts"`
+	Ts                  int64              `json:"ts" bson:"ts"`
 } // @name Product
 
 // ProductCategory type
@@ -42,6 +42,14 @@ const (
 	AccessoriesSubCategory ProductSubCategory = "ACCESSORIES"
 )
 
+// ProductCategory type
+type ProductStatus string
+
+const (
+	InStock    ProductStatus = "InStock"
+	OutOfStock ProductStatus = "OutOfStock"
+)
+
 func IsValidProductCategory(category ProductCategory) bool {
 	return category == LPGProductCategory || category == LNGProductCategory
 }
@@ -51,7 +59,7 @@ func SetProductCategory(category ProductCategory) (ProductCategory, error) {
 	case true:
 		return category, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.BusinessCategoryError, errors.New("invalid business category"))
+		return "", leetError.ErrorResponseBody(leetError.ProductCategoryError, errors.New("invalid business category"))
 	}
 }
 
@@ -64,6 +72,19 @@ func SetProductSubCategory(category ProductSubCategory) (ProductSubCategory, err
 	case true:
 		return category, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.BusinessCategoryError, errors.New("invalid business category"))
+		return "", leetError.ErrorResponseBody(leetError.ProductSubCategoryError, errors.New("invalid business category"))
+	}
+}
+
+func IsValidProductStatus(status ProductStatus) bool {
+	return status == InStock || status == OutOfStock
+}
+
+func SetProductStatus(status ProductStatus) (ProductStatus, error) {
+	switch IsValidProductStatus(status) {
+	case true:
+		return status, nil
+	default:
+		return "", leetError.ErrorResponseBody(leetError.ProductStatusError, errors.New("invalid business category"))
 	}
 }

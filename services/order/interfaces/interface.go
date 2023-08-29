@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"net/http"
@@ -28,7 +29,7 @@ func NewOrderHTTPHandler(orderApplication application.OrderApplication) *OrderHt
 // @Produce json
 // @Param domain.OrderRequest body domain.OrderRequest true "create order request body"
 // @Security BearerToken
-// @Success 200 {object} domain.OrderRequest
+// @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /order/make_order [post]
@@ -86,13 +87,13 @@ func (handler *OrderHttpHandler) UpdateOrderStatusHandler(w http.ResponseWriter,
 // @produce json
 // @Param			order_id	path		string	true	"order id"
 // @Security BearerToken
-// @success 200 {object} []domain.OrderResponse
+// @success 200 {object} models.Order
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /order/id/{order_id} [get]
 func (handler *OrderHttpHandler) GetOrderByIDHandler(w http.ResponseWriter, r *http.Request) {
 	orderID := chi.URLParam(r, "order_id")
-
+	var order *models.Order
 	order, err := handler.OrderApplication.GetOrderByID(r.Context(), orderID)
 	if err != nil {
 		library.CheckErrorType(err, w)
@@ -103,7 +104,7 @@ func (handler *OrderHttpHandler) GetOrderByIDHandler(w http.ResponseWriter, r *h
 }
 
 // GetCustomerOrdersByStatusHandler godoc
-// @Summary Get Customer Orders By Status
+// @Summary Get Customer Order By Status
 // @Description The endpoint takes the order status, pages and limit and then returns the requested orders
 // @Tags Order
 // @Accept json

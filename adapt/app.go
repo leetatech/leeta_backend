@@ -13,7 +13,9 @@ import (
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
+	productApplication "github.com/leetatech/leeta_backend/services/product/application"
 	productInfrastructure "github.com/leetatech/leeta_backend/services/product/infrastructure"
+	productInterface "github.com/leetatech/leeta_backend/services/product/interfaces"
 	userApplication "github.com/leetatech/leeta_backend/services/user/application"
 	userInfrastructure "github.com/leetatech/leeta_backend/services/user/infrastructure"
 	userInterface "github.com/leetatech/leeta_backend/services/user/interfaces"
@@ -128,15 +130,18 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	orderApplications := orderApplication.NewOrderApplication(request)
 	authApplications := authApplication.NewAuthApplication(request)
 	userApplications := userApplication.NewUserApplication(request)
+	productApplications := productApplication.NewProductApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
 	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
+	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
 
 	allInterfaces := routes.AllHTTPHandlers{
-		Order: orderInterfaces,
-		Auth:  authInterfaces,
-		User:  userInterfaces,
+		Order:   orderInterfaces,
+		Auth:    authInterfaces,
+		User:    userInterfaces,
+		Product: productInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }
