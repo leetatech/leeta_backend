@@ -189,7 +189,7 @@ func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	response, err := handler.AuthApplication.ResetPassword(request)
+	response, err := handler.AuthApplication.ResetPassword(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -206,7 +206,7 @@ func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *h
 // @Produce json
 // @Param domain.AdminSignUpRequest body domain.AdminSignUpRequest true "admin sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/signup [post]
+// @Router /session/admin/signup [post]
 func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.AdminSignUpRequest
 	err := json.NewDecoder(r.Body).Decode(&request)

@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
@@ -181,14 +182,14 @@ func (a authAppHandler) processLoginPasswordValidation(request domain.SigningReq
 	return leetError.ErrorResponseBody(leetError.CredentialsValidationError, errors.New("credential type is not login"))
 }
 
-func (a authAppHandler) resetPassword(customerID, firstName, lastName, email, passcode string, userCategory models.UserCategory) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) resetPassword(ctx context.Context, customerID, email, passcode string, userCategory models.UserCategory) (*domain.DefaultSigningResponse, error) {
 
 	hashedPasscode, err := a.passwordValidationEncryption(passcode)
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.allRepository.AuthRepository.UpdateCredential(customerID, hashedPasscode)
+	err = a.allRepository.AuthRepository.UpdateCredential(ctx, customerID, hashedPasscode)
 	if err != nil {
 		a.logger.Error("resetPassword", zap.Any("UpdateCredential", err))
 		return nil, err

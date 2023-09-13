@@ -5,14 +5,16 @@ import (
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
+	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"
 	"go.uber.org/zap"
 )
 
 type Repositories struct {
-	OrderRepository orderDomain.OrderRepository
-	UserRepository  userDomain.UserRepository
-	AuthRepository  authDomain.AuthRepository
+	OrderRepository   orderDomain.OrderRepository
+	UserRepository    userDomain.UserRepository
+	AuthRepository    authDomain.AuthRepository
+	ProductRepository productDomain.ProductRepository
 }
 
 type DefaultResponse struct {

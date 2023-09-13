@@ -33,6 +33,10 @@ const (
 	ValidEmailHostError        ErrorCode = 1021
 	ValidLeetaDomainError      ErrorCode = 1022
 	FormParseError             ErrorCode = 1023
+	OrderStatusesError         ErrorCode = 1024
+	ProductCategoryError       ErrorCode = 1025
+	ProductSubCategoryError    ErrorCode = 1026
+	ProductStatusError         ErrorCode = 1027
 )
 
 var (
@@ -60,6 +64,10 @@ var (
 		ValidEmailHostError:        "ValidEmailHostError",
 		ValidLeetaDomainError:      "ValidLeetaDomainError",
 		FormParseError:             "FormParseError",
+		OrderStatusesError:         "OrderStatusesError",
+		ProductCategoryError:       "ProductCategoryError",
+		ProductSubCategoryError:    "ProductSubCategoryError",
+		ProductStatusError:         "ProductStatusError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -86,12 +94,17 @@ var (
 		ValidEmailHostError:        "An error occurred because the domain does not exist or cannot receive emails",
 		ValidLeetaDomainError:      "An error occurred because the domain does not belong to leeta or cannot receive emails",
 		FormParseError:             "An error occurred because the form parse failed or file retrieval failed",
+		OrderStatusesError:         "An error occurred because the order status is invalid",
+		ProductCategoryError:       "An error occurred because the product category is invalid",
+		ProductSubCategoryError:    "An error occurred because the product subcategory is invalid",
+		ProductStatusError:         "An error occurred because the product status is invalid",
 	}
 )
 
 type ErrorResponse struct {
 	ErrorReference uuid.UUID `json:"error_reference"`
-	Code           ErrorCode `json:"code"`
+	ErrorCode      ErrorCode `json:"error_code"`
+	code           ErrorCode `json:"code"`
 	ErrorType      string    `json:"error_type"`
 	Message        string    `json:"message"`
 	Err            error     `json:"-"`
@@ -117,7 +130,7 @@ func (err ErrorResponse) Wrap(message string) error {
 func ErrorResponseBody(code ErrorCode, err error) error {
 	errorResponse := ErrorResponse{
 		ErrorReference: uuid.New(),
-		Code:           code,
+		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
 		Message:        errorMessages[code],
 		Err:            err,
@@ -138,4 +151,9 @@ func ErrorMessage(code ErrorCode) string {
 
 func ErrorType(code ErrorCode) string {
 	return errorTypes[code]
+}
+
+// Code getter
+func (err ErrorResponse) Code() ErrorCode {
+	return err.code
 }

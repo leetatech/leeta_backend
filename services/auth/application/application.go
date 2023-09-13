@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
@@ -30,9 +31,8 @@ type AuthApplication interface {
 	SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 	ForgotPassword(request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
 	ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error)
-	ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
+	ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
-	//AdminSignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 }
 
 func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
@@ -212,7 +212,7 @@ func (a authAppHandler) ValidateOTP(request domain.OTPValidationRequest) (*libra
 	return &library.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
 }
 
-func (a authAppHandler) ResetPassword(request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error) {
 
 	if request.Password != request.ConfirmPassword {
 		a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.PasswordValidationError), errors.New("password and confirm password don't match")))
@@ -232,7 +232,7 @@ func (a authAppHandler) ResetPassword(request domain.ResetPasswordRequest) (*dom
 			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 		}
 
-		return a.resetPassword(vendor.ID, vendor.FirstName, vendor.LastName, vendor.Email.Address, request.Password, request.UserCategory)
+		return a.resetPassword(ctx, vendor.ID, vendor.Email.Address, request.Password, request.UserCategory)
 	}
 
 	return nil, nil
@@ -260,16 +260,3 @@ func (a authAppHandler) AdminSignUp(request domain.AdminSignUpRequest) (*domain.
 
 	return a.adminSignUp(request)
 }
-
-//func (a authAppHandler) AdminSignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-//	category, err := models.SetUserCategory(request.UserType)
-//	if err != nil {
-//		return nil, err
-//	}
-//	switch category {
-//	case models.VendorCategory:
-//		return a.vendorSignIN(request)
-//	}
-//
-//	return nil, nil
-//}

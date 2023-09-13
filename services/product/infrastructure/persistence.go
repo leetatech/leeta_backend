@@ -1,0 +1,88 @@
+package infrastructure
+
+import (
+	"context"
+	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/product/domain"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
+	"time"
+)
+
+type productStoreHandler struct {
+	client       *mongo.Client
+	databaseName string
+	logger       *zap.Logger
+}
+
+func (p productStoreHandler) col(collectionName string) *mongo.Collection {
+	return p.client.Database(p.databaseName).Collection(collectionName)
+}
+
+func NewProductPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.ProductRepository {
+	return &productStoreHandler{client: client, databaseName: databaseName, logger: logger}
+}
+
+func (p productStoreHandler) CreateProduct(ctx context.Context, request models.Product) error {
+	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	_, err := p.col(models.ProductCollectionName).InsertOne(updatedCtx, request)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+	return nil
+}
+
+func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
+	product := &models.Product{}
+	filter := bson.M{
+		"id": id,
+	}
+
+	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	err := p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(product)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return product, nil
+}
+
+func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) (*domain.GetVendorProductsResponse, error) {
+	filter := bson.M{}
+	filter["vendor_id"] = request.VendorID
+	if len(request.ProductStatus) > 0 {
+		filter["status"] = bson.M{"$in": request.ProductStatus}
+	}
+
+	opts := library.GetPaginatedOpts(request.Limit, request.Page)
+
+	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	products := make([]models.Product, cursor.RemainingBatchLength())
+
+	if err = cursor.All(ctx, &products); err != nil {
+		return nil, err
+	}
+	var hasNextPage bool
+
+	// TODO get the remaining batch the right way
+	//if cursor.RemainingBatchLength() > 0 {
+	//	hasNextPage = true
+	//}
+
+	return &domain.GetVendorProductsResponse{
+		Products:    products,
+		HasNextPage: hasNextPage,
+	}, nil
+}

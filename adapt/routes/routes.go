@@ -8,19 +8,22 @@ import (
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
+	productInterfaces "github.com/leetatech/leeta_backend/services/product/interfaces"
 	userInterfaces "github.com/leetatech/leeta_backend/services/user/interfaces"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
 type AllHTTPHandlers struct {
-	Order *orderInterfaces.OrderHttpHandler
-	Auth  *authInterfaces.AuthHttpHandler
-	User  *userInterfaces.UserHttpHandler
+	Order   *orderInterfaces.OrderHttpHandler
+	Auth    *authInterfaces.AuthHttpHandler
+	User    *userInterfaces.UserHttpHandler
+	Product *productInterfaces.ProductHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User}
+	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product}
 }
 
 func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *library.TokenHandler, error) {
@@ -39,12 +42,13 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 	orderRouter := buildOrderEndpoints(*interfaces.Order, tokenHandler)
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
-
+	productRouter := buildProductEndpoints(*interfaces.Product, tokenHandler)
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
 		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
 		r.Mount("/user", userRouter)
+		r.Mount("/product", productRouter)
 	})
 
 	return router, tokenHandler, nil
@@ -75,7 +79,10 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/make_order", order.CreateOrder)
+	router.Post("/make_order", order.CreateOrderHandler)
+	router.Put("/status", order.UpdateOrderStatusHandler)
+	router.Get("/id/{order_id}", order.GetOrderByIDHandler)
+	router.Get("/", order.GetCustomerOrdersByStatusHandler)
 	return router
 }
 
@@ -99,5 +106,14 @@ func buildVendorEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *lib
 
 	// non-authentication group here
 
+	return router
+}
+
+func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+	router := chi.NewRouter()
+	router.Use(tokenHandler.ValidateMiddleware)
+	router.Post("/create", product.CreateProductHandler)
+	router.Get("/id/{product_id}", product.GetProductByIDHandler)
+	router.Get("/", product.GetAllVendorProductsHandler)
 	return router
 }

@@ -13,6 +13,9 @@ import (
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
+	productApplication "github.com/leetatech/leeta_backend/services/product/application"
+	productInfrastructure "github.com/leetatech/leeta_backend/services/product/infrastructure"
+	productInterface "github.com/leetatech/leeta_backend/services/product/interfaces"
 	userApplication "github.com/leetatech/leeta_backend/services/user/application"
 	userInfrastructure "github.com/leetatech/leeta_backend/services/user/infrastructure"
 	userInterface "github.com/leetatech/leeta_backend/services/user/interfaces"
@@ -48,7 +51,6 @@ func New(logger *zap.Logger) (*Application, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	//build application clients
 	app.Db = app.buildMongoClient(ctx)
 	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
@@ -90,8 +92,8 @@ func (app *Application) Run() error {
 		Addr:    fmt.Sprintf(":%d", app.Config.HTTPPort),
 		Handler: app.Router,
 	}
-	log.Println("Application running on port ", app.Config.HTTPPort)
-	log.Println("Access swagger docs on {PORT}/api/swagger/", app.Config.HTTPPort) //should be updated if route is ever changed
+	fmt.Println("Application running on port ", app.Config.HTTPPort)
+	fmt.Printf("Access swagger docs on host://%v/api/swagger/, app.Config.HTTPPort)", app.Config.HTTPPort)
 	err := svr.ListenAndServe()
 	if err != nil {
 		return err
@@ -107,12 +109,15 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DbName, app.Logger)
 
 	allRepositories := library.Repositories{
-		OrderRepository: orderPersistence,
-		AuthRepository:  authPersistence,
-		UserRepository:  userPersistence,
+		OrderRepository:   orderPersistence,
+		AuthRepository:    authPersistence,
+		UserRepository:    userPersistence,
+		ProductRepository: productPersistence,
 	}
+
 	app.Repositories = allRepositories
 	request := library.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
@@ -122,18 +127,21 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 		Domain:        app.Config.Leeta.Domain,
 	}
 
-	orderApplications := orderApplication.NewOrderApplication(tokenHandler, allRepositories)
+	orderApplications := orderApplication.NewOrderApplication(request)
 	authApplications := authApplication.NewAuthApplication(request)
 	userApplications := userApplication.NewUserApplication(request)
+	productApplications := productApplication.NewProductApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
 	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
+	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
 
 	allInterfaces := routes.AllHTTPHandlers{
-		Order: orderInterfaces,
-		Auth:  authInterfaces,
-		User:  userInterfaces,
+		Order:   orderInterfaces,
+		Auth:    authInterfaces,
+		User:    userInterfaces,
+		Product: productInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }

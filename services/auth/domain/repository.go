@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"github.com/leetatech/leeta_backend/services/library/models"
 )
 
@@ -13,7 +14,7 @@ type AuthRepository interface {
 	GetIdentityByCustomerID(id string) (*models.Identity, error)
 	GetOTPForValidation(target string) (*models.Verification, error)
 	ValidateOTP(verificationId string) error
-	UpdateCredential(customerID, password string) error
+	UpdateCredential(ctx context.Context, customerID, password string) error
 	GetAdminByEmail(email string) (*models.Admin, error)
 	CreateAdmin(admin models.Admin) error
 }
