@@ -174,7 +174,7 @@ func (handler *TokenHandler) GetClaimsFromCtx(ctx context.Context) (*UserClaims,
 	return &claims, nil
 }
 
-func EncodeResult(w http.ResponseWriter, result interface{}, code int) {
+func EncodeResult(w http.ResponseWriter, result any, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 
@@ -188,4 +188,9 @@ func EncodeResult(w http.ResponseWriter, result interface{}, code int) {
 	if err != nil {
 		return
 	}
+}
+
+func EncodeErrorResult(w http.ResponseWriter, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 }

@@ -23,9 +23,9 @@ type OrderStatuses string
 
 const (
 	OrderPending   OrderStatuses = "PENDING"   // order has been created and processing
-	OrderRejected  OrderStatuses = "REJECTED"  // order has been rejected by vendor or customer
-	OrderCompleted OrderStatuses = "COMPLETED" // order has been processed and delivered
-	OrderApproved  OrderStatuses = "APPROVED"  // order has been processed, delivered, and verified by the customer
+	OrderRejected  OrderStatuses = "REJECTED"  // order was rejected by vendor or customer
+	OrderCompleted OrderStatuses = "COMPLETED" // order has been processed and delivered, and verified by the customer
+	OrderApproved  OrderStatuses = "APPROVED"  // order has been approved
 )
 
 func IsValidOrderStatus(status OrderStatuses) bool {

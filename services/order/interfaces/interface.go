@@ -7,6 +7,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -66,12 +67,13 @@ func (handler *OrderHttpHandler) UpdateOrderStatusHandler(w http.ResponseWriter,
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		library.EncodeErrorResult(w, http.StatusBadRequest)
 		return
 	}
 
 	resp, err := handler.OrderApplication.UpdateOrderStatus(r.Context(), request)
 	if err != nil {
+		log.Err(err).Msg("error updating order status")
 		library.CheckErrorType(err, w)
 		return
 	}

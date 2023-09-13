@@ -189,7 +189,7 @@ func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	response, err := handler.AuthApplication.ResetPassword(request)
+	response, err := handler.AuthApplication.ResetPassword(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

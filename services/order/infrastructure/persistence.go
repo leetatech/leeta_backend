@@ -27,7 +27,7 @@ func NewOrderPersistence(client *mongo.Client, databaseName string, logger *zap.
 }
 
 func (o orderStoreHandler) CreateOrder(ctx context.Context, request models.Order) error {
-	updatedCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	_, err := o.col(models.OrderCollectionName).InsertOne(updatedCtx, request)
@@ -39,9 +39,6 @@ func (o orderStoreHandler) CreateOrder(ctx context.Context, request models.Order
 }
 
 func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) error {
-	updatedCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	filter := bson.M{
 		"id": request.OrderId,
 	}
@@ -52,7 +49,7 @@ func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain
 		},
 	}
 
-	_, err := o.col(models.OrderCollectionName).UpdateOne(updatedCtx, filter, update)
+	_, err := o.col(models.OrderCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
@@ -65,10 +62,7 @@ func (o orderStoreHandler) GetOrderByID(ctx context.Context, id string) (*models
 		"id": id,
 	}
 
-	updatedCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err := o.col(models.OrderCollectionName).FindOne(updatedCtx, filter).Decode(order)
+	err := o.col(models.OrderCollectionName).FindOne(ctx, filter).Decode(order)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
