@@ -36,7 +36,7 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	token, err := handler.AuthApplication.SignUp(signUpRequest)
+	token, err := handler.AuthApplication.SignUp(r.Context(), signUpRequest)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -61,7 +61,7 @@ func (handler *AuthHttpHandler) CreateOTPHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	token, err := handler.AuthApplication.CreateOTP(request)
+	token, err := handler.AuthApplication.CreateOTP(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -87,7 +87,7 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	response, err := handler.AuthApplication.EarlyAccess(request)
+	response, err := handler.AuthApplication.EarlyAccess(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -112,7 +112,7 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	token, err := handler.AuthApplication.SignIn(signInRequest)
+	token, err := handler.AuthApplication.SignIn(r.Context(), signInRequest)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -137,7 +137,7 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	response, err := handler.AuthApplication.ForgotPassword(request)
+	response, err := handler.AuthApplication.ForgotPassword(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -163,7 +163,7 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	response, err := handler.AuthApplication.ValidateOTP(request)
+	response, err := handler.AuthApplication.ValidateOTP(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -214,7 +214,7 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
-	token, err := handler.AuthApplication.AdminSignUp(request)
+	token, err := handler.AuthApplication.AdminSignUp(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

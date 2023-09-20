@@ -25,14 +25,14 @@ type authAppHandler struct {
 }
 
 type AuthApplication interface {
-	SignUp(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
-	CreateOTP(request domain.OTPRequest) (*library.DefaultResponse, error)
-	EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error)
-	SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
-	ForgotPassword(request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
-	ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error)
+	SignUp(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
+	CreateOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error)
+	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error)
+	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
+	ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
+	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error)
 	ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
-	AdminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
+	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
 }
 
 func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
@@ -48,7 +48,7 @@ func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplicati
 	}
 }
 
-func (a authAppHandler) SignUp(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) SignUp(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
 	hashedPassword, err := a.passwordValidationEncryption(request.Password)
 	if err != nil {
 		a.logger.Error("Password Validation", zap.Error(err))
@@ -63,14 +63,16 @@ func (a authAppHandler) SignUp(request domain.SigningRequest) (*domain.DefaultSi
 
 	switch category {
 	case models.VendorCategory:
+		return a.vendorSignUP(ctx, request)
 
-		return a.vendorSignUP(request)
+	case models.BuyerCategory:
+		return a.customerSignUP(ctx, request)
 	}
 
 	return nil, nil
 }
 
-func (a authAppHandler) CreateOTP(request domain.OTPRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) CreateOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error) {
 	expirationDuration := time.Duration(5) * time.Minute
 
 	otpResponse := models.Verification{
@@ -83,7 +85,7 @@ func (a authAppHandler) CreateOTP(request domain.OTPRequest) (*library.DefaultRe
 		Timestamp: time.Now().Unix(),
 	}
 
-	err := a.allRepository.AuthRepository.CreateOTP(otpResponse)
+	err := a.allRepository.AuthRepository.CreateOTP(ctx, otpResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +93,9 @@ func (a authAppHandler) CreateOTP(request domain.OTPRequest) (*library.DefaultRe
 	return &library.DefaultResponse{Success: "success", Message: otpResponse.Code}, nil
 }
 
-func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.DefaultResponse, error) {
+func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error) {
 	request.Timestamp = time.Now().Unix()
-	err := a.allRepository.AuthRepository.EarlyAccess(request)
+	err := a.allRepository.AuthRepository.EarlyAccess(ctx, request)
 	if err != nil {
 		a.logger.Error("EarlyAccess", zap.Any(leetError.ErrorType(leetError.DatabaseError), err), zap.Any(leetError.ErrorType(leetError.DatabaseError), leetError.ErrorMessage(leetError.DatabaseError)))
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
@@ -113,22 +115,24 @@ func (a authAppHandler) EarlyAccess(request models.EarlyAccess) (*library.Defaul
 	return &library.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
 }
 
-func (a authAppHandler) SignIn(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
 	category, err := models.SetUserCategory(request.UserType)
 	if err != nil {
 		return nil, err
 	}
 	switch category {
 	case models.VendorCategory:
-		return a.vendorSignIN(request)
+		return a.vendorSignIN(ctx, request)
 	case models.AdminCategory:
-		return a.adminSignIN(request)
+		return a.adminSignIN(ctx, request)
+	case models.BuyerCategory:
+		return a.customerSignIN(ctx, request)
 	}
 
 	return nil, nil
 }
 
-func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
 	category, err := models.SetUserCategory(request.UserCategory)
 	if err != nil {
 		return nil, err
@@ -136,7 +140,7 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 	var firstName, lastName string
 	switch category {
 	case models.VendorCategory:
-		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
 		if err != nil {
 			a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
@@ -152,7 +156,7 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 		UserCategory: request.UserCategory,
 	}
 
-	otpResponse, err := a.CreateOTP(requestOTP)
+	otpResponse, err := a.CreateOTP(ctx, requestOTP)
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +180,8 @@ func (a authAppHandler) ForgotPassword(request domain.ForgotPasswordRequest) (*l
 	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
 }
 
-func (a authAppHandler) ValidateOTP(request domain.OTPValidationRequest) (*library.DefaultResponse, error) {
-	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(request.Target)
+func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error) {
+	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Target)
 	if err != nil {
 		a.logger.Error("ValidateOTP", zap.String("target", request.Target), zap.Error(err))
 		return nil, err
@@ -203,7 +207,7 @@ func (a authAppHandler) ValidateOTP(request domain.OTPValidationRequest) (*libra
 		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)
 	}
 
-	err = a.allRepository.AuthRepository.ValidateOTP(verification.ID)
+	err = a.allRepository.AuthRepository.ValidateOTP(ctx, verification.ID)
 	if err != nil {
 		a.logger.Error("store validating verification", zap.Error(err), zap.String("verification_id", verification.ID))
 		return nil, err
@@ -226,7 +230,7 @@ func (a authAppHandler) ResetPassword(ctx context.Context, request domain.ResetP
 	}
 	switch category {
 	case models.VendorCategory:
-		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
 		if err != nil {
 			a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
@@ -238,7 +242,7 @@ func (a authAppHandler) ResetPassword(ctx context.Context, request domain.ResetP
 	return nil, nil
 }
 
-func (a authAppHandler) AdminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
 	err := a.encryptor.IsValidEmailFormat(request.Email)
 	if err != nil {
 		a.logger.Error("AdminSignUp", zap.Error(err))
@@ -258,5 +262,5 @@ func (a authAppHandler) AdminSignUp(request domain.AdminSignUpRequest) (*domain.
 	}
 	request.Password = hashedPassword
 
-	return a.adminSignUp(request)
+	return a.adminSignUp(ctx, request)
 }

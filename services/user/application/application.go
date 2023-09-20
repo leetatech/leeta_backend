@@ -93,7 +93,7 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 	if claims.Role != models.AdminCategory {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
-	_, err = u.allRepository.AuthRepository.GetAdminByEmail(claims.Email)
+	_, err = u.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 		Status:    models.Registered,
 		Timestamp: time.Now().Unix(),
 	}
-	err = u.allRepository.AuthRepository.CreateVendor(vendor)
+	err = u.allRepository.AuthRepository.CreateVendor(ctx, vendor)
 	if err != nil {
 		return nil, err
 	}

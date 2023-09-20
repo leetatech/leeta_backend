@@ -51,7 +51,7 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 
 	switch claims.Role {
 	case models.AdminCategory:
-		_, err = p.allRepository.AuthRepository.GetAdminByEmail(claims.Email)
+		_, err = p.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
 		if err != nil {
 			return nil, err
 		}

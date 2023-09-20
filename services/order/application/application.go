@@ -46,8 +46,10 @@ func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRe
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	// TODO ensure that it's a customer that is making the order
-	// to be done when the user part begins
+	_, err = o.allRepository.AuthRepository.GetCustomerByEmail(ctx, claims.Email)
+	if err != nil {
+		return nil, err
+	}
 
 	product, err := o.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
 	if err != nil {
@@ -91,7 +93,7 @@ func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.U
 	if claims.Role != models.AdminCategory {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
-	_, err = o.allRepository.AuthRepository.GetAdminByEmail(claims.Email)
+	_, err = o.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
 	if err != nil {
 		return nil, err
 	}
