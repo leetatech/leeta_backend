@@ -28,8 +28,8 @@ func (a authAppHandler) passwordValidationEncryption(password string) (string, e
 	return string(passByte), nil
 }
 
-func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	_, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	_, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
@@ -43,7 +43,7 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 				Timestamp: timestamp,
 				Status:    models.SignedUp,
 			}
-			err = a.allRepository.AuthRepository.CreateVendor(vendor)
+			err = a.allRepository.AuthRepository.CreateVendor(ctx, vendor)
 			if err != nil {
 				return nil, err
 			}
@@ -62,7 +62,7 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 					},
 				},
 			}
-			err = a.allRepository.AuthRepository.CreateIdentity(identity)
+			err = a.allRepository.AuthRepository.CreateIdentity(ctx, identity)
 			if err != nil {
 				return nil, err
 			}
@@ -73,7 +73,7 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(vendor.ID, vendor.Email.Address, library.SignUpEmailTemplateID, models.VendorCategory)
+			err = a.accountVerification(ctx, vendor.ID, vendor.Email.Address, library.SignUpEmailTemplateID, models.VendorCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -89,14 +89,75 @@ func (a authAppHandler) vendorSignUP(request domain.SigningRequest) (*domain.Def
 	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)
 }
 
-func (a authAppHandler) accountVerification(userID, target, templateAlias string, userCategory models.UserCategory) error {
+func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	_, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	if err != nil {
+		switch err {
+		case mongo.ErrNoDocuments:
+			timestamp := time.Now().Unix()
+
+			customer := models.Customer{
+				ID: a.idGenerator.Generate(),
+				Email: models.Email{
+					Address: request.Email,
+				},
+				Timestamp: timestamp,
+				Status:    models.SignedUp,
+			}
+			err = a.allRepository.AuthRepository.CreateCustomer(ctx, customer)
+			if err != nil {
+				return nil, err
+			}
+
+			identity := models.Identity{
+				ID:         a.idGenerator.Generate(),
+				CustomerID: customer.ID,
+				Role:       models.BuyerCategory,
+				Credentials: []models.Credentials{
+					{
+						Type:            models.CredentialsTypeLogin,
+						Password:        request.Password,
+						Status:          models.CredentialStatusActive,
+						StatusTimestamp: timestamp,
+						Timestamp:       timestamp,
+					},
+				},
+			}
+			err = a.allRepository.AuthRepository.CreateIdentity(ctx, identity)
+			if err != nil {
+				return nil, err
+			}
+
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, customer.ID, a.idGenerator.Generate(), request.UserType)
+			if err != nil {
+				a.logger.Error("SignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
+				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
+			}
+
+			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, library.SignUpEmailTemplateID, models.BuyerCategory)
+			if err != nil {
+				return nil, err
+			}
+
+			return &domain.DefaultSigningResponse{AuthToken: response}, nil
+
+		default:
+			return nil, err
+		}
+	}
+
+	a.logger.Error("customerSignUP", zap.Error(leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)))
+	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)
+}
+
+func (a authAppHandler) accountVerification(ctx context.Context, userID, target, templateAlias string, userCategory models.UserCategory) error {
 	requestOTP := domain.OTPRequest{
 		Topic:        "Sign Up",
 		Type:         models.EMAIL,
 		Target:       target,
 		UserCategory: userCategory,
 	}
-	otpResponse, err := a.CreateOTP(requestOTP)
+	otpResponse, err := a.CreateOTP(ctx, requestOTP)
 	if err != nil {
 		a.logger.Error("SignUp", zap.Any("CreateOTP", err))
 		return err
@@ -119,8 +180,8 @@ func (a authAppHandler) accountVerification(userID, target, templateAlias string
 	return nil
 }
 
-func (a authAppHandler) buildSignIn(userId string, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(userId)
+func (a authAppHandler) buildSignIn(ctx context.Context, userId string, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, userId)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("user_id", userId))
 		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
@@ -148,14 +209,24 @@ func (a authAppHandler) buildSignIn(userId string, status models.Statuses, reque
 
 }
 
-func (a authAppHandler) vendorSignIN(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(request.Email)
+func (a authAppHandler) vendorSignIN(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return a.buildSignIn(vendor.ID, vendor.Status, request)
+	return a.buildSignIn(ctx, vendor.ID, vendor.Status, request)
+}
+
+func (a authAppHandler) customerSignIN(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	if err != nil {
+		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+	}
+
+	return a.buildSignIn(ctx, customer.ID, customer.Status, request)
 }
 
 func (a authAppHandler) processLoginPasswordValidation(request domain.SigningRequest, identity *models.Identity) error {
@@ -195,7 +266,7 @@ func (a authAppHandler) resetPassword(ctx context.Context, customerID, email, pa
 		return nil, err
 	}
 
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(customerID)
+	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, customerID)
 	if err != nil {
 		a.logger.Error("resetPassword", zap.Any("GetIdentityByCustomerID", err))
 		return nil, err
@@ -227,8 +298,8 @@ func (a authAppHandler) resetPassword(ctx context.Context, customerID, email, pa
 	return &domain.DefaultSigningResponse{AuthToken: response}, nil
 }
 
-func (a authAppHandler) adminSignUp(request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
-	_, err := a.allRepository.AuthRepository.GetAdminByEmail(request.Email)
+func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
+	_, err := a.allRepository.AuthRepository.GetAdminByEmail(ctx, request.Email)
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
@@ -254,7 +325,7 @@ func (a authAppHandler) adminSignUp(request domain.AdminSignUpRequest) (*domain.
 				Timestamp:  timestamp,
 				Status:     models.SignedUp,
 			}
-			err = a.allRepository.AuthRepository.CreateAdmin(admin)
+			err = a.allRepository.AuthRepository.CreateAdmin(ctx, admin)
 			if err != nil {
 				fmt.Println("repo error", err)
 				return nil, err
@@ -274,7 +345,7 @@ func (a authAppHandler) adminSignUp(request domain.AdminSignUpRequest) (*domain.
 					},
 				},
 			}
-			err = a.allRepository.AuthRepository.CreateIdentity(identity)
+			err = a.allRepository.AuthRepository.CreateIdentity(ctx, identity)
 			if err != nil {
 				return nil, err
 			}
@@ -285,7 +356,7 @@ func (a authAppHandler) adminSignUp(request domain.AdminSignUpRequest) (*domain.
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(admin.ID, admin.Email, library.AdminSignUpEmailTemplateID, models.AdminCategory)
+			err = a.accountVerification(ctx, admin.ID, admin.Email, library.AdminSignUpEmailTemplateID, models.AdminCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -302,14 +373,14 @@ func (a authAppHandler) adminSignUp(request domain.AdminSignUpRequest) (*domain.
 
 }
 
-func (a authAppHandler) adminSignIN(request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	admin, err := a.allRepository.AuthRepository.GetAdminByEmail(request.Email)
+func (a authAppHandler) adminSignIN(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	admin, err := a.allRepository.AuthRepository.GetAdminByEmail(ctx, request.Email)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return a.buildSignIn(admin.ID, admin.Status, request)
+	return a.buildSignIn(ctx, admin.ID, admin.Status, request)
 }
 
 func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, errChan chan<- error) {
