@@ -102,14 +102,14 @@ func (app *Application) Run() error {
 }
 
 func (app *Application) buildConfig() (*ServerConfig, error) {
-	return Read(*app.Logger)
+	return ReadConfig(*app.Logger)
 }
 
 func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
-	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DbName, app.Logger)
-	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
-	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DbName, app.Logger)
-	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
 	allRepositories := library.Repositories{
 		OrderRepository:   orderPersistence,
