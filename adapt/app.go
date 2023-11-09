@@ -84,6 +84,10 @@ func New(logger *zap.Logger) (*Application, error) {
 func (app *Application) Run() error {
 	defer app.Db.Disconnect(app.Ctx)
 
+	app.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/api/swagger/", http.StatusFound)
+	})
+
 	app.Router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte("Welcome to the leeta Server.."))
 	})

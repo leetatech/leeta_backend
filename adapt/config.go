@@ -13,13 +13,12 @@ import (
 )
 
 const (
-	databaseTimeout  = 10 * time.Second
-	devMongoURI      = "mongodb+srv://admin:qT5IsndbYrzmq9eW@cluster0.rt4wdpi.mongodb.net/?retryWrites=true&w=majority"
-	localDevMongoURI = "mongodb://leeta:leet@localhost:27017/?retryWrites=true&w=majority"
+	databaseTimeout = 10 * time.Second
+	devMongoURI     = "mongodb+srv://admin:qT5IsndbYrzmq9eW@cluster0.rt4wdpi.mongodb.net/?retryWrites=true&w=majority"
 )
 
 type ServerConfig struct {
-	AppEnv     string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
+	AppEnv     string `env:"APP_ENV" envDefault:"local" envWhitelisted:"true"`
 	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
 	Database   DatabaseConfig
 	PrivateKey string `env:"PRIVATE_KEY"`
@@ -108,15 +107,14 @@ func overrideWithEnvVars(config *ServerConfig) {
 
 func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	if config.AppEnv == "staging" {
+		return options.Client().
+			SetConnectTimeout(databaseTimeout).
+			ApplyURI(devMongoURI).
+			SetServerAPIOptions(serverAPI)
+	}
+
 	return options.Client().
 		SetConnectTimeout(databaseTimeout).
-		ApplyURI(config.databaseURI()).
-		SetServerAPIOptions(serverAPI)
-}
-
-func (config *ServerConfig) databaseURI() string {
-	if config.AppEnv == "staging" {
-		return devMongoURI
-	}
-	return localDevMongoURI
+		SetHosts([]string{config.Database.Host + config.Database.Port})
 }
