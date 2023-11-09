@@ -1,0 +1,1133 @@
+basePath: /api
+definitions:
+  Address:
+    properties:
+      city:
+        type: string
+      closest_landmark:
+        type: string
+      coordinate:
+        $ref: '#/definitions/Coordinates'
+      full_address:
+        type: string
+      lga:
+        type: string
+      state:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  Admin:
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      department:
+        type: string
+      dob:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+      status:
+        $ref: '#/definitions/models.Statuses'
+      status_ts:
+        type: integer
+      ts:
+        type: integer
+    type: object
+  AdminSignUpRequest:
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      department:
+        type: string
+      dob:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+    type: object
+  Coordinates:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+    type: object
+  DefaultErrorResponse:
+    properties:
+      data:
+        $ref: '#/definitions/leetError.ErrorResponse'
+    type: object
+  DefaultResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
+  DefaultSigningResponse:
+    properties:
+      auth_token:
+        type: string
+    type: object
+  EarlyAccess:
+    properties:
+      email:
+        type: string
+      ts:
+        type: integer
+    type: object
+  ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  GetCustomerOrdersRequest:
+    properties:
+      limit:
+        type: integer
+      order_status:
+        items:
+          $ref: '#/definitions/models.OrderStatuses'
+        type: array
+      page:
+        type: integer
+    type: object
+  GetVendorProductRequest:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      product_status:
+        items:
+          $ref: '#/definitions/models.ProductStatus'
+        type: array
+      vendor_id:
+        type: string
+    type: object
+  OTPRequest:
+    properties:
+      target:
+        type: string
+      topic:
+        type: string
+      type:
+        $ref: '#/definitions/models.MessageDeliveryType'
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  OTPValidationRequest:
+    properties:
+      code:
+        type: string
+      target:
+        type: string
+    type: object
+  Order:
+    properties:
+      customer_id:
+        type: string
+      delivery_fee:
+        type: number
+      id:
+        type: string
+      product_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.OrderStatuses'
+      status_ts:
+        type: integer
+      total:
+        type: number
+      ts:
+        type: integer
+      vat:
+        type: number
+      vendor_id:
+        type: string
+    type: object
+  OrderRequest:
+    properties:
+      product_id:
+        type: string
+    type: object
+  OrderResponse:
+    properties:
+      customer:
+        $ref: '#/definitions/Admin'
+      customer_id:
+        type: string
+      delivery_fee:
+        type: number
+      id:
+        type: string
+      product_details:
+        $ref: '#/definitions/Product'
+      product_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.OrderStatuses'
+      status_ts:
+        type: integer
+      total:
+        type: number
+      ts:
+        type: integer
+      vat:
+        type: number
+      vendor_id:
+        type: string
+    type: object
+  Product:
+    properties:
+      description:
+        type: string
+      discount:
+        type: boolean
+      discount_price:
+        type: number
+      final_price:
+        type: number
+      id:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      original_price:
+        type: number
+      original_price_and_vat:
+        type: number
+      parent_category:
+        $ref: '#/definitions/models.ProductCategory'
+      status:
+        $ref: '#/definitions/models.ProductStatus'
+      status_ts:
+        type: integer
+      sub_category:
+        $ref: '#/definitions/models.ProductSubCategory'
+      ts:
+        type: integer
+      vat:
+        type: number
+      vendor_id:
+        type: string
+      weight:
+        type: string
+    type: object
+  ResetPasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  SigningRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      user_type:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
+  UpdateOrderStatusRequest:
+    properties:
+      order_id:
+        type: string
+      order_status:
+        $ref: '#/definitions/models.OrderStatuses'
+    type: object
+  domain.GetVendorProductsResponse:
+    properties:
+      has_next_page:
+        type: boolean
+      products:
+        items:
+          $ref: '#/definitions/Product'
+        type: array
+    type: object
+  leetError.ErrorCode:
+    enum:
+    - 1001
+    - 1002
+    - 1003
+    - 1004
+    - 1005
+    - 1006
+    - 1007
+    - 1008
+    - 1009
+    - 1010
+    - 1011
+    - 1012
+    - 1013
+    - 1014
+    - 1015
+    - 1016
+    - 1017
+    - 1018
+    - 1019
+    - 1020
+    - 1021
+    - 1022
+    - 1023
+    - 1024
+    - 1025
+    - 1026
+    - 1027
+    type: integer
+    x-enum-varnames:
+    - DatabaseError
+    - DatabaseNoRecordError
+    - UnmarshalError
+    - MarshalError
+    - PasswordValidationError
+    - EncryptionError
+    - DecryptionError
+    - DuplicateUserError
+    - UserNotFoundError
+    - IdentityNotFoundError
+    - UserLockedError
+    - CredentialsValidationError
+    - TokenGenerationError
+    - TokenValidationError
+    - UserCategoryError
+    - EmailSendingError
+    - BusinessCategoryError
+    - StatusesError
+    - ErrorUnauthorized
+    - EmailFormatError
+    - ValidEmailHostError
+    - ValidLeetaDomainError
+    - FormParseError
+    - OrderStatusesError
+    - ProductCategoryError
+    - ProductSubCategoryError
+    - ProductStatusError
+  leetError.ErrorResponse:
+    properties:
+      error_code:
+        $ref: '#/definitions/leetError.ErrorCode'
+      error_reference:
+        type: string
+      error_type:
+        type: string
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  models.MessageDeliveryType:
+    enum:
+    - SMS
+    - EMAIL
+    - PUSH
+    type: string
+    x-enum-varnames:
+    - SMS
+    - EMAIL
+    - PUSH
+  models.OrderStatuses:
+    enum:
+    - PENDING
+    - REJECTED
+    - COMPLETED
+    - APPROVED
+    type: string
+    x-enum-comments:
+      OrderApproved: order has been approved
+      OrderCompleted: order has been processed and delivered, and verified by the
+        customer
+      OrderPending: order has been created and processing
+      OrderRejected: order was rejected by vendor or customer
+    x-enum-varnames:
+    - OrderPending
+    - OrderRejected
+    - OrderCompleted
+    - OrderApproved
+  models.ProductCategory:
+    enum:
+    - LPG
+    - LNG
+    type: string
+    x-enum-varnames:
+    - LPGProductCategory
+    - LNGProductCategory
+  models.ProductStatus:
+    enum:
+    - InStock
+    - OutOfStock
+    type: string
+    x-enum-varnames:
+    - InStock
+    - OutOfStock
+  models.ProductSubCategory:
+    enum:
+    - CYLINDER
+    - COOKER
+    - ACCESSORIES
+    type: string
+    x-enum-varnames:
+    - CylinderSubCategory
+    - CookerSubCategory
+    - AccessoriesSubCategory
+  models.Statuses:
+    enum:
+    - SIGNEDUP
+    - REGISTERED
+    - VERIFIED
+    - ONBOARDED
+    - REJECTED
+    - EXITED
+    - LOCKED
+    type: string
+    x-enum-comments:
+      Exited: no longer exists
+      Locked: currently locked for some reasons
+      Onboarded: now fully onboarded
+      Registered: filled the required information
+      Rejected: rejected
+      SignedUp: just signed up
+      Verified: all details verified
+    x-enum-varnames:
+    - SignedUp
+    - Registered
+    - Verified
+    - Onboarded
+    - Rejected
+    - Exited
+    - Locked
+  models.UserCategory:
+    enum:
+    - vendor
+    - buyer
+    - admin_leeta
+    type: string
+    x-enum-varnames:
+    - VendorCategory
+    - BuyerCategory
+    - AdminCategory
+host: localhost:3000
+info:
+  contact:
+    email: admin@getlleta.com
+    name: LEETA Technologies
+  description: LEETA Application backend documentation
+  license:
+    name: Apache 3.0-or-later
+  termsOfService: http://swagger.io/terms/
+  title: LEETA BACKEND API
+  version: "1.0"
+paths:
+  /order/:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint takes the order status, pages and limit and then returns
+        the requested orders
+      parameters:
+      - description: get customer orders by status request body
+        in: body
+        name: domain.GetCustomerOrdersRequest
+        required: true
+        schema:
+          $ref: '#/definitions/GetCustomerOrdersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/OrderResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get Customer Order By Status
+      tags:
+      - Order
+  /order/id/{order_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint takes the order id and then returns the requested
+        order
+      parameters:
+      - description: order id
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Order'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get Customer Order By id
+      tags:
+      - Order
+  /order/make_order:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes the order request and creates a new order
+      parameters:
+      - description: create order request body
+        in: body
+        name: domain.OrderRequest
+        required: true
+        schema:
+          $ref: '#/definitions/OrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create Order
+      tags:
+      - Order
+  /order/status:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint takes the order update request and updates the status
+        of the order
+      parameters:
+      - description: update order by status request body
+        in: body
+        name: domain.UpdateOrderStatusRequest
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Update Order Status
+      tags:
+      - Order
+  /product/:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint takes the vendor ID, product status, pages and limit
+        and then returns the requested products
+      parameters:
+      - description: get all vendor products request body
+        in: body
+        name: domain.GetVendorProductsRequest
+        required: true
+        schema:
+          $ref: '#/definitions/GetVendorProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetVendorProductsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get All Vendor Products By Status
+      tags:
+      - Product
+  /product/create:
+    post:
+      consumes:
+      - multipart/form-data
+      description: The endpoint takes the product request and creates a new product
+      parameters:
+      - description: Vendor ID
+        in: formData
+        name: vendor_id
+        required: true
+        type: string
+      - description: Product parent category
+        in: formData
+        name: parent_category
+        required: true
+        type: string
+      - description: Product subcategory
+        in: formData
+        name: sub_category
+        required: true
+        type: string
+      - description: Product name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Product weight
+        in: formData
+        name: weight
+        required: true
+        type: string
+      - description: Product description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Product Price
+        in: formData
+        name: original_price
+        required: true
+        type: string
+      - description: Product vat
+        in: formData
+        name: vat
+        required: true
+        type: string
+      - description: Product vat with original price
+        in: formData
+        name: original_price_and_vat
+        required: true
+        type: string
+      - description: product discount availability
+        in: formData
+        name: discount
+        required: true
+        type: string
+      - description: discount price
+        in: formData
+        name: discount_price
+        required: true
+        type: string
+      - description: product status
+        in: formData
+        name: status
+        required: true
+        type: string
+      - description: Images of the product
+        format: multi
+        in: formData
+        name: images
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create Product
+      tags:
+      - Product
+  /product/id/{product_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint takes the product id and then returns the requested
+        product
+      parameters:
+      - description: product id
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get Vendor Product By id
+      tags:
+      - Product
+  /session/admin/signup:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows admins to sign up
+      parameters:
+      - description: admin sign up request body
+        in: body
+        name: domain.AdminSignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AdminSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Admin Sign Up
+      tags:
+      - Session
+  /session/early_access:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for early access
+      parameters:
+      - description: request early access body
+        in: body
+        name: models.EarlyAccess
+        required: true
+        schema:
+          $ref: '#/definitions/EarlyAccess'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Early Access
+      tags:
+      - EarlyAccess
+  /session/forgot_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for password reset
+      parameters:
+      - description: request forgot password body
+        in: body
+        name: domain.ForgotPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Forgot Password
+      tags:
+      - Password
+  /session/otp/request:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows the generation of OTP
+      parameters:
+      - description: request otp body
+        in: body
+        name: domain.OTPRequest
+        required: true
+        schema:
+          $ref: '#/definitions/OTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: OTP Generation
+      tags:
+      - OTP
+  /session/otp/validate:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to validate OTP
+      parameters:
+      - description: request otp validation body
+        in: body
+        name: domain.OTPValidationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/OTPValidationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Validate OTP
+      tags:
+      - OTP
+  /session/reset_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to reset password
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.ResetPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Reset Password
+      tags:
+      - Password
+  /session/signin:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users, both vendors and buyers to sign in
+      parameters:
+      - description: user sign in request body
+        in: body
+        name: domain.SigningRequest
+        required: true
+        schema:
+          $ref: '#/definitions/SigningRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: User Sign In
+      tags:
+      - Session
+  /session/signup:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users, both vendors and buyers to sign up
+      parameters:
+      - description: user sign up request body
+        in: body
+        name: domain.SigningRequest
+        required: true
+        schema:
+          $ref: '#/definitions/SigningRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: User Sign Up
+      tags:
+      - Session
+  /user/admin/vendor:
+    post:
+      consumes:
+      - multipart/form-data
+      description: The endpoint allows the admin to add a vendor and their business
+      parameters:
+      - description: First name of the vendor
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Last name of the vendor
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Business name of the vendor
+        in: formData
+        name: business_name
+        required: true
+        type: string
+      - description: CAC number of the vendor
+        in: formData
+        name: cac
+        required: true
+        type: string
+      - description: Business category of the vendor
+        in: formData
+        name: business_category
+        required: true
+        type: string
+      - description: Description of the vendor
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Is the primary phone number
+        in: formData
+        name: primary_phone
+        required: true
+        type: boolean
+      - description: Phone number of the vendor
+        in: formData
+        name: phone_number
+        required: true
+        type: string
+      - description: State of the vendor
+        in: formData
+        name: state
+        required: true
+        type: string
+      - description: City of the vendor
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Local Government Area of the vendor
+        in: formData
+        name: lga
+        required: true
+        type: string
+      - description: Full address of the vendor
+        in: formData
+        name: full_address
+        required: true
+        type: string
+      - description: Closest landmark to the vendor's location
+        in: formData
+        name: closest_landmark
+        required: true
+        type: string
+      - description: Latitude of the vendor's location
+        in: formData
+        name: latitude
+        required: true
+        type: string
+      - description: Longitude of the vendor's location
+        in: formData
+        name: longitude
+        required: true
+        type: string
+      - description: Image of the vendor
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Admin adds vendor and business
+      tags:
+      - user/admin/vendor
+  /user/vendor/verification:
+    post:
+      consumes:
+      - multipart/form-data
+      description: The endpoint allows the verification process of vendor
+      parameters:
+      - description: First name of the vendor
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Last name of the vendor
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Business name of the vendor
+        in: formData
+        name: business_name
+        required: true
+        type: string
+      - description: CAC number of the vendor
+        in: formData
+        name: cac
+        required: true
+        type: string
+      - description: Business category of the vendor
+        in: formData
+        name: business_category
+        required: true
+        type: string
+      - description: Description of the vendor
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Is the primary phone number
+        in: formData
+        name: primary_phone
+        required: true
+        type: boolean
+      - description: Phone number of the vendor
+        in: formData
+        name: phone_number
+        required: true
+        type: string
+      - description: State of the vendor
+        in: formData
+        name: state
+        required: true
+        type: string
+      - description: City of the vendor
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Local Government Area of the vendor
+        in: formData
+        name: lga
+        required: true
+        type: string
+      - description: Full address of the vendor
+        in: formData
+        name: full_address
+        required: true
+        type: string
+      - description: Closest landmark to the vendor's location
+        in: formData
+        name: closest_landmark
+        required: true
+        type: string
+      - description: Latitude of the vendor's location
+        in: formData
+        name: latitude
+        required: true
+        type: string
+      - description: Longitude of the vendor's location
+        in: formData
+        name: longitude
+        required: true
+        type: string
+      - description: Image of the vendor
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Vendor Verification
+      tags:
+      - user/vendor
+securityDefinitions:
+  BearerToken:
+    in: header
+    name: authorization
+    type: apiKey
+swagger: "2.0"
