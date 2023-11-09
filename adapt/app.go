@@ -49,7 +49,7 @@ func New(logger *zap.Logger) (*Application, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	//build application clients
 	app.Db = app.buildMongoClient(ctx)

@@ -24,7 +24,7 @@ type ServerConfig struct {
 
 type DatabaseConfig struct {
 	Host     string `env:"MONGO_HOST" envDefault:"cluster0.rt4wdpi.mongodb.net:"`
-	Port     string `env:"MONGO_PORT" envDefault:"27017"`
+	Port     string `env:"MONGO_PORT" envDefault:""`
 	Timeout  int    `env:"MONGO_CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
 	DbName   string `env:"MONGO_DB_NAME" envDefault:"leeta"`
 	UserName string `env:"MONGO_USERNAME" envDefault:"admin"`
@@ -86,9 +86,10 @@ func (config *ServerConfig) formartUri() string {
 }
 
 func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	return options.Client().
 		SetConnectTimeout(time.Duration(config.Database.Timeout) * time.Second).
-		SetHosts([]string{config.Database.Host + config.Database.Port})
+		ApplyURI("mongodb+srv://admin:qT5IsndbYrzmq9eW@cluster0.rt4wdpi.mongodb.net/?retryWrites=true&w=majority").SetServerAPIOptions(serverAPI)
 }
 
 func overrideWithCommandLine(serverConfig ServerConfig) {
