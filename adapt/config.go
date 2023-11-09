@@ -44,11 +44,9 @@ type LeetaConfig struct {
 func Read(logger zap.Logger) (*ServerConfig, error) {
 	var serverConfig ServerConfig
 
-	if err := godotenv.Load("./local.env"); err != nil {
-		if err := godotenv.Load("../local.env"); err != nil {
-			return nil, err
-		}
-		return nil, err
+	if err := godotenv.Load("local.env"); err != nil {
+		logger.Error("error location env file")
+		return &serverConfig, err
 	}
 
 	for _, target := range []interface{}{
