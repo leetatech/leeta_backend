@@ -89,7 +89,8 @@ func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	return options.Client().
 		SetConnectTimeout(time.Duration(config.Database.Timeout) * time.Second).
-		ApplyURI("mongodb+srv://admin:qT5IsndbYrzmq9eW@cluster0.rt4wdpi.mongodb.net/?retryWrites=true&w=majority").SetServerAPIOptions(serverAPI)
+		ApplyURI("mongodb+srv://admin:qT5IsndbYrzmq9eW@cluster0.rt4wdpi.mongodb.net/?retryWrites=true&w=majority").
+		SetServerAPIOptions(serverAPI)
 }
 
 func overrideWithCommandLine(serverConfig ServerConfig) {
