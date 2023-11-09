@@ -23,12 +23,12 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Host     string `env:"MONGO_HOST" envDefault:"localhost:"`
+	Host     string `env:"MONGO_HOST" envDefault:"cluster0.rt4wdpi.mongodb.net:"`
 	Port     string `env:"MONGO_PORT" envDefault:"27017"`
 	Timeout  int    `env:"MONGO_CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
 	DbName   string `env:"MONGO_DB_NAME" envDefault:"leeta"`
-	UserName string `env:"MONGO_USERNAME" envDefault:"leeta"`
-	Password string `env:"MONGO_PASSWORD" envDefault:"leet"`
+	UserName string `env:"MONGO_USERNAME" envDefault:"admin"`
+	Password string `env:"MONGO_PASSWORD" envDefault:"qT5IsndbYrzmq9eW"`
 	DbUrl    string `env:"DATABASE_URL" envDefault:"" envWhitelisted:"true"`
 }
 
