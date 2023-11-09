@@ -18,7 +18,7 @@ const (
 )
 
 type ServerConfig struct {
-	AppEnv     string `env:"APP_ENV" envDefault:"local" envWhitelisted:"true"`
+	AppEnv     string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
 	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
 	Database   DatabaseConfig
 	PrivateKey string `env:"PRIVATE_KEY"`
