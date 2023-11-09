@@ -49,7 +49,7 @@ func New(logger *zap.Logger) (*Application, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	//build application clients
 	app.Db = app.buildMongoClient(ctx)
@@ -84,6 +84,10 @@ func New(logger *zap.Logger) (*Application, error) {
 func (app *Application) Run() error {
 	defer app.Db.Disconnect(app.Ctx)
 
+	app.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/api/swagger/", http.StatusFound)
+	})
+
 	app.Router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte("Welcome to the leeta Server.."))
 	})
@@ -102,14 +106,14 @@ func (app *Application) Run() error {
 }
 
 func (app *Application) buildConfig() (*ServerConfig, error) {
-	return Read(*app.Logger)
+	return ReadConfig(*app.Logger)
 }
 
 func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
-	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DbName, app.Logger)
-	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DbName, app.Logger)
-	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DbName, app.Logger)
-	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DbName, app.Logger)
+	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
 	allRepositories := library.Repositories{
 		OrderRepository:   orderPersistence,
