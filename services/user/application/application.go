@@ -99,15 +99,19 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 	}
 
 	vendor := models.Vendor{
-		ID:        u.idGenerator.Generate(),
-		Identity:  request.Identity,
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		AdminID:   claims.UserID,
-		Status:    models.Registered,
-		Timestamp: time.Now().Unix(),
+		User: models.User{
+			ID:        u.idGenerator.Generate(),
+			FirstName: request.FirstName,
+			LastName:  request.LastName,
+			Status:    models.Registered,
+		},
+		Identity: request.Identity,
+		AdminID:  claims.UserID,
+		TimeStamps: models.TimeStamps{
+			Time: time.Now().Unix(),
+		},
 	}
-	err = u.allRepository.AuthRepository.CreateVendor(ctx, vendor)
+	err = u.allRepository.AuthRepository.CreateUser(ctx, vendor)
 	if err != nil {
 		return nil, err
 	}

@@ -105,7 +105,10 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		ID:         a.idGenerator.Generate(),
 		Target:     request.Email,
 		TemplateID: library.EarlyAccessEmailTemplateID,
-		Ts:         time.Now().Unix(),
+		DataMap: map[string]string{
+			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/",
+		},
+		Ts: time.Now().Unix(),
 	}
 	err = a.sendEmail(message)
 	if err != nil {

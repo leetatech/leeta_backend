@@ -5,51 +5,43 @@ import (
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 )
 
+type User struct {
+	ID            string   `json:"id" bson:"id"`
+	FirstName     string   `json:"first_name" bson:"first_name"`
+	LastName      string   `json:"last_name" bson:"last_name"`
+	Email         Email    `json:"email" bson:"email"`
+	Address       Address  `json:"address" bson:"address"`
+	Phone         Phone    `json:"phone" bson:"phone"`
+	DOB           string   `json:"dob" bson:"dob"`
+	HasPIN        bool     `json:"has_pin" bson:"has_pin"`
+	PinBlocked    bool     `json:"pin_blocked" bson:"pin_blocked"`
+	IsBlocked     bool     `json:"is_blocked" bson:"is_blocked"`
+	BlockedReason string   `json:"is_blocked_reason" bson:"is_blocked_reason"`
+	Status        Statuses `json:"status" bson:"status"`
+}
+
 type Customer struct {
-	ID              string   `json:"id" bson:"id"`
-	FirstName       string   `json:"first_name" bson:"first_name"`
-	LastName        string   `json:"last_name" bson:"last_name"`
-	Email           Email    `json:"email" bson:"email"`
-	Address         Address  `json:"address" bson:"address"`
-	Phone           Phone    `json:"phone" bson:"phone"`
-	HasPIN          bool     `json:"has_pin" bson:"has_pin"`
-	PinBlocked      bool     `json:"pin_blocked" bson:"pin_blocked"`
-	IsBlocked       bool     `json:"is_blocked" bson:"is_blocked"`
-	BlockedReason   string   `json:"is_blocked_reason" bson:"is_blocked_reason"`
-	Status          Statuses `json:"status" bson:"status"`
-	StatusTimeStamp int64    `json:"status_ts" bson:"status_ts"`
-	Timestamp       int64    `json:"ts" bson:"ts"`
+	User
+	TimeStamps
 } // @name Customer
 
+type TimeStamps struct {
+	StatusTime int64 `json:"status_ts" bson:"status_ts"`
+	Time       int64 `json:"ts" bson:"ts"`
+}
+
 type Vendor struct {
-	ID              string   `json:"id" bson:"id"`
-	Identity        string   `json:"identity" bson:"identity"`
-	FirstName       string   `json:"first_name" bson:"first_name"`
-	LastName        string   `json:"last_name" bson:"last_name"`
-	Email           Email    `json:"email" bson:"email"`
-	HasPIN          bool     `json:"has_pin" bson:"has_pin"`
-	PinBlocked      bool     `json:"pin_blocked" bson:"pin_blocked"`
-	IsBlocked       bool     `json:"is_blocked" bson:"is_blocked"`
-	BlockedReason   string   `json:"is_blocked_reason" bson:"is_blocked_reason"`
-	AdminID         string   `json:"admin_id" bson:"admin_id"`
-	Status          Statuses `json:"status" bson:"status"`
-	StatusTimeStamp int64    `json:"status_ts" bson:"status_ts"`
-	Timestamp       int64    `json:"ts" bson:"ts"`
+	User
+	Identity string `json:"identity" bson:"identity"`
+	AdminID  string `json:"admin_id" bson:"admin_id"`
+	TimeStamps
 } // @name Vendor
 
 type Admin struct {
-	ID              string   `json:"id" bson:"id"`
-	Email           string   `json:"email" bson:"email"`
-	FirstName       string   `json:"first_name" bson:"first_name"`
-	LastName        string   `json:"last_name" bson:"last_name"`
-	DOB             string   `json:"dob" bson:"dob"`
-	Address         Address  `json:"address" bson:"address"`
-	Phone           string   `json:"phone" bson:"phone"`
-	Department      string   `json:"department"`
-	Role            string   `json:"role"`
-	Status          Statuses `json:"status" bson:"status"`
-	StatusTimestamp int64    `json:"status_ts" bson:"status_ts"`
-	Timestamp       int64    `json:"ts" bson:"ts"`
+	User
+	Department string `json:"department"`
+	Role       string `json:"role"`
+	TimeStamps
 } // @name Admin
 
 // Phone model

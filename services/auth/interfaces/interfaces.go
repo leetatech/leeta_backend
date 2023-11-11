@@ -47,7 +47,7 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 // CreateOTPHandler godoc
 // @Summary OTP Generation
 // @Description The endpoint allows the generation of OTP
-// @Tags OTP
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Param domain.OTPRequest body domain.OTPRequest true "request otp body"
@@ -73,7 +73,7 @@ func (handler *AuthHttpHandler) CreateOTPHandler(w http.ResponseWriter, r *http.
 // EarlyAccessHandler godoc
 // @Summary Early Access
 // @Description The endpoint allows users to request for early access
-// @Tags EarlyAccess
+// @Tags Early Access
 // @Accept json
 // @Produce json
 // @Param models.EarlyAccess body models.EarlyAccess true "request early access body"
@@ -123,7 +123,7 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // ForgotPasswordHandler godoc
 // @Summary Forgot Password
 // @Description The endpoint allows users to request for password reset
-// @Tags Password
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Param domain.ForgotPasswordRequest body domain.ForgotPasswordRequest true "request forgot password body"
@@ -149,7 +149,7 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 // ValidateOTPHandler godoc
 // @Summary Validate OTP
 // @Description The endpoint allows users to validate OTP
-// @Tags OTP
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Param domain.OTPValidationRequest body domain.OTPValidationRequest true "request otp validation body"
@@ -175,7 +175,7 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 // ResetPasswordHandler godoc
 // @Summary Reset Password
 // @Description The endpoint allows users to reset password
-// @Tags Password
+// @Tags Session
 // @Accept json
 // @Produce json
 // @Param domain.ResetPasswordRequest body domain.ResetPasswordRequest true "request reset password body"

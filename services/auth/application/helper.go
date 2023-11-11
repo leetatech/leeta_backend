@@ -36,14 +36,18 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.Signing
 			timestamp := time.Now().Unix()
 
 			vendor := models.Vendor{
-				ID: a.idGenerator.Generate(),
-				Email: models.Email{
-					Address: request.Email,
+				User: models.User{
+					ID: a.idGenerator.Generate(),
+					Email: models.Email{
+						Address: request.Email,
+					},
+					Status: models.SignedUp,
 				},
-				Timestamp: timestamp,
-				Status:    models.SignedUp,
+				TimeStamps: models.TimeStamps{
+					Time: timestamp,
+				},
 			}
-			err = a.allRepository.AuthRepository.CreateVendor(ctx, vendor)
+			err = a.allRepository.AuthRepository.CreateUser(ctx, vendor)
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +82,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.Signing
 				return nil, err
 			}
 
-			return &domain.DefaultSigningResponse{AuthToken: response}, nil
+			return &domain.DefaultSigningResponse{AuthToken: response, Body: vendor.User}, nil
 
 		default:
 			return nil, err
@@ -97,14 +101,18 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signi
 			timestamp := time.Now().Unix()
 
 			customer := models.Customer{
-				ID: a.idGenerator.Generate(),
-				Email: models.Email{
-					Address: request.Email,
+				User: models.User{
+					ID: a.idGenerator.Generate(),
+					Email: models.Email{
+						Address: request.Email,
+					},
+					Status: models.SignedUp,
 				},
-				Timestamp: timestamp,
-				Status:    models.SignedUp,
+				TimeStamps: models.TimeStamps{
+					Time: timestamp,
+				},
 			}
-			err = a.allRepository.AuthRepository.CreateCustomer(ctx, customer)
+			err = a.allRepository.AuthRepository.CreateUser(ctx, customer)
 			if err != nil {
 				return nil, err
 			}
@@ -139,7 +147,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signi
 				return nil, err
 			}
 
-			return &domain.DefaultSigningResponse{AuthToken: response}, nil
+			return &domain.DefaultSigningResponse{AuthToken: response, Body: customer.User}, nil
 
 		default:
 			return nil, err
@@ -180,10 +188,10 @@ func (a authAppHandler) accountVerification(ctx context.Context, userID, target,
 	return nil
 }
 
-func (a authAppHandler) buildSignIn(ctx context.Context, userId string, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, userId)
+func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, user.ID)
 	if err != nil {
-		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("user_id", userId))
+		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("user_id", user.ID))
 		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
 	}
 
@@ -198,13 +206,14 @@ func (a authAppHandler) buildSignIn(ctx context.Context, userId string, status m
 		return nil, err
 	}
 
-	response, err := a.tokenHandler.BuildAuthResponse(request.Email, userId, identity.ID, request.UserType)
+	response, err := a.tokenHandler.BuildAuthResponse(request.Email, user.ID, identity.ID, request.UserType)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
 	return &domain.DefaultSigningResponse{
 		AuthToken: response,
+		Body:      user,
 	}, nil
 
 }
@@ -216,7 +225,7 @@ func (a authAppHandler) vendorSignIN(ctx context.Context, request domain.Signing
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return a.buildSignIn(ctx, vendor.ID, vendor.Status, request)
+	return a.buildSignIn(ctx, vendor.User, vendor.Status, request)
 }
 
 func (a authAppHandler) customerSignIN(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
@@ -226,7 +235,7 @@ func (a authAppHandler) customerSignIN(ctx context.Context, request domain.Signi
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return a.buildSignIn(ctx, customer.ID, customer.Status, request)
+	return a.buildSignIn(ctx, customer.User, customer.Status, request)
 }
 
 func (a authAppHandler) processLoginPasswordValidation(request domain.SigningRequest, identity *models.Identity) error {
@@ -306,26 +315,34 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 			timestamp := time.Now().Unix()
 
 			admin := models.Admin{
-				ID:        a.idGenerator.Generate(),
-				FirstName: request.FirstName,
-				LastName:  request.LastName,
-				Email:     request.Email,
-				DOB:       request.DOB,
-				Address: models.Address{
-					State:           request.Address.State,
-					City:            request.Address.City,
-					LGA:             request.Address.LGA,
-					FullAddress:     request.Address.FullAddress,
-					ClosestLandmark: request.Address.ClosestLandmark,
-					Verified:        true,
+				User: models.User{
+					ID:        a.idGenerator.Generate(),
+					FirstName: request.FirstName,
+					LastName:  request.LastName,
+					Email: models.Email{
+						Address: request.Email,
+					},
+					DOB: request.DOB,
+					Address: models.Address{
+						State:           request.Address.State,
+						City:            request.Address.City,
+						LGA:             request.Address.LGA,
+						FullAddress:     request.Address.FullAddress,
+						ClosestLandmark: request.Address.ClosestLandmark,
+					},
+					Phone: models.Phone{
+						Primary: true,
+						Number:  request.Phone,
+					},
+					Status: models.SignedUp,
 				},
-				Phone:      request.Phone,
 				Department: request.Department,
 				Role:       request.Role,
-				Timestamp:  timestamp,
-				Status:     models.SignedUp,
+				TimeStamps: models.TimeStamps{
+					Time: timestamp,
+				},
 			}
-			err = a.allRepository.AuthRepository.CreateAdmin(ctx, admin)
+			err = a.allRepository.AuthRepository.CreateUser(ctx, admin)
 			if err != nil {
 				fmt.Println("repo error", err)
 				return nil, err
@@ -356,12 +373,12 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, admin.ID, admin.Email, library.AdminSignUpEmailTemplateID, models.AdminCategory)
+			err = a.accountVerification(ctx, admin.ID, admin.User.Email.Address, library.AdminSignUpEmailTemplateID, models.AdminCategory)
 			if err != nil {
 				return nil, err
 			}
 
-			return &domain.DefaultSigningResponse{AuthToken: response}, nil
+			return &domain.DefaultSigningResponse{AuthToken: response, Body: admin.User}, nil
 
 		default:
 			return nil, err
@@ -380,7 +397,7 @@ func (a authAppHandler) adminSignIN(ctx context.Context, request domain.SigningR
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return a.buildSignIn(ctx, admin.ID, admin.Status, request)
+	return a.buildSignIn(ctx, admin.User, admin.Status, request)
 }
 
 func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, errChan chan<- error) {

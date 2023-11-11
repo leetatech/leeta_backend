@@ -26,14 +26,6 @@ func NewAuthPersistence(client *mongo.Client, databaseName string, logger *zap.L
 	return &authStoreHandler{client: client, databaseName: databaseName, logger: logger}
 }
 
-func (a authStoreHandler) CreateVendor(ctx context.Context, vendor models.Vendor) error {
-	_, err := a.col(models.VendorCollectionName).InsertOne(ctx, vendor)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a authStoreHandler) CreateIdentity(ctx context.Context, identity models.Identity) error {
 	_, err := a.col(models.IdentityCollectionName).InsertOne(ctx, identity)
 	if err != nil {
@@ -45,10 +37,10 @@ func (a authStoreHandler) CreateIdentity(ctx context.Context, identity models.Id
 func (a authStoreHandler) GetVendorByEmail(ctx context.Context, email string) (*models.Vendor, error) {
 	vendor := &models.Vendor{}
 	filter := bson.M{
-		"email.address": email,
+		EmailAddress: email,
 	}
 
-	err := a.col(models.VendorCollectionName).FindOne(ctx, filter).Decode(vendor)
+	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(vendor)
 	if err != nil {
 		return nil, err
 	}
@@ -127,21 +119,13 @@ func (a authStoreHandler) UpdateCredential(ctx context.Context, customerID, pass
 	return nil
 }
 
-func (a authStoreHandler) CreateAdmin(ctx context.Context, admin models.Admin) error {
-	_, err := a.col(models.AdminCollectionName).InsertOne(ctx, admin)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a authStoreHandler) GetAdminByEmail(ctx context.Context, email string) (*models.Admin, error) {
 	admin := &models.Admin{}
 	filter := bson.M{
 		"email": email,
 	}
 
-	err := a.col(models.AdminCollectionName).FindOne(ctx, filter).Decode(admin)
+	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(admin)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +133,8 @@ func (a authStoreHandler) GetAdminByEmail(ctx context.Context, email string) (*m
 	return admin, nil
 }
 
-func (a authStoreHandler) CreateCustomer(ctx context.Context, customer models.Customer) error {
-	_, err := a.col(models.CustomerCollectionName).InsertOne(ctx, customer)
+func (a authStoreHandler) CreateUser(ctx context.Context, user any) error {
+	_, err := a.col(models.UsersCollectionName).InsertOne(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -160,10 +144,10 @@ func (a authStoreHandler) CreateCustomer(ctx context.Context, customer models.Cu
 func (a authStoreHandler) GetCustomerByEmail(ctx context.Context, email string) (*models.Customer, error) {
 	customer := &models.Customer{}
 	filter := bson.M{
-		"email.address": email,
+		EmailAddress: email,
 	}
 
-	err := a.col(models.CustomerCollectionName).FindOne(ctx, filter).Decode(customer)
+	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(customer)
 	if err != nil {
 		return nil, err
 	}

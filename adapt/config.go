@@ -12,8 +12,13 @@ import (
 	"time"
 )
 
+const (
+	databaseTimeout = 10 * time.Second
+	devMongoURI     = "mongodb+srv://admin:qT5IsndbYrzmq9eW@cluster0.rt4wdpi.mongodb.net/?retryWrites=true&w=majority"
+)
+
 type ServerConfig struct {
-	AppEnv     string `env:"APP_ENV" envDefault:"dev" envWhitelisted:"true"`
+	AppEnv     string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
 	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
 	Database   DatabaseConfig
 	PrivateKey string `env:"PRIVATE_KEY"`
@@ -26,10 +31,10 @@ type DatabaseConfig struct {
 	Host     string `env:"MONGO_HOST" envDefault:"localhost:"`
 	Port     string `env:"MONGO_PORT" envDefault:"27017"`
 	Timeout  int    `env:"MONGO_CONNECTION_TIMEOUT_SECONDS" envDefault:"10"`
-	DbName   string `env:"MONGO_DB_NAME" envDefault:"leeta"`
+	DBName   string `env:"MONGO_DB_NAME" envDefault:"leeta"`
 	UserName string `env:"MONGO_USERNAME" envDefault:"leeta"`
 	Password string `env:"MONGO_PASSWORD" envDefault:"leet"`
-	DbUrl    string `env:"DATABASE_URL" envDefault:"" envWhitelisted:"true"`
+	DbURL    string `env:"DATABASE_URL" envDefault:"" envWhitelisted:"true"`
 }
 
 type PostmarkConfig struct {
@@ -41,40 +46,49 @@ type LeetaConfig struct {
 	Domain string `env:"DOMAIN"`
 }
 
-func Read(logger zap.Logger) (*ServerConfig, error) {
-	var serverConfig ServerConfig
+func LoadEnv() error {
+	err := godotenv.Load("./local.env")
+	if err != nil {
+		return fmt.Errorf("failed to load environment variables: %v", err)
+	}
+	return nil
+}
 
-	if err := godotenv.Load("../local.env"); err != nil {
+func ReadConfig(logger zap.Logger) (*ServerConfig, error) {
+	err := LoadEnv()
+	if err != nil {
 		return nil, err
 	}
 
-	for _, target := range []interface{}{
+	var serverConfig ServerConfig
+	targets := []interface{}{
 		&serverConfig,
 		&serverConfig.Database,
 		&serverConfig.Postmark,
 		&serverConfig.Leeta,
-		//&serverConfig.Security,
-	} {
+	}
+
+	for _, target := range targets {
 		if err := env.Parse(target); err != nil {
-			return &serverConfig, err
+			return nil, fmt.Errorf("failed to parse environment variables: %v", err)
 		}
 	}
-	overrideWithCommandLine(serverConfig)
 
-	out := serverConfig.formartUri()
+	overrideWithEnvVars(&serverConfig)
+	out := serverConfig.formatURI()
 	logger.Info(out)
+
 	return &serverConfig, nil
 }
 
-func (config *ServerConfig) formartUri() string {
+func (config *ServerConfig) formatURI() string {
 	format := "database: {host: %s port:%s timeout:%d, username-hidden password-hidden}"
 	host := config.Database.Host
 	port := config.Database.Port
 	timeout := config.Database.Timeout
 
-	if config.Database.DbUrl != "" {
-		if connString, err := url.Parse(config.Database.DbUrl); err == nil {
-
+	if config.Database.DbURL != "" {
+		if connString, err := url.Parse(config.Database.DbURL); err == nil {
 			result := strings.Split(connString.Host, ":")
 			host = result[0]
 			port = result[1]
@@ -84,26 +98,23 @@ func (config *ServerConfig) formartUri() string {
 	return fmt.Sprintf(format, host, port, timeout)
 }
 
-func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
-	return options.Client().
-		SetConnectTimeout(time.Duration(config.Database.Timeout) * time.Second).
-		SetHosts([]string{config.Database.Host + config.Database.Port})
+func overrideWithEnvVars(config *ServerConfig) {
+	config.PrivateKey = os.Getenv("PRIVATE_KEY")
+	config.PublicKey = os.Getenv("PUBLIC_KEY")
+	config.Postmark.URL = os.Getenv("POSTMARK_URL")
+	config.Postmark.Key = os.Getenv("POSTMARK_KEY")
 }
 
-func overrideWithCommandLine(serverConfig ServerConfig) {
-	if privateKey := os.Getenv("PRIVATE_KEY"); privateKey != "" {
-		serverConfig.PrivateKey = privateKey
+func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	if config.AppEnv == "staging" {
+		return options.Client().
+			SetConnectTimeout(databaseTimeout).
+			ApplyURI(devMongoURI).
+			SetServerAPIOptions(serverAPI)
 	}
 
-	if publicKey := os.Getenv("PUBLIC_KEY"); publicKey != "" {
-		serverConfig.PublicKey = publicKey
-	}
-
-	if postmarkURL := os.Getenv("POSTMARK_URL"); postmarkURL != "" {
-		serverConfig.Postmark.URL = postmarkURL
-	}
-
-	if postmarkKey := os.Getenv("POSTMARK_KEY"); postmarkKey != "" {
-		serverConfig.Postmark.Key = postmarkKey
-	}
+	return options.Client().
+		SetConnectTimeout(databaseTimeout).
+		SetHosts([]string{config.Database.Host + config.Database.Port})
 }

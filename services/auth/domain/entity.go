@@ -10,6 +10,7 @@ type SigningRequest struct {
 
 type DefaultSigningResponse struct {
 	AuthToken string `json:"auth_token,omitempty"`
+	Body      any    `json:"body"`
 } // @name DefaultSigningResponse
 
 type OTPRequest struct {
