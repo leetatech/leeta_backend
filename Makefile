@@ -102,4 +102,6 @@ generate_keys:
 	echo >> local.env; \
     echo >> local.env; \
 	echo "PUBLIC_KEY=\"$$PUBLIC_KEY\"" >> local.env; \
+	echo >> local.env; \
+	echo "APP_ENV=staging" >> local.env; \
 	rm private.key public.key
