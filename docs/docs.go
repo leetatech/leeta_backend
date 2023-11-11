@@ -506,7 +506,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EarlyAccess"
+                    "Early Access"
                 ],
                 "summary": "Early Access",
                 "parameters": [
@@ -540,7 +540,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "Session"
                 ],
                 "summary": "Forgot Password",
                 "parameters": [
@@ -574,7 +574,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Session"
                 ],
                 "summary": "OTP Generation",
                 "parameters": [
@@ -608,7 +608,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Session"
                 ],
                 "summary": "Validate OTP",
                 "parameters": [
@@ -642,7 +642,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "Session"
                 ],
                 "summary": "Reset Password",
                 "parameters": [
@@ -1083,19 +1083,31 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "email": {
-                    "type": "string"
+                    "$ref": "#/definitions/Email"
                 },
                 "first_name": {
                     "type": "string"
                 },
+                "has_pin": {
+                    "type": "boolean"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
                     "type": "string"
                 },
                 "last_name": {
                     "type": "string"
                 },
                 "phone": {
-                    "type": "string"
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
                 },
                 "role": {
                     "type": "string"
@@ -1178,7 +1190,8 @@ const docTemplate = `{
             "properties": {
                 "auth_token": {
                     "type": "string"
-                }
+                },
+                "body": {}
             }
         },
         "EarlyAccess": {
@@ -1189,6 +1202,17 @@ const docTemplate = `{
                 },
                 "ts": {
                     "type": "integer"
+                }
+            }
+        },
+        "Email": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1349,6 +1373,20 @@ const docTemplate = `{
                 },
                 "vendor_id": {
                     "type": "string"
+                }
+            }
+        },
+        "Phone": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "string"
+                },
+                "primary": {
+                    "type": "boolean"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },

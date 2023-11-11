@@ -26,15 +26,23 @@ definitions:
       dob:
         type: string
       email:
-        type: string
+        $ref: '#/definitions/Email'
       first_name:
         type: string
+      has_pin:
+        type: boolean
       id:
+        type: string
+      is_blocked:
+        type: boolean
+      is_blocked_reason:
         type: string
       last_name:
         type: string
       phone:
-        type: string
+        $ref: '#/definitions/Phone'
+      pin_blocked:
+        type: boolean
       role:
         type: string
       status:
@@ -88,6 +96,7 @@ definitions:
     properties:
       auth_token:
         type: string
+      body: {}
     type: object
   EarlyAccess:
     properties:
@@ -95,6 +104,13 @@ definitions:
         type: string
       ts:
         type: integer
+    type: object
+  Email:
+    properties:
+      address:
+        type: string
+      verified:
+        type: boolean
     type: object
   ForgotPasswordRequest:
     properties:
@@ -199,6 +215,15 @@ definitions:
         type: number
       vendor_id:
         type: string
+    type: object
+  Phone:
+    properties:
+      number:
+        type: string
+      primary:
+        type: boolean
+      verified:
+        type: boolean
     type: object
   Product:
     properties:
@@ -780,7 +805,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Early Access
       tags:
-      - EarlyAccess
+      - Early Access
   /session/forgot_password:
     post:
       consumes:
@@ -802,7 +827,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Forgot Password
       tags:
-      - Password
+      - Session
   /session/otp/request:
     post:
       consumes:
@@ -824,7 +849,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: OTP Generation
       tags:
-      - OTP
+      - Session
   /session/otp/validate:
     post:
       consumes:
@@ -846,7 +871,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Validate OTP
       tags:
-      - OTP
+      - Session
   /session/reset_password:
     post:
       consumes:
@@ -868,7 +893,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: Reset Password
       tags:
-      - Password
+      - Session
   /session/signin:
     post:
       consumes:

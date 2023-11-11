@@ -499,7 +499,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "EarlyAccess"
+                    "Early Access"
                 ],
                 "summary": "Early Access",
                 "parameters": [
@@ -533,7 +533,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "Session"
                 ],
                 "summary": "Forgot Password",
                 "parameters": [
@@ -567,7 +567,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Session"
                 ],
                 "summary": "OTP Generation",
                 "parameters": [
@@ -601,7 +601,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "OTP"
+                    "Session"
                 ],
                 "summary": "Validate OTP",
                 "parameters": [
@@ -635,7 +635,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Password"
+                    "Session"
                 ],
                 "summary": "Reset Password",
                 "parameters": [
@@ -1076,19 +1076,31 @@
                     "type": "string"
                 },
                 "email": {
-                    "type": "string"
+                    "$ref": "#/definitions/Email"
                 },
                 "first_name": {
                     "type": "string"
                 },
+                "has_pin": {
+                    "type": "boolean"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
                     "type": "string"
                 },
                 "last_name": {
                     "type": "string"
                 },
                 "phone": {
-                    "type": "string"
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
                 },
                 "role": {
                     "type": "string"
@@ -1171,7 +1183,8 @@
             "properties": {
                 "auth_token": {
                     "type": "string"
-                }
+                },
+                "body": {}
             }
         },
         "EarlyAccess": {
@@ -1182,6 +1195,17 @@
                 },
                 "ts": {
                     "type": "integer"
+                }
+            }
+        },
+        "Email": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1342,6 +1366,20 @@
                 },
                 "vendor_id": {
                     "type": "string"
+                }
+            }
+        },
+        "Phone": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "string"
+                },
+                "primary": {
+                    "type": "boolean"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
