@@ -1,13 +1,11 @@
 package models
 
 const (
-	IdentityCollectionName      = "identity"
-	VendorCollectionName        = "vendor"
+	IdentityCollectionName      = "identities"
 	VerificationsCollectionName = "verifications"
 	EarlyAccessCollectionName   = "early_access"
-	BusinessCollectionName      = "business"
-	AdminCollectionName         = "admin"
-	ProductCollectionName       = "product"
-	OrderCollectionName         = "order"
-	CustomerCollectionName      = "customer"
+	BusinessCollectionName      = "businesses"
+	ProductCollectionName       = "products"
+	OrderCollectionName         = "orders"
+	UsersCollectionName         = "users"
 )

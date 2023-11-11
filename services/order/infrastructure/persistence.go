@@ -129,7 +129,7 @@ func makeCustomerPipeline(filter bson.M, limit, page int64) []bson.M {
 		},
 		{
 			"$lookup": bson.M{
-				"from":         models.CustomerCollectionName,
+				"from":         models.UsersCollectionName,
 				"let":          bson.M{"customer_id": "$customer_id"},
 				"localField":   "customer_id",
 				"foreignField": "id",

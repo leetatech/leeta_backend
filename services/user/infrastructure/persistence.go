@@ -31,7 +31,7 @@ func (u userStoreHandler) VendorDetailsUpdate(request domain.VendorDetailsUpdate
 
 	filter := bson.M{"id": request.ID}
 	update := bson.M{"$set": bson.M{"first_name": request.FirstName, "last_name": request.LastName, "status": request.Status, "status_ts": time.Now().Unix()}}
-	result, err := u.col(models.VendorCollectionName).UpdateOne(ctx, filter, update)
+	result, err := u.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
@@ -61,7 +61,7 @@ func (u userStoreHandler) GetVendorByID(id string) (*models.Vendor, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := u.col(models.VendorCollectionName).FindOne(ctx, filter).Decode(vendor)
+	err := u.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(vendor)
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
