@@ -13,7 +13,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:3000",
+    "host": "https://leetabackend-e6d948d15ae2.herokuapp.com/api/",
     "basePath": "/api",
     "paths": {
         "/order/": {

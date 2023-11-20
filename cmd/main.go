@@ -17,7 +17,7 @@ import (
 // @contact.name	LEETA Technologies
 // @contact.email	admin@getlleta.com
 // @license.name	Apache 3.0-or-later
-// @host			localhost:3000
+// @host			https://leetabackend-e6d948d15ae2.herokuapp.com/api/
 // @BasePath		/api
 // @securityDefinitions.apikey BearerToken
 // @in header
