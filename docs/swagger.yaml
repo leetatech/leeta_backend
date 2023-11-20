@@ -461,7 +461,7 @@ definitions:
     - VendorCategory
     - BuyerCategory
     - AdminCategory
-host: https://leetabackend-e6d948d15ae2.herokuapp.com/api/
+host: https://leetabackend-e6d948d15ae2.herokuapp.com/
 info:
   contact:
     email: admin@getlleta.com
