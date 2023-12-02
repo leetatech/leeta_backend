@@ -28,7 +28,7 @@ func (a authAppHandler) passwordValidationEncryption(password string) (string, e
 	return string(passByte), nil
 }
 
-func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
 	_, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
 	if err != nil {
 		switch err {
@@ -93,7 +93,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.Signing
 	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)
 }
 
-func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
 	_, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
 	if err != nil {
 		switch err {

@@ -716,11 +716,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "user sign up request body",
-                        "name": "domain.SigningRequest",
+                        "name": "domain.SignupRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/SigningRequest"
+                            "$ref": "#/definitions/SignupRequest"
                         }
                     }
                 ],
@@ -1480,6 +1480,23 @@ const docTemplate = `{
                 }
             }
         },
+        "SignupRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user_type": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -1711,7 +1728,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "https://leetabackend-e6d948d15ae2.herokuapp.com/",
+	Host:             "https://leetabackend-e6d948d15ae2.herokuapp.com",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "LEETA BACKEND API",
