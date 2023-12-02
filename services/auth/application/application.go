@@ -25,7 +25,7 @@ type authAppHandler struct {
 }
 
 type AuthApplication interface {
-	SignUp(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
+	SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error)
 	CreateOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error)
 	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error)
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
@@ -48,7 +48,7 @@ func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplicati
 	}
 }
 
-func (a authAppHandler) SignUp(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
 	hashedPassword, err := a.passwordValidationEncryption(request.Password)
 	if err != nil {
 		a.logger.Error("Password Validation", zap.Error(err))

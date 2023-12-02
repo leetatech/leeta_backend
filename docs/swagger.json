@@ -13,7 +13,7 @@
         },
         "version": "1.0"
     },
-    "host": "https://leetabackend-e6d948d15ae2.herokuapp.com/",
+    "host": "https://leetabackend-e6d948d15ae2.herokuapp.com",
     "basePath": "/api",
     "paths": {
         "/order/": {
@@ -709,11 +709,11 @@
                 "parameters": [
                     {
                         "description": "user sign up request body",
-                        "name": "domain.SigningRequest",
+                        "name": "domain.SignupRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/SigningRequest"
+                            "$ref": "#/definitions/SignupRequest"
                         }
                     }
                 ],
@@ -1463,6 +1463,23 @@
             "type": "object",
             "properties": {
                 "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user_type": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
+        "SignupRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
                     "type": "string"
                 },
                 "password": {

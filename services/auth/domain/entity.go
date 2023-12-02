@@ -2,6 +2,13 @@ package domain
 
 import "github.com/leetatech/leeta_backend/services/library/models"
 
+type SignupRequest struct {
+	FullName string              `json:"full_name"`
+	Email    string              `json:"email"`
+	Password string              `json:"password"`
+	UserType models.UserCategory `json:"user_type"`
+} // @name SignupRequest
+
 type SigningRequest struct {
 	Email    string              `json:"email"`
 	Password string              `json:"password"`

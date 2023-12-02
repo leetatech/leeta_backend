@@ -284,6 +284,17 @@ definitions:
       user_type:
         $ref: '#/definitions/models.UserCategory'
     type: object
+  SignupRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      password:
+        type: string
+      user_type:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
   UpdateOrderStatusRequest:
     properties:
       order_id:
@@ -461,7 +472,7 @@ definitions:
     - VendorCategory
     - BuyerCategory
     - AdminCategory
-host: https://leetabackend-e6d948d15ae2.herokuapp.com/
+host: https://leetabackend-e6d948d15ae2.herokuapp.com
 info:
   contact:
     email: admin@getlleta.com
@@ -924,10 +935,10 @@ paths:
       parameters:
       - description: user sign up request body
         in: body
-        name: domain.SigningRequest
+        name: domain.SignupRequest
         required: true
         schema:
-          $ref: '#/definitions/SigningRequest'
+          $ref: '#/definitions/SignupRequest'
       produces:
       - application/json
       responses:

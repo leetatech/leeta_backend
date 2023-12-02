@@ -25,11 +25,11 @@ func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHa
 // @Tags Session
 // @Accept json
 // @Produce json
-// @Param domain.SigningRequest body domain.SigningRequest true "user sign up request body"
+// @Param domain.SignupRequest body domain.SignupRequest true "user sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
 // @Router /session/signup [post]
 func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	var signUpRequest domain.SigningRequest
+	var signUpRequest domain.SignupRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
