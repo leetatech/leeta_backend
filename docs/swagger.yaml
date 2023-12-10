@@ -116,8 +116,6 @@ definitions:
     properties:
       email:
         type: string
-      userCategory:
-        $ref: '#/definitions/models.UserCategory'
     type: object
   GetCustomerOrdersRequest:
     properties:
