@@ -28,8 +28,7 @@ type OTPRequest struct {
 } // @name OTPRequest
 
 type ForgotPasswordRequest struct {
-	Email        string              `json:"email" bson:"email"`
-	UserCategory models.UserCategory `json:"userCategory" bson:"user_category"`
+	Email string `json:"email" bson:"email"`
 } // @name ForgotPasswordRequest
 
 type OTPValidationRequest struct {

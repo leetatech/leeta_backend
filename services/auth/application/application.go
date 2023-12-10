@@ -136,10 +136,20 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 }
 
 func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
-	category, err := models.SetUserCategory(request.UserCategory)
+	// get customer by email
+	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
 	if err != nil {
 		return nil, err
 	}
+
+	// get customer category from roles
+	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, customer.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	category := identity.Role
+
 	var firstName, lastName string
 	switch category {
 	case models.VendorCategory:
@@ -156,7 +166,7 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 		Topic:        "ForgotPassword",
 		Type:         models.EMAIL,
 		Target:       request.Email,
-		UserCategory: request.UserCategory,
+		UserCategory: category,
 	}
 
 	otpResponse, err := a.CreateOTP(ctx, requestOTP)

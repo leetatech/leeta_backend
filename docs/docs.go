@@ -1221,9 +1221,6 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string"
-                },
-                "userCategory": {
-                    "$ref": "#/definitions/models.UserCategory"
                 }
             }
         },
