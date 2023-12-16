@@ -53,8 +53,7 @@ type TimeStamps struct {
 
 type Vendor struct {
 	User
-	Identity string `json:"identity" bson:"identity"`
-	AdminID  string `json:"admin_id" bson:"admin_id"`
+	AdminID string `json:"admin_id" bson:"admin_id"`
 	TimeStamps
 } // @name Vendor
 
