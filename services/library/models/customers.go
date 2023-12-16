@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"strings"
 )
 
 type User struct {
@@ -18,6 +19,26 @@ type User struct {
 	IsBlocked     bool     `json:"is_blocked" bson:"is_blocked"`
 	BlockedReason string   `json:"is_blocked_reason" bson:"is_blocked_reason"`
 	Status        Statuses `json:"status" bson:"status"`
+}
+
+func (user *User) ExtractName(fullName string) error {
+	names := strings.Fields(fullName)
+
+	// Handle cases where there is only one name or more than two names
+	switch len(names) {
+	case 0:
+		return errors.New("no user names provides")
+	case 1:
+		// Only one name provided, consider it as the first name
+		user.FirstName = names[0]
+		return nil
+	default:
+		// More than one name provided, consider the first as the first name
+		// and the rest as the last name
+		user.FirstName = names[0]
+		user.LastName = strings.Join(names[1:], " ")
+		return nil
+	}
 }
 
 type Customer struct {

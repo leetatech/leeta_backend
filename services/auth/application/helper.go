@@ -47,6 +47,10 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 					Time: timestamp,
 				},
 			}
+			err = vendor.User.ExtractName(request.FullName)
+			if err != nil {
+				return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+			}
 			err = a.allRepository.AuthRepository.CreateUser(ctx, vendor)
 			if err != nil {
 				return nil, err
