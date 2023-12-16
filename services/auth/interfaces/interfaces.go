@@ -114,7 +114,7 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 
 	token, err := handler.AuthApplication.SignIn(r.Context(), signInRequest)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		library.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
 	library.EncodeResult(w, token, http.StatusOK)
@@ -139,7 +139,7 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 
 	response, err := handler.AuthApplication.ForgotPassword(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		library.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
 

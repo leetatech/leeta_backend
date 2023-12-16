@@ -139,13 +139,15 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 	// get customer by email
 	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
 	if err != nil {
-		return nil, err
+		a.logger.Error("error getting customer by email", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
 	// get customer category from roles
 	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, customer.ID)
 	if err != nil {
-		return nil, err
+		a.logger.Error("error getting customer identity", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("email", request.Email))
+		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
 	}
 
 	category := identity.Role
