@@ -80,7 +80,7 @@ var (
 		DecryptionError:            "An error occurred while decrypting",
 		DuplicateUserError:         "An error occurred because user already exists",
 		UserNotFoundError:          "An error occurred because this is not a registered user",
-		IdentityNotFoundError:      "An error occurred because this is not a registered identity",
+		IdentityNotFoundError:      "An error occurred because this user identity is not known",
 		UserLockedError:            "An error occurred because this user is locked",
 		CredentialsValidationError: "An error occurred because the credentials are invalid",
 		TokenGenerationError:       "An error occurred while generating token",
