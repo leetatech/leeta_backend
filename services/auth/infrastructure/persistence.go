@@ -64,10 +64,10 @@ func (a authStoreHandler) EarlyAccess(ctx context.Context, earlyAccess models.Ea
 	return nil
 }
 
-func (a authStoreHandler) GetIdentityByCustomerID(ctx context.Context, id string) (*models.Identity, error) {
+func (a authStoreHandler) GetIdentityByUserID(ctx context.Context, id string) (*models.Identity, error) {
 	identity := &models.Identity{}
 	filter := bson.M{
-		"customer_id": id,
+		"user_id": id,
 	}
 
 	err := a.col(models.IdentityCollectionName).FindOne(ctx, filter).Decode(identity)

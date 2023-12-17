@@ -546,11 +546,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "request forgot password body",
-                        "name": "domain.ForgotPasswordRequest",
+                        "name": "domain.EmailRequestBody",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ForgotPasswordRequest"
+                            "$ref": "#/definitions/EmailRequestBody"
                         }
                     }
                 ],
@@ -580,11 +580,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "request otp body",
-                        "name": "domain.OTPRequest",
+                        "name": "domain.EmailRequestBody",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/OTPRequest"
+                            "$ref": "#/definitions/EmailRequestBody"
                         }
                     }
                 ],
@@ -1216,7 +1216,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ForgotPasswordRequest": {
+        "EmailRequestBody": {
             "type": "object",
             "properties": {
                 "email": {
@@ -1258,23 +1258,6 @@ const docTemplate = `{
                 },
                 "vendor_id": {
                     "type": "string"
-                }
-            }
-        },
-        "OTPRequest": {
-            "type": "object",
-            "properties": {
-                "target": {
-                    "type": "string"
-                },
-                "topic": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.MessageDeliveryType"
-                },
-                "userCategory": {
-                    "$ref": "#/definitions/models.UserCategory"
                 }
             }
         },
@@ -1599,19 +1582,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "models.MessageDeliveryType": {
-            "type": "string",
-            "enum": [
-                "SMS",
-                "EMAIL",
-                "PUSH"
-            ],
-            "x-enum-varnames": [
-                "SMS",
-                "EMAIL",
-                "PUSH"
-            ]
         },
         "models.OrderStatuses": {
             "type": "string",

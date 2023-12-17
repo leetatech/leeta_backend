@@ -29,7 +29,7 @@ type AuthApplication interface {
 	CreateOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error)
 	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error)
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
-	ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
+	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error)
 	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error)
 	ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
@@ -135,7 +135,7 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 	return nil, nil
 }
 
-func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
 	// get customer by email
 	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
 	if err != nil {
@@ -143,7 +143,7 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 	}
 
 	// get customer category from roles
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, customer.ID)
+	identity, err := a.allRepository.AuthRepository.GetIdentityByUserID(ctx, customer.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
+	return &library.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
 }
 
 func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error) {

@@ -112,7 +112,7 @@ definitions:
       verified:
         type: boolean
     type: object
-  ForgotPasswordRequest:
+  EmailRequestBody:
     properties:
       email:
         type: string
@@ -140,17 +140,6 @@ definitions:
         type: array
       vendor_id:
         type: string
-    type: object
-  OTPRequest:
-    properties:
-      target:
-        type: string
-      topic:
-        type: string
-      type:
-        $ref: '#/definitions/models.MessageDeliveryType'
-      userCategory:
-        $ref: '#/definitions/models.UserCategory'
     type: object
   OTPValidationRequest:
     properties:
@@ -380,16 +369,6 @@ definitions:
       timestamp:
         type: string
     type: object
-  models.MessageDeliveryType:
-    enum:
-    - SMS
-    - EMAIL
-    - PUSH
-    type: string
-    x-enum-varnames:
-    - SMS
-    - EMAIL
-    - PUSH
   models.OrderStatuses:
     enum:
     - PENDING
@@ -823,10 +802,10 @@ paths:
       parameters:
       - description: request forgot password body
         in: body
-        name: domain.ForgotPasswordRequest
+        name: domain.EmailRequestBody
         required: true
         schema:
-          $ref: '#/definitions/ForgotPasswordRequest'
+          $ref: '#/definitions/EmailRequestBody'
       produces:
       - application/json
       responses:
@@ -845,10 +824,10 @@ paths:
       parameters:
       - description: request otp body
         in: body
-        name: domain.OTPRequest
+        name: domain.EmailRequestBody
         required: true
         schema:
-          $ref: '#/definitions/OTPRequest'
+          $ref: '#/definitions/EmailRequestBody'
       produces:
       - application/json
       responses:

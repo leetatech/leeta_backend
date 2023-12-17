@@ -63,7 +63,7 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router.Post("/admin/signup", session.AdminSignUpHandler)
 
 	// otp
-	router.Post("/otp/request", session.CreateOTPHandler)
+	router.Post("/otp/request", session.RequestOTPHandler)
 	router.Post("/otp/validate", session.ValidateOTPHandler)
 
 	// password
