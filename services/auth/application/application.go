@@ -27,10 +27,10 @@ type authAppHandler struct {
 
 type AuthApplication interface {
 	SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error)
-	CreateOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error)
+	RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error)
 	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error)
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
-	ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error)
+	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error)
 	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error)
 	ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
@@ -73,7 +73,7 @@ func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest
 	return nil, nil
 }
 
-func (a authAppHandler) CreateOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) createOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error) {
 	expirationDuration := time.Duration(5) * time.Minute
 
 	otpResponse := models.Verification{
@@ -136,18 +136,32 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 	return nil, nil
 }
 
-func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
+	if err := a.sendOTP(ctx, request); err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
+	}
+	return &library.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
+}
+
+func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
+	if err := a.sendOTP(ctx, request); err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
+	}
+	return &library.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
+}
+
+func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequestBody) error {
 	// get user by email
 	user, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
 		a.logger.Error("error getting user by email", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
-		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+		return leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
 	// check if user otp exists
 	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Email)
 	if err != nil && !errors.Is(err, infrastructure.ErrItemNotFound) {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	requestOTP := domain.OTPRequest{
@@ -157,9 +171,9 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 	}
 	var OTP string
 	if isVerificationValid := verification.VerifyCodeValidity(); !isVerificationValid {
-		response, err := a.CreateOTP(ctx, requestOTP)
+		response, err := a.createOTP(ctx, requestOTP)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		OTP = response.Message
 	} else {
@@ -179,10 +193,10 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 	}
 	err = a.sendEmail(message)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "OTP created"}, nil
+	return nil
 }
 
 func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error) {

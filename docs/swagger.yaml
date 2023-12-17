@@ -112,7 +112,7 @@ definitions:
       verified:
         type: boolean
     type: object
-  ForgotPasswordRequest:
+  EmailRequestBody:
     properties:
       email:
         type: string
@@ -140,17 +140,6 @@ definitions:
         type: array
       vendor_id:
         type: string
-    type: object
-  OTPRequest:
-    properties:
-      target:
-        type: string
-      topic:
-        type: string
-      type:
-        $ref: '#/definitions/models.MessageDeliveryType'
-      userCategory:
-        $ref: '#/definitions/models.UserCategory'
     type: object
   OTPValidationRequest:
     properties:
@@ -338,6 +327,7 @@ definitions:
     - 1025
     - 1026
     - 1027
+    - 1028
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -367,6 +357,7 @@ definitions:
     - ProductCategoryError
     - ProductSubCategoryError
     - ProductStatusError
+    - InternalError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -380,16 +371,6 @@ definitions:
       timestamp:
         type: string
     type: object
-  models.MessageDeliveryType:
-    enum:
-    - SMS
-    - EMAIL
-    - PUSH
-    type: string
-    x-enum-varnames:
-    - SMS
-    - EMAIL
-    - PUSH
   models.OrderStatuses:
     enum:
     - PENDING
@@ -823,10 +804,10 @@ paths:
       parameters:
       - description: request forgot password body
         in: body
-        name: domain.ForgotPasswordRequest
+        name: domain.EmailRequestBody
         required: true
         schema:
-          $ref: '#/definitions/ForgotPasswordRequest'
+          $ref: '#/definitions/EmailRequestBody'
       produces:
       - application/json
       responses:
@@ -841,14 +822,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: The endpoint allows the generation of OTP
+      description: The endpoint allows client side to request for new OTP for target
       parameters:
       - description: request otp body
         in: body
-        name: domain.OTPRequest
+        name: domain.EmailRequestBody
         required: true
         schema:
-          $ref: '#/definitions/OTPRequest'
+          $ref: '#/definitions/EmailRequestBody'
       produces:
       - application/json
       responses:
@@ -856,7 +837,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/DefaultResponse'
-      summary: OTP Generation
+      summary: Request for new OTP for target email
       tags:
       - Session
   /session/otp/validate:

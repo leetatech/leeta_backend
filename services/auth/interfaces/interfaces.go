@@ -44,24 +44,24 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 	library.EncodeResult(w, token, http.StatusOK)
 }
 
-// CreateOTPHandler godoc
-// @Summary OTP Generation
-// @Description The endpoint allows the generation of OTP
+// RequestOTPHandler godoc
+// @Summary Request for new OTP for target email
+// @Description The endpoint allows client side to request for new OTP for target
 // @Tags Session
 // @Accept json
 // @Produce json
-// @Param domain.OTPRequest body domain.OTPRequest true "request otp body"
+// @Param domain.EmailRequestBody body domain.EmailRequestBody true "request otp body"
 // @Success 200 {object} library.DefaultResponse
 // @Router /session/otp/request [post]
-func (handler *AuthHttpHandler) CreateOTPHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.OTPRequest
+func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	token, err := handler.AuthApplication.CreateOTP(r.Context(), request)
+	token, err := handler.AuthApplication.RequestOTP(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -126,11 +126,11 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // @Tags Session
 // @Accept json
 // @Produce json
-// @Param domain.ForgotPasswordRequest body domain.ForgotPasswordRequest true "request forgot password body"
+// @Param domain.EmailRequestBody body domain.EmailRequestBody true "request forgot password body"
 // @Success 200 {object} library.DefaultResponse
 // @Router /session/forgot_password [post]
 func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.ForgotPasswordRequest
+	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)

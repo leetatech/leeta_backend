@@ -169,9 +169,9 @@ func (a authAppHandler) accountVerification(ctx context.Context, userID, target,
 		Target:       target,
 		UserCategory: userCategory,
 	}
-	otpResponse, err := a.CreateOTP(ctx, requestOTP)
+	otpResponse, err := a.createOTP(ctx, requestOTP)
 	if err != nil {
-		a.logger.Error("SignUp", zap.Any("CreateOTP", err))
+		a.logger.Error("SignUp", zap.Any("createOTP", err))
 		return err
 	}
 
@@ -193,7 +193,7 @@ func (a authAppHandler) accountVerification(ctx context.Context, userID, target,
 }
 
 func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, user.ID)
+	identity, err := a.allRepository.AuthRepository.GetIdentityByUserID(ctx, user.ID)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("user_id", user.ID))
 		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
@@ -279,9 +279,9 @@ func (a authAppHandler) resetPassword(ctx context.Context, customerID, email, pa
 		return nil, err
 	}
 
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, customerID)
+	identity, err := a.allRepository.AuthRepository.GetIdentityByUserID(ctx, customerID)
 	if err != nil {
-		a.logger.Error("resetPassword", zap.Any("GetIdentityByCustomerID", err))
+		a.logger.Error("resetPassword", zap.Any("GetIdentityByUserID", err))
 		return nil, err
 	}
 
