@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
+	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
@@ -136,44 +137,33 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 }
 
 func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.ForgotPasswordRequest) (*library.DefaultResponse, error) {
-	// get customer by email
-	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	// get user by email
+	user, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
-		a.logger.Error("error getting customer by email", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+		a.logger.Error("error getting user by email", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	// get customer category from roles
-	identity, err := a.allRepository.AuthRepository.GetIdentityByCustomerID(ctx, customer.ID)
-	if err != nil {
-		a.logger.Error("error getting customer identity", zap.Any(leetError.ErrorType(leetError.IdentityNotFoundError), err), zap.Any("email", request.Email))
-		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
-	}
-
-	category := identity.Role
-
-	var firstName, lastName string
-	switch category {
-	case models.VendorCategory:
-		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
-		if err != nil {
-			a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
-			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
-		}
-		firstName = vendor.FirstName
-		lastName = vendor.LastName
+	// check if user otp exists
+	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Email)
+	if err != nil && !errors.Is(err, infrastructure.ErrItemNotFound) {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	requestOTP := domain.OTPRequest{
-		Topic:        "ForgotPassword",
-		Type:         models.EMAIL,
-		Target:       request.Email,
-		UserCategory: category,
+		Topic:  "ForgotPassword",
+		Type:   models.EMAIL,
+		Target: request.Email,
 	}
-
-	otpResponse, err := a.CreateOTP(ctx, requestOTP)
-	if err != nil {
-		return nil, err
+	var OTP string
+	if isVerificationValid := verification.VerifyCodeValidity(); !isVerificationValid {
+		response, err := a.CreateOTP(ctx, requestOTP)
+		if err != nil {
+			return nil, err
+		}
+		OTP = response.Message
+	} else {
+		OTP = verification.Code
 	}
 
 	message := models.Message{
@@ -181,9 +171,9 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Forgo
 		Target:     request.Email,
 		TemplateID: library.ForgotPasswordEmailTemplateID,
 		DataMap: map[string]string{
-			"FirstName": firstName,
-			"LastName":  lastName,
-			"OTP":       otpResponse.Message,
+			"FirstName": user.FirstName,
+			"LastName":  user.LastName,
+			"OTP":       OTP,
 		},
 		Ts: time.Now().Unix(),
 	}
