@@ -54,14 +54,14 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 // @Success 200 {object} library.DefaultResponse
 // @Router /session/otp/request [post]
 func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.OTPRequest
+	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	token, err := handler.AuthApplication.CreateOTP(r.Context(), request)
+	token, err := handler.AuthApplication.RequestOTP(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

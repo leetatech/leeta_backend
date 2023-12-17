@@ -169,9 +169,9 @@ func (a authAppHandler) accountVerification(ctx context.Context, userID, target,
 		Target:       target,
 		UserCategory: userCategory,
 	}
-	otpResponse, err := a.CreateOTP(ctx, requestOTP)
+	otpResponse, err := a.createOTP(ctx, requestOTP)
 	if err != nil {
-		a.logger.Error("SignUp", zap.Any("CreateOTP", err))
+		a.logger.Error("SignUp", zap.Any("createOTP", err))
 		return err
 	}
 

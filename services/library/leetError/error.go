@@ -37,6 +37,7 @@ const (
 	ProductCategoryError       ErrorCode = 1025
 	ProductSubCategoryError    ErrorCode = 1026
 	ProductStatusError         ErrorCode = 1027
+	InternalError              ErrorCode = 1028
 )
 
 var (
@@ -68,6 +69,7 @@ var (
 		ProductCategoryError:       "ProductCategoryError",
 		ProductSubCategoryError:    "ProductSubCategoryError",
 		ProductStatusError:         "ProductStatusError",
+		InternalError:              "ForgotPasswordError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -98,6 +100,7 @@ var (
 		ProductCategoryError:       "An error occurred because the product category is invalid",
 		ProductSubCategoryError:    "An error occurred because the product subcategory is invalid",
 		ProductStatusError:         "An error occurred because the product status is invalid",
+		InternalError:              "An error occurred while trying to reset a user password",
 	}
 )
 

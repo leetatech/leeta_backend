@@ -566,7 +566,7 @@ const docTemplate = `{
         },
         "/session/otp/request": {
             "post": {
-                "description": "The endpoint allows the generation of OTP",
+                "description": "The endpoint allows client side to request for new OTP for target",
                 "consumes": [
                     "application/json"
                 ],
@@ -576,7 +576,7 @@ const docTemplate = `{
                 "tags": [
                     "Session"
                 ],
-                "summary": "OTP Generation",
+                "summary": "Request for new OTP for target email",
                 "parameters": [
                     {
                         "description": "request otp body",
@@ -1531,7 +1531,8 @@ const docTemplate = `{
                 1024,
                 1025,
                 1026,
-                1027
+                1027,
+                1028
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1560,7 +1561,8 @@ const docTemplate = `{
                 "OrderStatusesError",
                 "ProductCategoryError",
                 "ProductSubCategoryError",
-                "ProductStatusError"
+                "ProductStatusError",
+                "InternalError"
             ]
         },
         "leetError.ErrorResponse": {
