@@ -15,6 +15,6 @@ type AuthRepository interface {
 	ValidateOTP(ctx context.Context, verificationId string) error
 	UpdateCredential(ctx context.Context, customerID, password string) error
 	GetAdminByEmail(ctx context.Context, email string) (*models.Admin, error)
-	GetCustomerByEmail(ctx context.Context, email string) (*models.Customer, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.Customer, error)
 	CreateUser(ctx context.Context, user any) error
 }

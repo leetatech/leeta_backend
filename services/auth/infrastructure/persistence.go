@@ -2,6 +2,8 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
@@ -11,6 +13,8 @@ import (
 	"go.uber.org/zap"
 	"time"
 )
+
+var ErrItemNotFound = errors.New("item not found")
 
 type authStoreHandler struct {
 	client       *mongo.Client
@@ -81,7 +85,7 @@ func (a authStoreHandler) GetIdentityByUserID(ctx context.Context, id string) (*
 func (a authStoreHandler) GetOTPForValidation(ctx context.Context, target string) (*models.Verification, error) {
 	var verification models.Verification
 
-	filter := bson.M{"target": target}
+	filter := bson.M{"target": target, "validated": false}
 	option := options.FindOneOptions{
 		Sort: bson.M{"_id": -1},
 	}
@@ -90,9 +94,9 @@ func (a authStoreHandler) GetOTPForValidation(ctx context.Context, target string
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+			return nil, ErrItemNotFound
 		}
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, fmt.Errorf("error finding otp for validation %w", err)
 	}
 
 	return &verification, nil
@@ -141,7 +145,7 @@ func (a authStoreHandler) CreateUser(ctx context.Context, user any) error {
 	return nil
 }
 
-func (a authStoreHandler) GetCustomerByEmail(ctx context.Context, email string) (*models.Customer, error) {
+func (a authStoreHandler) GetUserByEmail(ctx context.Context, email string) (*models.Customer, error) {
 	customer := &models.Customer{}
 	filter := bson.M{
 		EmailAddress: email,

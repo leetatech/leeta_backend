@@ -46,7 +46,7 @@ func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRe
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	_, err = o.allRepository.AuthRepository.GetCustomerByEmail(ctx, claims.Email)
+	_, err = o.allRepository.AuthRepository.GetUserByEmail(ctx, claims.Email)
 	if err != nil {
 		return nil, err
 	}

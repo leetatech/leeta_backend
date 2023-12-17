@@ -1,6 +1,9 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type Verification struct {
 	ID              string              `json:"id" bson:"id"`
@@ -13,6 +16,11 @@ type Verification struct {
 	StatusTimeStamp int64               `json:"status_ts" bson:"status_ts"`
 	Timestamp       int64               `json:"ts" bson:"ts"`
 } // @name Verification
+
+func (verify *Verification) VerifyCodeValidity() bool {
+	currentTime := time.Now().Unix()
+	return verify.Timestamp <= currentTime
+}
 
 type MessageDeliveryType string
 

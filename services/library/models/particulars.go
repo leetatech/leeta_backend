@@ -7,7 +7,7 @@ import (
 
 type Identity struct {
 	ID          string        `json:"id" bson:"id"`
-	CustomerID  string        `json:"customer_id" bson:"customer_id"`
+	UserID      string        `json:"user_id" bson:"user_id"`
 	Role        UserCategory  `json:"role" bson:"role"`
 	Credentials []Credentials `json:"credentials" bson:"credentials"`
 } // @name Identity

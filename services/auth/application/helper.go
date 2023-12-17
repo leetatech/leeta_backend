@@ -47,15 +47,19 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 					Time: timestamp,
 				},
 			}
+			err = vendor.User.ExtractName(request.FullName)
+			if err != nil {
+				return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+			}
 			err = a.allRepository.AuthRepository.CreateUser(ctx, vendor)
 			if err != nil {
 				return nil, err
 			}
 
 			identity := models.Identity{
-				ID:         a.idGenerator.Generate(),
-				CustomerID: vendor.ID,
-				Role:       models.VendorCategory,
+				ID:     a.idGenerator.Generate(),
+				UserID: vendor.ID,
+				Role:   models.VendorCategory,
 				Credentials: []models.Credentials{
 					{
 						Type:            models.CredentialsTypeLogin,
@@ -94,7 +98,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 }
 
 func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
-	_, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	_, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
@@ -118,9 +122,9 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 			}
 
 			identity := models.Identity{
-				ID:         a.idGenerator.Generate(),
-				CustomerID: customer.ID,
-				Role:       models.BuyerCategory,
+				ID:     a.idGenerator.Generate(),
+				UserID: customer.ID,
+				Role:   models.BuyerCategory,
 				Credentials: []models.Credentials{
 					{
 						Type:            models.CredentialsTypeLogin,
@@ -229,7 +233,7 @@ func (a authAppHandler) vendorSignIN(ctx context.Context, request domain.Signing
 }
 
 func (a authAppHandler) customerSignIN(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	customer, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
@@ -349,9 +353,9 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 			}
 
 			identity := models.Identity{
-				ID:         a.idGenerator.Generate(),
-				CustomerID: admin.ID,
-				Role:       models.AdminCategory,
+				ID:     a.idGenerator.Generate(),
+				UserID: admin.ID,
+				Role:   models.AdminCategory,
 				Credentials: []models.Credentials{
 					{
 						Type:            models.CredentialsTypeLogin,

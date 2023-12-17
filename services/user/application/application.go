@@ -105,8 +105,7 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 			LastName:  request.LastName,
 			Status:    models.Registered,
 		},
-		Identity: request.Identity,
-		AdminID:  claims.UserID,
+		AdminID: claims.UserID,
 		TimeStamps: models.TimeStamps{
 			Time: time.Now().Unix(),
 		},
