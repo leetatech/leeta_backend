@@ -98,7 +98,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 }
 
 func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
-	_, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	_, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
@@ -233,7 +233,7 @@ func (a authAppHandler) vendorSignIN(ctx context.Context, request domain.Signing
 }
 
 func (a authAppHandler) customerSignIN(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
-	customer, err := a.allRepository.AuthRepository.GetCustomerByEmail(ctx, request.Email)
+	customer, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
