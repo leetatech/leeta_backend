@@ -232,6 +232,12 @@ func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValid
 		return nil, err
 	}
 
+	err = a.allRepository.AuthRepository.UpdateEmailVerify(ctx, verification.Target, true)
+	if err != nil {
+		a.logger.Error("error validating user email", zap.Error(err), zap.String("verification_email", verification.Target))
+		return nil, err
+	}
+
 	return &library.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
 }
 

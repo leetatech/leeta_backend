@@ -6,6 +6,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -38,6 +39,7 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 
 	token, err := handler.AuthApplication.SignUp(r.Context(), signUpRequest)
 	if err != nil {
+		log.Debug().Err(err).Msg("error completing user registration")
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}

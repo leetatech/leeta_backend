@@ -158,3 +158,12 @@ func (a authStoreHandler) GetUserByEmail(ctx context.Context, email string) (*mo
 
 	return customer, nil
 }
+func (a authStoreHandler) UpdateEmailVerify(ctx context.Context, email string, status bool) error {
+	filter := bson.M{EmailAddress: email}
+	update := bson.M{"$set": bson.M{EmailVerifiedStatus: status}}
+	_, err := a.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+	return nil
+}
