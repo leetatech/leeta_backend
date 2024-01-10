@@ -249,22 +249,14 @@ func (a authAppHandler) ResetPassword(ctx context.Context, request domain.ResetP
 		return nil, leetError.ErrorResponseBody(leetError.PasswordValidationError, errors.New("password and confirm password don't match"))
 	}
 
-	category, err := models.SetUserCategory(request.UserCategory)
+	vendor, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
-		return nil, err
-	}
-	switch category {
-	case models.VendorCategory:
-		vendor, err := a.allRepository.AuthRepository.GetVendorByEmail(ctx, request.Email)
-		if err != nil {
-			a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
-			return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
-		}
-
-		return a.resetPassword(ctx, vendor.ID, vendor.Email.Address, request.Password, request.UserCategory)
+		a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return nil, nil
+	return a.resetPassword(ctx, vendor.ID, vendor.Email.Address, request.Password)
+
 }
 
 func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {

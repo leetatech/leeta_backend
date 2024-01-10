@@ -259,8 +259,6 @@ definitions:
         type: string
       password:
         type: string
-      userCategory:
-        $ref: '#/definitions/models.UserCategory'
     type: object
   SigningRequest:
     properties:
@@ -328,6 +326,7 @@ definitions:
     - 1026
     - 1027
     - 1028
+    - 1029
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -358,6 +357,7 @@ definitions:
     - ProductSubCategoryError
     - ProductStatusError
     - InternalError
+    - MissingUserNames
   leetError.ErrorResponse:
     properties:
       error_code:

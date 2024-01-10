@@ -37,10 +37,9 @@ type OTPValidationRequest struct {
 } // @name OTPValidationRequest
 
 type ResetPasswordRequest struct {
-	Email           string              `json:"email" bson:"email"`
-	Password        string              `json:"password" bson:"password"`
-	ConfirmPassword string              `json:"confirm_password" bson:"confirm_password"`
-	UserCategory    models.UserCategory `json:"userCategory" bson:"user_category"`
+	Email           string `json:"email" bson:"email"`
+	Password        string `json:"password" bson:"password"`
+	ConfirmPassword string `json:"confirm_password" bson:"confirm_password"`
 } // @name ResetPasswordRequest
 
 type AdminSignUpRequest struct {

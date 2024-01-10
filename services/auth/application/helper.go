@@ -266,29 +266,17 @@ func (a authAppHandler) processLoginPasswordValidation(request domain.SigningReq
 	return leetError.ErrorResponseBody(leetError.CredentialsValidationError, errors.New("credential type is not login"))
 }
 
-func (a authAppHandler) resetPassword(ctx context.Context, customerID, email, passcode string, userCategory models.UserCategory) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) resetPassword(ctx context.Context, userID, email, passcode string) (*domain.DefaultSigningResponse, error) {
 
 	hashedPasscode, err := a.passwordValidationEncryption(passcode)
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.allRepository.AuthRepository.UpdateCredential(ctx, customerID, hashedPasscode)
+	err = a.allRepository.AuthRepository.UpdateCredential(ctx, userID, hashedPasscode)
 	if err != nil {
 		a.logger.Error("resetPassword", zap.Any("UpdateCredential", err))
 		return nil, err
-	}
-
-	identity, err := a.allRepository.AuthRepository.GetIdentityByUserID(ctx, customerID)
-	if err != nil {
-		a.logger.Error("resetPassword", zap.Any("GetIdentityByUserID", err))
-		return nil, err
-	}
-
-	response, err := a.tokenHandler.BuildAuthResponse(email, customerID, identity.ID, userCategory)
-	if err != nil {
-		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
-		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 	}
 
 	// TODO : Uncomment this code when when a decision is made to send email to vendor
@@ -308,7 +296,7 @@ func (a authAppHandler) resetPassword(ctx context.Context, customerID, email, pa
 	//	return nil, err
 	//}
 
-	return &domain.DefaultSigningResponse{AuthToken: response}, nil
+	return &domain.DefaultSigningResponse{Body: "password reset successful"}, nil
 }
 
 func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
