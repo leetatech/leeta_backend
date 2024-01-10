@@ -653,7 +653,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
+                            "$ref": "#/definitions/APIResponseWithoutToken"
                         }
                     }
                 }
@@ -1037,6 +1037,12 @@
         }
     },
     "definitions": {
+        "APIResponseWithoutToken": {
+            "type": "object",
+            "properties": {
+                "body": {}
+            }
+        },
         "Address": {
             "type": "object",
             "properties": {

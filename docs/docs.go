@@ -660,7 +660,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
+                            "$ref": "#/definitions/APIResponseWithoutToken"
                         }
                     }
                 }
@@ -1044,6 +1044,12 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "APIResponseWithoutToken": {
+            "type": "object",
+            "properties": {
+                "body": {}
+            }
+        },
         "Address": {
             "type": "object",
             "properties": {

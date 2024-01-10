@@ -20,6 +20,10 @@ type DefaultSigningResponse struct {
 	Body      any    `json:"body"`
 } // @name DefaultSigningResponse
 
+type APIResponseWithoutToken struct {
+	Body any `json:"body"`
+} // @name APIResponseWithoutToken
+
 type OTPRequest struct {
 	Topic        string                     `json:"topic" bson:"topic"`
 	Type         models.MessageDeliveryType `json:"type" bson:"type"`

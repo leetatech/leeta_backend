@@ -1,5 +1,9 @@
 basePath: /api
 definitions:
+  APIResponseWithoutToken:
+    properties:
+      body: {}
+    type: object
   Address:
     properties:
       city:
@@ -880,7 +884,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/DefaultSigningResponse'
+            $ref: '#/definitions/APIResponseWithoutToken'
       summary: Reset Password
       tags:
       - Session
