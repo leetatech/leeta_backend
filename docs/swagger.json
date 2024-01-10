@@ -653,7 +653,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
+                            "$ref": "#/definitions/APIResponseWithoutToken"
                         }
                     }
                 }
@@ -1037,6 +1037,12 @@
         }
     },
     "definitions": {
+        "APIResponseWithoutToken": {
+            "type": "object",
+            "properties": {
+                "body": {}
+            }
+        },
         "Address": {
             "type": "object",
             "properties": {
@@ -1433,9 +1439,6 @@
                 },
                 "password": {
                     "type": "string"
-                },
-                "userCategory": {
-                    "$ref": "#/definitions/models.UserCategory"
                 }
             }
         },
@@ -1525,7 +1528,8 @@
                 1025,
                 1026,
                 1027,
-                1028
+                1028,
+                1029
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1555,7 +1559,8 @@
                 "ProductCategoryError",
                 "ProductSubCategoryError",
                 "ProductStatusError",
-                "InternalError"
+                "InternalError",
+                "MissingUserNames"
             ]
         },
         "leetError.ErrorResponse": {

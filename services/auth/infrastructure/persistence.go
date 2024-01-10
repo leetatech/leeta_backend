@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
+	"github.com/leetatech/leeta_backend/services/dtos"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -41,7 +42,7 @@ func (a authStoreHandler) CreateIdentity(ctx context.Context, identity models.Id
 func (a authStoreHandler) GetVendorByEmail(ctx context.Context, email string) (*models.Vendor, error) {
 	vendor := &models.Vendor{}
 	filter := bson.M{
-		EmailAddress: email,
+		dtos.EmailAddress: email,
 	}
 
 	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(vendor)
@@ -113,8 +114,8 @@ func (a authStoreHandler) ValidateOTP(ctx context.Context, verificationId string
 	return nil
 }
 
-func (a authStoreHandler) UpdateCredential(ctx context.Context, customerID, password string) error {
-	filter := bson.M{"customer_id": customerID, "credentials.type": string(models.CredentialsTypeLogin)}
+func (a authStoreHandler) UpdateCredential(ctx context.Context, userID, password string) error {
+	filter := bson.M{dtos.UserID: userID, dtos.CredentialsType: string(models.CredentialsTypeLogin)}
 	update := bson.M{"$set": bson.M{"credentials.$.password": password, "credentials.$.status": models.CredentialStatusActive, "credentials.$.update_ts": time.Now().Unix()}}
 	_, err := a.col(models.IdentityCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -148,7 +149,7 @@ func (a authStoreHandler) CreateUser(ctx context.Context, user any) error {
 func (a authStoreHandler) GetUserByEmail(ctx context.Context, email string) (*models.Customer, error) {
 	customer := &models.Customer{}
 	filter := bson.M{
-		EmailAddress: email,
+		dtos.EmailAddress: email,
 	}
 
 	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(customer)
@@ -159,8 +160,8 @@ func (a authStoreHandler) GetUserByEmail(ctx context.Context, email string) (*mo
 	return customer, nil
 }
 func (a authStoreHandler) UpdateEmailVerify(ctx context.Context, email string, status bool) error {
-	filter := bson.M{EmailAddress: email}
-	update := bson.M{"$set": bson.M{EmailVerifiedStatus: status}}
+	filter := bson.M{dtos.EmailAddress: email}
+	update := bson.M{"$set": bson.M{dtos.EmailVerifiedStatus: status}}
 	_, err := a.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)

@@ -20,6 +20,10 @@ type DefaultSigningResponse struct {
 	Body      any    `json:"body"`
 } // @name DefaultSigningResponse
 
+type APIResponseWithoutToken struct {
+	Body any `json:"body"`
+} // @name APIResponseWithoutToken
+
 type OTPRequest struct {
 	Topic        string                     `json:"topic" bson:"topic"`
 	Type         models.MessageDeliveryType `json:"type" bson:"type"`
@@ -37,10 +41,9 @@ type OTPValidationRequest struct {
 } // @name OTPValidationRequest
 
 type ResetPasswordRequest struct {
-	Email           string              `json:"email" bson:"email"`
-	Password        string              `json:"password" bson:"password"`
-	ConfirmPassword string              `json:"confirm_password" bson:"confirm_password"`
-	UserCategory    models.UserCategory `json:"userCategory" bson:"user_category"`
+	Email           string `json:"email" bson:"email"`
+	Password        string `json:"password" bson:"password"`
+	ConfirmPassword string `json:"confirm_password" bson:"confirm_password"`
 } // @name ResetPasswordRequest
 
 type AdminSignUpRequest struct {

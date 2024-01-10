@@ -181,7 +181,7 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 // @Accept json
 // @Produce json
 // @Param domain.ResetPasswordRequest body domain.ResetPasswordRequest true "request reset password body"
-// @Success 200 {object} domain.DefaultSigningResponse
+// @Success 200 {object} domain.APIResponseWithoutToken
 // @Router /session/reset_password [post]
 func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.ResetPasswordRequest

@@ -660,7 +660,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
+                            "$ref": "#/definitions/APIResponseWithoutToken"
                         }
                     }
                 }
@@ -1044,6 +1044,12 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "APIResponseWithoutToken": {
+            "type": "object",
+            "properties": {
+                "body": {}
+            }
+        },
         "Address": {
             "type": "object",
             "properties": {
@@ -1440,9 +1446,6 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
-                },
-                "userCategory": {
-                    "$ref": "#/definitions/models.UserCategory"
                 }
             }
         },
@@ -1532,7 +1535,8 @@ const docTemplate = `{
                 1025,
                 1026,
                 1027,
-                1028
+                1028,
+                1029
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1562,7 +1566,8 @@ const docTemplate = `{
                 "ProductCategoryError",
                 "ProductSubCategoryError",
                 "ProductStatusError",
-                "InternalError"
+                "InternalError",
+                "MissingUserNames"
             ]
         },
         "leetError.ErrorResponse": {
