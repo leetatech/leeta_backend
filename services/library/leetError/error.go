@@ -38,6 +38,7 @@ const (
 	ProductSubCategoryError    ErrorCode = 1026
 	ProductStatusError         ErrorCode = 1027
 	InternalError              ErrorCode = 1028
+	MissingUserNames           ErrorCode = 1029
 )
 
 var (
@@ -70,6 +71,7 @@ var (
 		ProductSubCategoryError:    "ProductSubCategoryError",
 		ProductStatusError:         "ProductStatusError",
 		InternalError:              "ForgotPasswordError",
+		MissingUserNames:           "MissingUserNamesError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -101,6 +103,7 @@ var (
 		ProductSubCategoryError:    "An error occurred because the product subcategory is invalid",
 		ProductStatusError:         "An error occurred because the product status is invalid",
 		InternalError:              "An error occurred while trying to reset a user password",
+		MissingUserNames:           "An error occurred because user first name/last name was not found",
 	}
 )
 

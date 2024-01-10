@@ -17,4 +17,5 @@ type AuthRepository interface {
 	GetAdminByEmail(ctx context.Context, email string) (*models.Admin, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.Customer, error)
 	CreateUser(ctx context.Context, user any) error
+	UpdateEmailVerify(ctx context.Context, userID string, status bool) error
 }
