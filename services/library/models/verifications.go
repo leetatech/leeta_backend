@@ -18,8 +18,11 @@ type Verification struct {
 } // @name Verification
 
 func (verify *Verification) VerifyCodeValidity() bool {
-	currentTime := time.Now().Unix()
-	return verify.Timestamp <= currentTime
+	if verify == nil || (verify != nil && verify.Timestamp == 0) {
+		return false // or handle the nil pointer case as needed
+	}
+
+	return verify.Timestamp <= time.Now().Unix()
 }
 
 type MessageDeliveryType string
