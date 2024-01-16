@@ -39,6 +39,8 @@ const (
 	ProductStatusError         ErrorCode = 1027
 	InternalError              ErrorCode = 1028
 	MissingUserNames           ErrorCode = 1029
+	InvalidAppLoginError       ErrorCode = 1030
+	InvalidIdentityError       ErrorCode = 1031
 )
 
 var (
@@ -72,6 +74,8 @@ var (
 		ProductStatusError:         "ProductStatusError",
 		InternalError:              "ForgotPasswordError",
 		MissingUserNames:           "MissingUserNamesError",
+		InvalidAppLoginError:       "InvalidAppLoginError",
+		InvalidIdentityError:       "InvalidIdentityError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -104,6 +108,8 @@ var (
 		ProductStatusError:         "An error occurred because the product status is invalid",
 		InternalError:              "An error occurred while trying to reset a user password",
 		MissingUserNames:           "An error occurred because user first name/last name was not found",
+		InvalidAppLoginError:       "An error occurred because the user is trying to login with the wrong app",
+		InvalidIdentityError:       "An error occurred because the user identity data is invalid",
 	}
 )
 
