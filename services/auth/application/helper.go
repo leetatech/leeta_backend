@@ -231,11 +231,8 @@ func (a authAppHandler) vendorSignIN(ctx context.Context, request domain.Signing
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	if validateErr := a.validateUserRole(ctx, &request); validateErr != nil {
-		if err == invalidAppErr {
-			return nil, leetError.ErrorResponseBody(leetError.InvalidAppLoginError, err)
-		}
-		return nil, leetError.ErrorResponseBody(leetError.InvalidIdentityError, err)
+	if validateErr := a.validateUserRole(ctx, &request, &vendor.User); validateErr != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InvalidUserRoleError, err)
 	}
 
 	return a.buildSignIn(ctx, vendor.User, vendor.Status, request)
@@ -248,18 +245,15 @@ func (a authAppHandler) customerSignIN(ctx context.Context, request domain.Signi
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	if validateErr := a.validateUserRole(ctx, &request); validateErr != nil {
-		if err == invalidAppErr {
-			return nil, leetError.ErrorResponseBody(leetError.InvalidAppLoginError, err)
-		}
-		return nil, leetError.ErrorResponseBody(leetError.InvalidIdentityError, err)
+	if validateErr := a.validateUserRole(ctx, &request, &customer.User); validateErr != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InvalidUserRoleError, err)
 	}
 
 	return a.buildSignIn(ctx, customer.User, customer.Status, request)
 }
 
-func (a authAppHandler) validateUserRole(ctx context.Context, request *domain.SigningRequest) error {
-	identity, err := a.allRepository.AuthRepository.GetIdentityByUserID(ctx, request.Email)
+func (a authAppHandler) validateUserRole(ctx context.Context, request *domain.SigningRequest, user *models.User) error {
+	identity, err := a.allRepository.AuthRepository.GetIdentityByUserID(ctx, user.ID)
 	if err != nil {
 		return err
 	}
