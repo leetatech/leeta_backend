@@ -84,6 +84,15 @@ definitions:
       longitude:
         type: number
     type: object
+  CreateNewPasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
   DefaultErrorResponse:
     properties:
       data:
@@ -255,15 +264,6 @@ definitions:
       weight:
         type: string
     type: object
-  ResetPasswordRequest:
-    properties:
-      confirm_password:
-        type: string
-      email:
-        type: string
-      password:
-        type: string
-    type: object
   SigningRequest:
     properties:
       email:
@@ -331,6 +331,8 @@ definitions:
     - 1027
     - 1028
     - 1029
+    - 1030
+    - 1031
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -362,6 +364,8 @@ definitions:
     - ProductStatusError
     - InternalError
     - MissingUserNames
+    - InvalidUserRoleError
+    - InvalidIdentityError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -778,6 +782,28 @@ paths:
       summary: Admin Sign Up
       tags:
       - Session
+  /session/create_new_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to create a new password.
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.CreateNewPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CreateNewPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/APIResponseWithoutToken'
+      summary: Create Password
+      tags:
+      - Session
   /session/early_access:
     post:
       consumes:
@@ -864,28 +890,6 @@ paths:
           schema:
             $ref: '#/definitions/DefaultResponse'
       summary: Validate OTP
-      tags:
-      - Session
-  /session/reset_password:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to reset password
-      parameters:
-      - description: request reset password body
-        in: body
-        name: domain.ResetPasswordRequest
-        required: true
-        schema:
-          $ref: '#/definitions/ResetPasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/APIResponseWithoutToken'
-      summary: Reset Password
       tags:
       - Session
   /session/signin:

@@ -68,7 +68,7 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 
 	// password
 	router.Post("/forgot_password", session.ForgotPasswordHandler)
-	router.Post("/reset_password", session.ResetPasswordHandler)
+	router.Post("/create_new_password", session.CreateNewPasswordHandler)
 
 	// earlyAccess
 	router.Post("/early_access", session.EarlyAccessHandler)

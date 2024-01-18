@@ -174,24 +174,24 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 	library.EncodeResult(w, response, http.StatusOK)
 }
 
-// ResetPasswordHandler godoc
-// @Summary Reset Password
-// @Description The endpoint allows users to reset password
+// CreateNewPasswordHandler godoc
+// @Summary Create Password
+// @Description The endpoint allows users to create a new password.
 // @Tags Session
 // @Accept json
 // @Produce json
-// @Param domain.ResetPasswordRequest body domain.ResetPasswordRequest true "request reset password body"
+// @Param domain.CreateNewPasswordRequest body domain.CreateNewPasswordRequest true "request reset password body"
 // @Success 200 {object} domain.APIResponseWithoutToken
-// @Router /session/reset_password [post]
-func (handler *AuthHttpHandler) ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.ResetPasswordRequest
+// @Router /session/create_new_password [post]
+func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.CreateNewPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	response, err := handler.AuthApplication.ResetPassword(r.Context(), request)
+	response, err := handler.AuthApplication.CreateNewPassword(r.Context(), request)
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

@@ -32,7 +32,7 @@ type AuthApplication interface {
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error)
 	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error)
-	ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error)
+	CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
 }
 
@@ -241,21 +241,21 @@ func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValid
 	return &library.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
 }
 
-func (a authAppHandler) ResetPassword(ctx context.Context, request domain.ResetPasswordRequest) (*domain.DefaultSigningResponse, error) {
+func (a authAppHandler) CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error) {
 
 	if request.Password != request.ConfirmPassword {
-		a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.PasswordValidationError), errors.New("password and confirm password don't match")))
+		a.logger.Error("CreateNewPassword", zap.Any(leetError.ErrorType(leetError.PasswordValidationError), errors.New("password and confirm password don't match")))
 
 		return nil, leetError.ErrorResponseBody(leetError.PasswordValidationError, errors.New("password and confirm password don't match"))
 	}
 
 	vendor, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
 	if err != nil {
-		a.logger.Error("ResetPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+		a.logger.Error("CreateNewPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
 		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
-	return a.resetPassword(ctx, vendor.ID, vendor.Email.Address, request.Password)
+	return a.createNewPassword(ctx, vendor.ID, vendor.Email.Address, request.Password)
 
 }
 
