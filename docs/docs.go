@@ -496,6 +496,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/session/create_new_password": {
+            "post": {
+                "description": "The endpoint allows users to create a new password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Create Password",
+                "parameters": [
+                    {
+                        "description": "request reset password body",
+                        "name": "domain.CreateNewPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateNewPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/APIResponseWithoutToken"
+                        }
+                    }
+                }
+            }
+        },
         "/session/early_access": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
@@ -627,40 +661,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/reset_password": {
-            "post": {
-                "description": "The endpoint allows users to reset password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Reset Password",
-                "parameters": [
-                    {
-                        "description": "request reset password body",
-                        "name": "domain.ResetPasswordRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ResetPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/APIResponseWithoutToken"
                         }
                     }
                 }
@@ -1172,6 +1172,20 @@ const docTemplate = `{
                 }
             }
         },
+        "CreateNewPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "DefaultErrorResponse": {
             "type": "object",
             "properties": {
@@ -1435,20 +1449,6 @@ const docTemplate = `{
                 }
             }
         },
-        "ResetPasswordRequest": {
-            "type": "object",
-            "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
         "SigningRequest": {
             "type": "object",
             "properties": {
@@ -1536,7 +1536,9 @@ const docTemplate = `{
                 1026,
                 1027,
                 1028,
-                1029
+                1029,
+                1030,
+                1031
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1567,7 +1569,9 @@ const docTemplate = `{
                 "ProductSubCategoryError",
                 "ProductStatusError",
                 "InternalError",
-                "MissingUserNames"
+                "MissingUserNames",
+                "InvalidUserRoleError",
+                "InvalidIdentityError"
             ]
         },
         "leetError.ErrorResponse": {

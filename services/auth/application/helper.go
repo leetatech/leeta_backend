@@ -266,8 +266,7 @@ func (a authAppHandler) processLoginPasswordValidation(request domain.SigningReq
 	return leetError.ErrorResponseBody(leetError.CredentialsValidationError, errors.New("credential type is not login"))
 }
 
-func (a authAppHandler) resetPassword(ctx context.Context, userID, email, passcode string) (*domain.DefaultSigningResponse, error) {
-
+func (a authAppHandler) createNewPassword(ctx context.Context, userID, email, passcode string) (*domain.DefaultSigningResponse, error) {
 	hashedPasscode, err := a.passwordValidationEncryption(passcode)
 	if err != nil {
 		return nil, err
@@ -275,7 +274,7 @@ func (a authAppHandler) resetPassword(ctx context.Context, userID, email, passco
 
 	err = a.allRepository.AuthRepository.UpdateCredential(ctx, userID, hashedPasscode)
 	if err != nil {
-		a.logger.Error("resetPassword", zap.Any("UpdateCredential", err))
+		a.logger.Error("createNewPassword", zap.Any("UpdateCredential", err))
 		return nil, err
 	}
 
