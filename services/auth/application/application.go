@@ -138,14 +138,14 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 
 func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
+		return nil, err
 	}
 	return &library.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
 }
 
 func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
+		return nil, leetError.ErrorResponseBody(leetError.ForgotPasswordError, err)
 	}
 	return &library.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
 }

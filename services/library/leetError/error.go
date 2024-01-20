@@ -37,7 +37,7 @@ const (
 	ProductCategoryError       ErrorCode = 1025
 	ProductSubCategoryError    ErrorCode = 1026
 	ProductStatusError         ErrorCode = 1027
-	InternalError              ErrorCode = 1028
+	ForgotPasswordError        ErrorCode = 1028
 	MissingUserNames           ErrorCode = 1029
 	InvalidUserRoleError       ErrorCode = 1030
 	InvalidIdentityError       ErrorCode = 1031
@@ -72,7 +72,7 @@ var (
 		ProductCategoryError:       "ProductCategoryError",
 		ProductSubCategoryError:    "ProductSubCategoryError",
 		ProductStatusError:         "ProductStatusError",
-		InternalError:              "ForgotPasswordError",
+		ForgotPasswordError:        "ForgotPasswordError",
 		MissingUserNames:           "MissingUserNamesError",
 		InvalidUserRoleError:       "InvalidUserRoleError",
 		InvalidIdentityError:       "InvalidIdentityError",
@@ -106,7 +106,7 @@ var (
 		ProductCategoryError:       "An error occurred because the product category is invalid",
 		ProductSubCategoryError:    "An error occurred because the product subcategory is invalid",
 		ProductStatusError:         "An error occurred because the product status is invalid",
-		InternalError:              "An error occurred while trying to reset a user password",
+		ForgotPasswordError:        "An error occurred while trying to reset a user password",
 		MissingUserNames:           "An error occurred because user first name/last name was not found",
 		InvalidUserRoleError:       "An error occurred because the user is trying to login with the wrong app",
 		InvalidIdentityError:       "An error occurred because the user identity data is invalid",
