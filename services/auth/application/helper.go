@@ -201,15 +201,15 @@ func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, statu
 		return nil, leetError.ErrorResponseBody(leetError.IdentityNotFoundError, err)
 	}
 
+	err = a.processLoginPasswordValidation(request, identity)
+	if err != nil {
+		return nil, err
+	}
+
 	switch status {
 	case models.Locked, models.Exited, models.Rejected:
 		a.logger.Error("SignIn", zap.Any(leetError.ErrorType(leetError.UserLockedError), err), zap.Any(leetError.ErrorType(leetError.UserLockedError), leetError.ErrorMessage(leetError.UserLockedError)))
 		return nil, leetError.ErrorResponseBody(leetError.UserLockedError, err)
-	}
-
-	err = a.processLoginPasswordValidation(request, identity)
-	if err != nil {
-		return nil, err
 	}
 
 	response, err := a.tokenHandler.BuildAuthResponse(request.Email, user.ID, identity.ID, request.UserType)
