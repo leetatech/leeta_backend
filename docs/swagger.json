@@ -16,6 +16,211 @@
     "host": "https://leetabackend-e6d948d15ae2.herokuapp.com",
     "basePath": "/api",
     "paths": {
+        "/gas-refill": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to request for a gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "Request gas refill",
+                "parameters": [
+                    {
+                        "description": "Gas refill request body",
+                        "name": "domain.GasRefillRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GasRefillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Gas"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "Update Gas refill request status",
+                "parameters": [
+                    {
+                        "description": "update gas refill by status request body",
+                        "name": "domain.UpdateRefillRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateRefillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Gas"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes the order status, pages and limit and then returns the requested orders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "List all gas refill requests",
+                "parameters": [
+                    {
+                        "description": "get refill by status, use filter for filtering responses (not implemented)",
+                        "name": "domain.ListRefillFilter",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ListRefillFilter"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Gas"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/{refill_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "This is the endpoint to get the details of a single gas refill by refill-id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "Gets a single gas refill",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "refill id",
+                        "name": "refill-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Gas"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/order/": {
             "get": {
                 "security": [
@@ -1237,6 +1442,52 @@
                 }
             }
         },
+        "Gas": {
+            "type": "object",
+            "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "delivery_address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "gas_type": {
+                    "$ref": "#/definitions/domain.GasType"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.RefillRequestStatus"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "GasRefillRequest": {
+            "type": "object",
+            "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "delivery_address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "gas_type": {
+                    "$ref": "#/definitions/domain.GasType"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
         "GetCustomerOrdersRequest": {
             "type": "object",
             "properties": {
@@ -1271,6 +1522,26 @@
                 },
                 "vendor_id": {
                     "type": "string"
+                }
+            }
+        },
+        "ListRefillFilter": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.RefillRequestStatus"
+                    }
                 }
             }
         },
@@ -1484,6 +1755,17 @@
                 }
             }
         },
+        "domain.GasType": {
+            "type": "string",
+            "enum": [
+                "lpg",
+                "lng"
+            ],
+            "x-enum-varnames": [
+                "LPG",
+                "LNG"
+            ]
+        },
         "domain.GetVendorProductsResponse": {
             "type": "object",
             "properties": {
@@ -1495,6 +1777,37 @@
                     "items": {
                         "$ref": "#/definitions/Product"
                     }
+                }
+            }
+        },
+        "domain.RefillRequestStatus": {
+            "type": "string",
+            "enum": [
+                "cancelled",
+                "accepted",
+                "rejected",
+                "pending",
+                "fulfilled"
+            ],
+            "x-enum-varnames": [
+                "Cancelled",
+                "Accepted",
+                "Rejected",
+                "Pending",
+                "FulFilled"
+            ]
+        },
+        "domain.UpdateRefillRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "refill_id": {
+                    "type": "string"
+                },
+                "request_status": {
+                    "$ref": "#/definitions/domain.RefillRequestStatus"
                 }
             }
         },
@@ -1531,7 +1844,8 @@
                 1028,
                 1029,
                 1030,
-                1031
+                1031,
+                1032
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1561,10 +1875,11 @@
                 "ProductCategoryError",
                 "ProductSubCategoryError",
                 "ProductStatusError",
-                "InternalError",
+                "ForgotPasswordError",
                 "MissingUserNames",
                 "InvalidUserRoleError",
-                "InvalidIdentityError"
+                "InvalidIdentityError",
+                "InvalidOTPError"
             ]
         },
         "leetError.ErrorResponse": {

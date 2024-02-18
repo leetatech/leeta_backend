@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/cors"
 	_ "github.com/leetatech/leeta_backend/docs"
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
+	gasRefillInterfaces "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
 	productInterfaces "github.com/leetatech/leeta_backend/services/product/interfaces"
@@ -16,10 +17,11 @@ import (
 )
 
 type AllHTTPHandlers struct {
-	Order   *orderInterfaces.OrderHttpHandler
-	Auth    *authInterfaces.AuthHttpHandler
-	User    *userInterfaces.UserHttpHandler
-	Product *productInterfaces.ProductHttpHandler
+	Order     *orderInterfaces.OrderHttpHandler
+	Auth      *authInterfaces.AuthHttpHandler
+	User      *userInterfaces.UserHttpHandler
+	Product   *productInterfaces.ProductHttpHandler
+	GasRefill *gasRefillInterfaces.GasRefillHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
@@ -43,12 +45,14 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
 	productRouter := buildProductEndpoints(*interfaces.Product, tokenHandler)
+	gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler, router)
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
 		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
 		r.Mount("/user", userRouter)
 		r.Mount("/product", productRouter)
+		r.Mount("/gas-refill", gasRefillRouter)
 	})
 
 	return router, tokenHandler, nil
@@ -115,5 +119,15 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	router.Post("/create", product.CreateProductHandler)
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
+	return router
+}
+
+func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, tokenHandler *library.TokenHandler, router chi.Router) http.Handler {
+	router.Use(tokenHandler.ValidateMiddleware)
+	router.Post("/", handler.RequestRefill)
+	router.Put("/", handler.UpdateGasRefillStatus)
+	router.Get("/{refill_id}", handler.GetGasRefill)
+	router.Post("/list", handler.ListRefill)
+
 	return router
 }

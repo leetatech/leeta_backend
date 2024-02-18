@@ -8,6 +8,9 @@ import (
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
+	gasrefillApplication "github.com/leetatech/leeta_backend/services/gasrefill/application"
+	gasrefillInfrastructure "github.com/leetatech/leeta_backend/services/gasrefill/infrastructure"
+	gasrefillInterface "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
@@ -114,12 +117,14 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	gasRefillPersistence := gasrefillInfrastructure.NewRefillPersistence(app.Db, app.Config.Database.DbURL, app.Logger)
 
 	allRepositories := library.Repositories{
-		OrderRepository:   orderPersistence,
-		AuthRepository:    authPersistence,
-		UserRepository:    userPersistence,
-		ProductRepository: productPersistence,
+		OrderRepository:     orderPersistence,
+		AuthRepository:      authPersistence,
+		UserRepository:      userPersistence,
+		ProductRepository:   productPersistence,
+		GasRefillRepository: gasRefillPersistence,
 	}
 
 	app.Repositories = allRepositories
@@ -135,17 +140,20 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	authApplications := authApplication.NewAuthApplication(request)
 	userApplications := userApplication.NewUserApplication(request)
 	productApplications := productApplication.NewProductApplication(request)
+	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
 	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
 	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
+	gasRefillInterfaces := gasrefillInterface.NewGasRefillHTTPHandler(gasRefillApplications)
 
 	allInterfaces := routes.AllHTTPHandlers{
-		Order:   orderInterfaces,
-		Auth:    authInterfaces,
-		User:    userInterfaces,
-		Product: productInterfaces,
+		Order:     orderInterfaces,
+		Auth:      authInterfaces,
+		User:      userInterfaces,
+		Product:   productInterfaces,
+		GasRefill: gasRefillInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }

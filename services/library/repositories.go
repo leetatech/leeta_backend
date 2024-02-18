@@ -2,6 +2,7 @@ package library
 
 import (
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
+	gasrefillDomain "github.com/leetatech/leeta_backend/services/gasrefill/domain"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
@@ -11,10 +12,11 @@ import (
 )
 
 type Repositories struct {
-	OrderRepository   orderDomain.OrderRepository
-	UserRepository    userDomain.UserRepository
-	AuthRepository    authDomain.AuthRepository
-	ProductRepository productDomain.ProductRepository
+	OrderRepository     orderDomain.OrderRepository
+	UserRepository      userDomain.UserRepository
+	AuthRepository      authDomain.AuthRepository
+	ProductRepository   productDomain.ProductRepository
+	GasRefillRepository gasrefillDomain.GasRefillRepository
 }
 
 type DefaultResponse struct {

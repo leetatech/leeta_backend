@@ -22,7 +22,10 @@ func (verify *Verification) VerifyCodeValidity() bool {
 		return false // or handle the nil pointer case as needed
 	}
 
-	return verify.Timestamp <= time.Now().Unix()
+	if time.Unix(verify.ExpiresAt, 0).Before(time.Now()) {
+		return false
+	}
+	return verify.ExpiresAt <= time.Now().Unix()
 }
 
 type MessageDeliveryType string

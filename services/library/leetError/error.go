@@ -41,6 +41,7 @@ const (
 	MissingUserNames           ErrorCode = 1029
 	InvalidUserRoleError       ErrorCode = 1030
 	InvalidIdentityError       ErrorCode = 1031
+	InvalidOTPError            ErrorCode = 1032
 )
 
 var (
@@ -76,6 +77,7 @@ var (
 		MissingUserNames:           "MissingUserNamesError",
 		InvalidUserRoleError:       "InvalidUserRoleError",
 		InvalidIdentityError:       "InvalidIdentityError",
+		InvalidOTPError:            "InvalidOTPError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -110,6 +112,7 @@ var (
 		MissingUserNames:           "An error occurred because user first name/last name was not found",
 		InvalidUserRoleError:       "An error occurred because the user is trying to login with the wrong app",
 		InvalidIdentityError:       "An error occurred because the user identity data is invalid",
+		InvalidOTPError:            "An error occurred because the OTP is invalid",
 	}
 )
 
