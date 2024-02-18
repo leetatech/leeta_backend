@@ -45,14 +45,14 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
 	productRouter := buildProductEndpoints(*interfaces.Product, tokenHandler)
-	gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler, router)
+	//gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler)
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
 		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
 		r.Mount("/user", userRouter)
 		r.Mount("/product", productRouter)
-		r.Mount("/gas-refill", gasRefillRouter)
+		//r.Mount("/gas-refill", gasRefillRouter)
 	})
 
 	return router, tokenHandler, nil
@@ -122,7 +122,8 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	return router
 }
 
-func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, tokenHandler *library.TokenHandler, router chi.Router) http.Handler {
+func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/", handler.RequestRefill)
 	router.Put("/", handler.UpdateGasRefillStatus)

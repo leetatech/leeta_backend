@@ -78,5 +78,4 @@ func (handler *GasRefillHttpHandler) GetGasRefill(w http.ResponseWriter, r *http
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /gas-refill/list [POST]
 func (handler *GasRefillHttpHandler) ListRefill(w http.ResponseWriter, r *http.Request) {
-
 }
