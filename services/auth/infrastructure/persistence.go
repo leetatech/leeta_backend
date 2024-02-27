@@ -159,6 +159,7 @@ func (a authStoreHandler) GetUserByEmail(ctx context.Context, email string) (*mo
 
 	return customer, nil
 }
+
 func (a authStoreHandler) UpdateEmailVerify(ctx context.Context, email string, status bool) error {
 	filter := bson.M{dtos.EmailAddress: email}
 	update := bson.M{"$set": bson.M{dtos.EmailVerifiedStatus: status}}

@@ -8,4 +8,5 @@ const (
 	ProductCollectionName       = "products"
 	OrderCollectionName         = "orders"
 	UsersCollectionName         = "users"
+	RefillCollectionName        = "refills"
 )

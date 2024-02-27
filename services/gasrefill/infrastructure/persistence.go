@@ -1,7 +1,10 @@
 package infrastructure
 
 import (
+	"context"
 	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
@@ -18,4 +21,13 @@ func (r *refillStoreHandler) col(collectionName string) *mongo.Collection {
 
 func NewRefillPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.GasRefillRepository {
 	return &refillStoreHandler{client: client, databaseName: databaseName, logger: logger}
+}
+
+func (r *refillStoreHandler) RequestRefill(ctx context.Context, request models.GasRefill) error {
+	_, err := r.col(models.RefillCollectionName).InsertOne(ctx, request)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return nil
 }

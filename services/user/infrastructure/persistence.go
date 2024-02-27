@@ -74,3 +74,26 @@ func (u userStoreHandler) GetVendorByID(id string) (*models.Vendor, error) {
 
 	return vendor, nil
 }
+
+func (u userStoreHandler) GetCustomerByID(id string) (*models.Customer, error) {
+	customer := &models.Customer{}
+	filter := bson.M{
+		"id": id,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := u.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(customer)
+	if err != nil {
+		switch err {
+		case mongo.ErrNoDocuments:
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+
+		default:
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		}
+	}
+
+	return customer, nil
+}
