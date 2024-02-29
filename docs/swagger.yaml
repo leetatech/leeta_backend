@@ -130,35 +130,21 @@ definitions:
       email:
         type: string
     type: object
-  Gas:
-    properties:
-      amount_paid:
-        type: number
-      customer_id:
-        type: string
-      delivery_address:
-        $ref: '#/definitions/Address'
-      gas_type:
-        $ref: '#/definitions/domain.GasType'
-      id:
-        type: string
-      status:
-        $ref: '#/definitions/domain.RefillRequestStatus'
-      weight:
-        type: number
-    type: object
   GasRefillRequest:
     properties:
-      amount_paid:
-        type: number
       customer_id:
         type: string
-      delivery_address:
-        $ref: '#/definitions/Address'
-      gas_type:
-        $ref: '#/definitions/domain.GasType'
-      weight:
-        type: number
+      guest:
+        type: boolean
+      guest_bio_data:
+        $ref: '#/definitions/GuestBioData'
+      refill_details:
+        $ref: '#/definitions/RefillDetails'
+      shipping_info:
+        allOf:
+        - $ref: '#/definitions/ShippingInfo'
+        description: This object is to be sent when the customer is done with their
+          order and payment
     type: object
   GetCustomerOrdersRequest:
     properties:
@@ -184,9 +170,33 @@ definitions:
       vendor_id:
         type: string
     type: object
+  GuestBioData:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      session_id:
+        type: string
+    type: object
+  InactivateCart:
+    properties:
+      id:
+        type: string
+    type: object
   ListRefillFilter:
     properties:
       customer_id:
+        type: string
+      gas_type:
+        items:
+          $ref: '#/definitions/models.ProductCategory'
+        type: array
+      guest_email:
         type: string
       limit:
         type: integer
@@ -194,7 +204,7 @@ definitions:
         type: integer
       status:
         items:
-          $ref: '#/definitions/domain.RefillRequestStatus'
+          $ref: '#/definitions/models.RefillRequestStatus'
         type: array
     type: object
   OTPValidationRequest:
@@ -307,6 +317,44 @@ definitions:
       weight:
         type: string
     type: object
+  ReceiveGuestRequest:
+    properties:
+      guest:
+        type: boolean
+    type: object
+  ReceiveGuestResponse:
+    properties:
+      session_id:
+        type: string
+      token:
+        type: string
+    type: object
+  RefillDetails:
+    properties:
+      amount_paid:
+        type: number
+      gas_type:
+        $ref: '#/definitions/models.ProductCategory'
+      product_id:
+        type: string
+      vendor_id:
+        type: string
+      weight:
+        type: number
+    type: object
+  ShippingInfo:
+    properties:
+      for_me:
+        type: boolean
+      recipient_address:
+        $ref: '#/definitions/Address'
+      recipient_email:
+        type: string
+      recipient_name:
+        type: string
+      recipient_phone:
+        type: string
+    type: object
   SigningRequest:
     properties:
       email:
@@ -334,14 +382,17 @@ definitions:
       order_status:
         $ref: '#/definitions/models.OrderStatuses'
     type: object
-  domain.GasType:
-    enum:
-    - lpg
-    - lng
-    type: string
-    x-enum-varnames:
-    - LPG
-    - LNG
+  UpdateRefillRequest:
+    properties:
+      reason:
+        type: string
+      refill_details:
+        $ref: '#/definitions/RefillDetails'
+      refill_id:
+        type: string
+      request_status:
+        $ref: '#/definitions/models.RefillRequestStatus'
+    type: object
   domain.GetVendorProductsResponse:
     properties:
       has_next_page:
@@ -350,29 +401,6 @@ definitions:
         items:
           $ref: '#/definitions/Product'
         type: array
-    type: object
-  domain.RefillRequestStatus:
-    enum:
-    - cancelled
-    - accepted
-    - rejected
-    - pending
-    - fulfilled
-    type: string
-    x-enum-varnames:
-    - Cancelled
-    - Accepted
-    - Rejected
-    - Pending
-    - FulFilled
-  domain.UpdateRefillRequest:
-    properties:
-      reason:
-        type: string
-      refill_id:
-        type: string
-      request_status:
-        $ref: '#/definitions/domain.RefillRequestStatus'
     type: object
   leetError.ErrorCode:
     enum:
@@ -408,6 +436,7 @@ definitions:
     - 1030
     - 1031
     - 1032
+    - 1033
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -442,6 +471,7 @@ definitions:
     - InvalidUserRoleError
     - InvalidIdentityError
     - InvalidOTPError
+    - CartStatusesError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -499,6 +529,20 @@ definitions:
     - CylinderSubCategory
     - CookerSubCategory
     - AccessoriesSubCategory
+  models.RefillRequestStatus:
+    enum:
+    - cancelled
+    - accepted
+    - rejected
+    - pending
+    - fulfilled
+    type: string
+    x-enum-varnames:
+    - RefillCancelled
+    - RefillAccepted
+    - RefillRejected
+    - RefillPending
+    - RefillFulFilled
   models.Statuses:
     enum:
     - SIGNEDUP
@@ -530,11 +574,13 @@ definitions:
     - vendor
     - buyer
     - admin_leeta
+    - guest
     type: string
     x-enum-varnames:
     - VendorCategory
     - BuyerCategory
     - AdminCategory
+    - GuestCatergory
 host: https://leetabackend-e6d948d15ae2.herokuapp.com
 info:
   contact:
@@ -565,7 +611,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Gas'
+            $ref: '#/definitions/DefaultResponse'
         "400":
           description: Bad Request
           schema:
@@ -591,14 +637,14 @@ paths:
         name: domain.UpdateRefillRequest
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateRefillRequest'
+          $ref: '#/definitions/UpdateRefillRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Gas'
+            $ref: '#/definitions/DefaultResponse'
         "400":
           description: Bad Request
           schema:
@@ -630,7 +676,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Gas'
+            $ref: '#/definitions/DefaultResponse'
         "400":
           description: Bad Request
           schema:
@@ -665,7 +711,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/Gas'
+              $ref: '#/definitions/DefaultResponse'
             type: array
         "400":
           description: Bad Request
@@ -680,6 +726,66 @@ paths:
       summary: List all gas refill requests
       tags:
       - GasRefill
+  /guest:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allow guests to shop
+      parameters:
+      - description: receive guest request body
+        in: body
+        name: domain.ReceiveGuestRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ReceiveGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ReceiveGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request accept guests
+      tags:
+      - Session
+  /inactivate:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to request for a cart inactivation
+      parameters:
+      - description: inactivate cart request body
+        in: body
+        name: domain.InactivateCart
+        required: true
+        schema:
+          $ref: '#/definitions/InactivateCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request cart inactivation
+      tags:
+      - Cart
   /order/:
     get:
       consumes:

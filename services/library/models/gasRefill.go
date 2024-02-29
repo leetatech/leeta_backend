@@ -13,6 +13,7 @@ type GasRefill struct {
 } // @name GasRefill
 
 type GuestBioData struct {
+	SessionID string `json:"session_id,omitempty" bson:"session_id"`
 	FirstName string `json:"first_name,omitempty" bson:"first_name"`
 	LastName  string `json:"last_name,omitempty" bson:"last_name"`
 	Email     string `json:"email,omitempty" bson:"email"`

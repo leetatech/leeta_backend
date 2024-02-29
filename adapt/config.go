@@ -114,7 +114,8 @@ func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 			SetServerAPIOptions(serverAPI)
 	}
 
+	connectionString := fmt.Sprintf("mongodb://%s%s", config.Database.Host, config.Database.Port)
 	return options.Client().
 		SetConnectTimeout(databaseTimeout).
-		SetHosts([]string{config.Database.Host + config.Database.Port})
+		ApplyURI(connectionString)
 }

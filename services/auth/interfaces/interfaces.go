@@ -224,3 +224,30 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 	library.EncodeResult(w, token, http.StatusOK)
 
 }
+
+// ReceiveGuestTokenHandler godoc
+// @Summary Request accept guests
+// @Description The endpoint to allow guests to shop
+// @Tags Session
+// @Accept json
+// @Produce json
+// @Param domain.ReceiveGuestRequest body domain.ReceiveGuestRequest true "receive guest request body"
+// @Success 200 {object} domain.ReceiveGuestResponse
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /guest [post]
+func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.ReceiveGuestRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	token, err := handler.AuthApplication.ReceiveGuestToken(request)
+	if err != nil {
+		library.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	library.EncodeResult(w, token, http.StatusOK)
+}

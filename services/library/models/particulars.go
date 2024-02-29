@@ -45,6 +45,7 @@ const (
 	VendorCategory UserCategory = "vendor"
 	BuyerCategory  UserCategory = "buyer"
 	AdminCategory  UserCategory = "admin_leeta"
+	GuestCatergory UserCategory = "guest"
 )
 
 func IsValidCredentialType(credentialType CredentialType) bool {
@@ -72,7 +73,7 @@ func SetCredentialStatus(status CredentialStatus) (CredentialStatus, error) {
 }
 
 func IsValidUserCategory(category UserCategory) bool {
-	return category == VendorCategory || category == BuyerCategory || category == AdminCategory
+	return category == VendorCategory || category == BuyerCategory || category == AdminCategory || category == GuestCatergory
 }
 func SetUserCategory(category UserCategory) (UserCategory, error) {
 	switch IsValidUserCategory(category) {

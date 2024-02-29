@@ -34,6 +34,7 @@ type AuthApplication interface {
 	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error)
 	CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
+	ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error)
 }
 
 func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
@@ -280,4 +281,17 @@ func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSig
 	request.Password = hashedPassword
 
 	return a.adminSignUp(ctx, request)
+}
+
+func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error) {
+	sessionID := a.idGenerator.Generate()
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", "", sessionID, models.GuestCatergory)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.ReceiveGuestResponse{
+		SessionID: sessionID,
+		Token:     tokenString,
+	}, nil
 }

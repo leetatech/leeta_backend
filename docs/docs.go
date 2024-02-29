@@ -56,7 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/Gas"
+                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -99,7 +99,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateRefillRequest"
+                            "$ref": "#/definitions/UpdateRefillRequest"
                         }
                     }
                 ],
@@ -107,7 +107,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/Gas"
+                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -160,7 +160,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/Gas"
+                                "$ref": "#/definitions/DefaultResponse"
                             }
                         }
                     },
@@ -210,7 +210,99 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/Gas"
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/guest": {
+            "post": {
+                "description": "The endpoint to allow guests to shop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Request accept guests",
+                "parameters": [
+                    {
+                        "description": "receive guest request body",
+                        "name": "domain.ReceiveGuestRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inactivate": {
+            "put": {
+                "description": "The endpoint to request for a cart inactivation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart inactivation",
+                "parameters": [
+                    {
+                        "description": "inactivate cart request body",
+                        "name": "domain.InactivateCart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InactivateCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -1449,49 +1541,28 @@ const docTemplate = `{
                 }
             }
         },
-        "Gas": {
-            "type": "object",
-            "properties": {
-                "amount_paid": {
-                    "type": "number"
-                },
-                "customer_id": {
-                    "type": "string"
-                },
-                "delivery_address": {
-                    "$ref": "#/definitions/Address"
-                },
-                "gas_type": {
-                    "$ref": "#/definitions/domain.GasType"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/domain.RefillRequestStatus"
-                },
-                "weight": {
-                    "type": "number"
-                }
-            }
-        },
         "GasRefillRequest": {
             "type": "object",
             "properties": {
-                "amount_paid": {
-                    "type": "number"
-                },
                 "customer_id": {
                     "type": "string"
                 },
-                "delivery_address": {
-                    "$ref": "#/definitions/Address"
+                "guest": {
+                    "type": "boolean"
                 },
-                "gas_type": {
-                    "$ref": "#/definitions/domain.GasType"
+                "guest_bio_data": {
+                    "$ref": "#/definitions/GuestBioData"
                 },
-                "weight": {
-                    "type": "number"
+                "refill_details": {
+                    "$ref": "#/definitions/RefillDetails"
+                },
+                "shipping_info": {
+                    "description": "This object is to be sent when the customer is done with their order and payment",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ShippingInfo"
+                        }
+                    ]
                 }
             }
         },
@@ -1532,10 +1603,47 @@ const docTemplate = `{
                 }
             }
         },
+        "GuestBioData": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "InactivateCart": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "ListRefillFilter": {
             "type": "object",
             "properties": {
                 "customer_id": {
+                    "type": "string"
+                },
+                "gas_type": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ProductCategory"
+                    }
+                },
+                "guest_email": {
                     "type": "string"
                 },
                 "limit": {
@@ -1547,7 +1655,7 @@ const docTemplate = `{
                 "status": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.RefillRequestStatus"
+                        "$ref": "#/definitions/models.RefillRequestStatus"
                     }
                 }
             }
@@ -1720,6 +1828,65 @@ const docTemplate = `{
                 }
             }
         },
+        "ReceiveGuestRequest": {
+            "type": "object",
+            "properties": {
+                "guest": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "ReceiveGuestResponse": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "RefillDetails": {
+            "type": "object",
+            "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
+                "gas_type": {
+                    "$ref": "#/definitions/models.ProductCategory"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "vendor_id": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "ShippingInfo": {
+            "type": "object",
+            "properties": {
+                "for_me": {
+                    "type": "boolean"
+                },
+                "recipient_address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "recipient_email": {
+                    "type": "string"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "recipient_phone": {
+                    "type": "string"
+                }
+            }
+        },
         "SigningRequest": {
             "type": "object",
             "properties": {
@@ -1762,16 +1929,22 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GasType": {
-            "type": "string",
-            "enum": [
-                "lpg",
-                "lng"
-            ],
-            "x-enum-varnames": [
-                "LPG",
-                "LNG"
-            ]
+        "UpdateRefillRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "refill_details": {
+                    "$ref": "#/definitions/RefillDetails"
+                },
+                "refill_id": {
+                    "type": "string"
+                },
+                "request_status": {
+                    "$ref": "#/definitions/models.RefillRequestStatus"
+                }
+            }
         },
         "domain.GetVendorProductsResponse": {
             "type": "object",
@@ -1784,37 +1957,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/Product"
                     }
-                }
-            }
-        },
-        "domain.RefillRequestStatus": {
-            "type": "string",
-            "enum": [
-                "cancelled",
-                "accepted",
-                "rejected",
-                "pending",
-                "fulfilled"
-            ],
-            "x-enum-varnames": [
-                "Cancelled",
-                "Accepted",
-                "Rejected",
-                "Pending",
-                "FulFilled"
-            ]
-        },
-        "domain.UpdateRefillRequest": {
-            "type": "object",
-            "properties": {
-                "reason": {
-                    "type": "string"
-                },
-                "refill_id": {
-                    "type": "string"
-                },
-                "request_status": {
-                    "$ref": "#/definitions/domain.RefillRequestStatus"
                 }
             }
         },
@@ -1852,7 +1994,8 @@ const docTemplate = `{
                 1029,
                 1030,
                 1031,
-                1032
+                1032,
+                1033
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1886,7 +2029,8 @@ const docTemplate = `{
                 "MissingUserNames",
                 "InvalidUserRoleError",
                 "InvalidIdentityError",
-                "InvalidOTPError"
+                "InvalidOTPError",
+                "CartStatusesError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -1965,6 +2109,23 @@ const docTemplate = `{
                 "AccessoriesSubCategory"
             ]
         },
+        "models.RefillRequestStatus": {
+            "type": "string",
+            "enum": [
+                "cancelled",
+                "accepted",
+                "rejected",
+                "pending",
+                "fulfilled"
+            ],
+            "x-enum-varnames": [
+                "RefillCancelled",
+                "RefillAccepted",
+                "RefillRejected",
+                "RefillPending",
+                "RefillFulFilled"
+            ]
+        },
         "models.Statuses": {
             "type": "string",
             "enum": [
@@ -2000,12 +2161,14 @@ const docTemplate = `{
             "enum": [
                 "vendor",
                 "buyer",
-                "admin_leeta"
+                "admin_leeta",
+                "guest"
             ],
             "x-enum-varnames": [
                 "VendorCategory",
                 "BuyerCategory",
-                "AdminCategory"
+                "AdminCategory",
+                "GuestCatergory"
             ]
         }
     },

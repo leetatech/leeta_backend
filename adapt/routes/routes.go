@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/cors"
 	_ "github.com/leetatech/leeta_backend/docs"
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
+	cartInterfaces "github.com/leetatech/leeta_backend/services/cart/interfaces"
 	gasRefillInterfaces "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 	"github.com/leetatech/leeta_backend/services/library"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
@@ -22,10 +23,11 @@ type AllHTTPHandlers struct {
 	User      *userInterfaces.UserHttpHandler
 	Product   *productInterfaces.ProductHttpHandler
 	GasRefill *gasRefillInterfaces.GasRefillHttpHandler
+	Cart      *cartInterfaces.CartHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product}
+	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product, GasRefill: interfaces.GasRefill, Cart: interfaces.Cart}
 }
 
 func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *library.TokenHandler, error) {
@@ -45,14 +47,17 @@ func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
 	productRouter := buildProductEndpoints(*interfaces.Product, tokenHandler)
-	//gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler)
+	gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler)
+	cartRouter := buildCartEndpoints(*interfaces.Cart, tokenHandler)
+
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
 		r.Mount("/session", authRouter)
 		r.Mount("/order", orderRouter)
 		r.Mount("/user", userRouter)
 		r.Mount("/product", productRouter)
-		//r.Mount("/gas-refill", gasRefillRouter)
+		r.Mount("/gas-refill", gasRefillRouter)
+		r.Mount("/cart", cartRouter)
 	})
 
 	return router, tokenHandler, nil
@@ -65,6 +70,7 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router.Post("/signup", session.SignUpHandler)
 	router.Post("/signin", session.SignInHandler)
 	router.Post("/admin/signup", session.AdminSignUpHandler)
+	router.Post("/guest", session.ReceiveGuestTokenHandler)
 
 	// otp
 	router.Post("/otp/request", session.RequestOTPHandler)
@@ -129,6 +135,18 @@ func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, t
 	router.Put("/", handler.UpdateGasRefillStatus)
 	router.Get("/{refill_id}", handler.GetGasRefill)
 	router.Post("/list", handler.ListRefill)
+
+	return router
+}
+
+func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+	router := chi.NewRouter()
+
+	router.Group(func(r chi.Router) {
+		r.Put("/inactivate", handler.InactivateCartHandler)
+	})
+
+	//router.Use(tokenHandler.ValidateMiddleware)
 
 	return router
 }

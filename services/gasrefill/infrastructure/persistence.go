@@ -15,7 +15,7 @@ type refillStoreHandler struct {
 	logger       *zap.Logger
 }
 
-func (r *refillStoreHandler) col(collectionName string) *mongo.Collection {
+func (r refillStoreHandler) col(collectionName string) *mongo.Collection {
 	return r.client.Database(r.databaseName).Collection(collectionName)
 }
 
@@ -23,7 +23,7 @@ func NewRefillPersistence(client *mongo.Client, databaseName string, logger *zap
 	return &refillStoreHandler{client: client, databaseName: databaseName, logger: logger}
 }
 
-func (r *refillStoreHandler) RequestRefill(ctx context.Context, request models.GasRefill) error {
+func (r refillStoreHandler) RequestRefill(ctx context.Context, request models.GasRefill) error {
 	_, err := r.col(models.RefillCollectionName).InsertOne(ctx, request)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)

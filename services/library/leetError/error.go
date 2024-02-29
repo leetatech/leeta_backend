@@ -42,6 +42,7 @@ const (
 	InvalidUserRoleError       ErrorCode = 1030
 	InvalidIdentityError       ErrorCode = 1031
 	InvalidOTPError            ErrorCode = 1032
+	CartStatusesError          ErrorCode = 1033
 )
 
 var (
@@ -78,6 +79,7 @@ var (
 		InvalidUserRoleError:       "InvalidUserRoleError",
 		InvalidIdentityError:       "InvalidIdentityError",
 		InvalidOTPError:            "InvalidOTPError",
+		CartStatusesError:          "CartStatusesError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -113,6 +115,7 @@ var (
 		InvalidUserRoleError:       "An error occurred because the user is trying to login with the wrong app",
 		InvalidIdentityError:       "An error occurred because the user identity data is invalid",
 		InvalidOTPError:            "An error occurred because the OTP is invalid",
+		CartStatusesError:          "An error occurred because the cart status is invalid",
 	}
 )
 
