@@ -2,10 +2,15 @@ package application
 
 import (
 	"context"
+	"errors"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
+	"github.com/leetatech/leeta_backend/services/library/models"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+	"time"
 )
 
 type CartAppHandler struct {
@@ -18,6 +23,7 @@ type CartAppHandler struct {
 
 type CartApplication interface {
 	InactivateCart(ctx context.Context, request domain.InactivateCart) (*library.DefaultResponse, error)
+	AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error)
 }
 
 func NewCartApplication(request library.DefaultApplicationRequest) CartApplication {
@@ -36,4 +42,106 @@ func (c CartAppHandler) InactivateCart(ctx context.Context, request domain.Inact
 		return nil, err
 	}
 	return &library.DefaultResponse{Success: "success", Message: "Cart inactivated successfully"}, nil
+}
+
+func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error) {
+	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	var deviceID string
+	if request.Guest {
+		deviceID = claims.UserID
+
+		err := c.guest(ctx, deviceID, claims)
+		if err != nil {
+			return nil, err
+		}
+		claims.UserID = claims.SessionID
+	}
+
+	product, err := c.allRepository.ProductRepository.GetProductByID(ctx, request.RefillDetails.ProductID)
+	if err != nil {
+		c.logger.Error("error getting product", zap.Error(err))
+		return nil, err
+	}
+
+	cartItems := models.CartItem{
+		ID:        c.idGenerator.Generate(),
+		GasType:   request.RefillDetails.GasType,
+		ProductID: request.RefillDetails.ProductID,
+		VendorID:  product.VendorID,
+		Weight:    request.RefillDetails.Weight,
+		TotalCost: request.RefillDetails.CostPerKg * float64(request.RefillDetails.Weight),
+	}
+
+	cart, err := c.allRepository.CartRepository.GetCartBySessionOrCustomerID(ctx, claims.UserID)
+	if err != nil {
+		c.logger.Error("error getting cart", zap.Error(err))
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			err = c.allRepository.CartRepository.AddToCart(ctx, models.Cart{
+				ID:         c.idGenerator.Generate(),
+				CustomerID: claims.UserID,
+				DeviceID:   deviceID,
+				CartItems:  []models.CartItem{cartItems},
+				Total:      cartItems.TotalCost,
+				Status:     models.CartActive,
+				StatusTs:   time.Now().Unix(),
+				Ts:         time.Now().Unix(),
+			})
+			return &library.DefaultResponse{Success: "success", Message: "Refill added to cart"}, nil
+		default:
+			return nil, err
+		}
+	}
+
+	cart.CartItems = append(cart.CartItems, cartItems)
+
+	fees, err := c.allRepository.GasRefillRepository.GetFees(ctx, models.CartActive)
+	if err != nil {
+		return nil, err
+	}
+
+	cart.Total = calculateCartItemTotal(fees.CostPerKg, cart.CartItems)
+	cart.StatusTs = time.Now().Unix()
+	err = c.allRepository.CartRepository.AddToCartItem(ctx, cart.ID, cartItems, cart.Total, cart.StatusTs)
+	if err != nil {
+		c.logger.Error("error adding to cart", zap.Error(err))
+		return nil, err
+	}
+
+	return &library.DefaultResponse{Success: "success", Message: "Refill added to cart"}, nil
+}
+
+func (c CartAppHandler) guest(ctx context.Context, deviceID string, claims *library.UserClaims) error {
+	cart, terr := c.allRepository.CartRepository.GetCartByDeviceID(ctx, deviceID)
+	if terr != nil {
+		if !errors.Is(terr, mongo.ErrNoDocuments) {
+			return leetError.ErrorResponseBody(leetError.ErrorUnauthorized, terr)
+		}
+	}
+
+	if cart != nil {
+		ts := time.Unix(cart.Ts, 0)
+		expectedTime := ts.Add(24 * time.Hour)
+		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
+			err := c.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
+			if err != nil {
+				return err
+			}
+			return leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
+		}
+	}
+
+	return nil
+}
+
+func calculateCartItemTotal(costPerKg float64, items []models.CartItem) float64 {
+	var total float64
+	for _, item := range items {
+		total += costPerKg * float64(item.Weight)
+	}
+	return total
 }

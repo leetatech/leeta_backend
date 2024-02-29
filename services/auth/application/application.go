@@ -285,13 +285,14 @@ func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSig
 
 func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error) {
 	sessionID := a.idGenerator.Generate()
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", "", sessionID, models.GuestCatergory)
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", request.DeviceID, sessionID, models.GuestCatergory)
 	if err != nil {
 		return nil, err
 	}
 
 	return &domain.ReceiveGuestResponse{
 		SessionID: sessionID,
+		DeviceID:  request.DeviceID,
 		Token:     tokenString,
 	}, nil
 }

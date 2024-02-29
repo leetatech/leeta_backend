@@ -8,6 +8,7 @@ import (
 type CartRepository interface {
 	AddToCart(ctx context.Context, request models.Cart) error
 	GetCartBySessionOrCustomerID(ctx context.Context, sessionOrCustomerID string) (*models.Cart, error)
+	GetCartByDeviceID(ctx context.Context, deviceID string) (*models.Cart, error)
 	UpdateCart(ctx context.Context, request models.Cart) error
 	AddToCartItem(ctx context.Context, cartID string, cartItems models.CartItem, total float64, statusTs int64) error
 	DeleteCartItem(ctx context.Context, cartID, cartItemID string) error

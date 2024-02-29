@@ -135,6 +135,8 @@ func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, t
 	router.Put("/", handler.UpdateGasRefillStatus)
 	router.Get("/{refill_id}", handler.GetGasRefill)
 	router.Post("/list", handler.ListRefill)
+	router.Post("/fees", handler.CreateFees)
+	router.Get("/fees", handler.GetFees)
 
 	return router
 }
@@ -143,10 +145,13 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *li
 	router := chi.NewRouter()
 
 	router.Group(func(r chi.Router) {
-		r.Put("/inactivate", handler.InactivateCartHandler)
+		r.Use(tokenHandler.ValidateMiddleware)
+		r.Post("/add", handler.AddToCartHandler)
 	})
 
-	//router.Use(tokenHandler.ValidateMiddleware)
+	router.Group(func(r chi.Router) {
+		r.Put("/inactivate", handler.InactivateCartHandler)
+	})
 
 	return router
 }

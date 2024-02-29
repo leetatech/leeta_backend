@@ -6,25 +6,23 @@ import (
 )
 
 type Cart struct {
-	ID          string       `json:"id" bson:"id"`
-	CustomerID  string       `json:"customer_id" bson:"customer_id"`
-	CartItems   []CartItem   `json:"cart_items" bson:"cart_items"`
-	DeliveryFee float64      `json:"delivery_fee" bson:"delivery_fee"`
-	Total       float64      `json:"total" bson:"total"`
-	Status      CartStatuses `json:"status" bson:"status"`
-	StatusTs    int64        `json:"status_ts" bson:"status_ts"`
-	Ts          int64        `json:"ts" bson:"ts"`
+	ID         string       `json:"id" bson:"id"`
+	CustomerID string       `json:"customer_id" bson:"customer_id"`
+	DeviceID   string       `json:"device_id" bson:"device_id"`
+	CartItems  []CartItem   `json:"cart_items" bson:"cart_items"`
+	Total      float64      `json:"total" bson:"total"`
+	Status     CartStatuses `json:"status" bson:"status"`
+	StatusTs   int64        `json:"status_ts" bson:"status_ts"`
+	Ts         int64        `json:"ts" bson:"ts"`
 }
 
 type CartItem struct {
-	ID         string  `json:"id" bson:"id"`
-	CustomerID string  `json:"customer_id" bson:"customer_id"`
-	SessionID  string  `json:"session_id" bson:"session_id"`
-	ProductID  string  `json:"product_id" bson:"product_id"`
-	VendorID   string  `json:"vendor_id" bson:"vendor_id"`
-	Weight     float32 `json:"weight" bson:"weight"`
-	Quantity   int32   `json:"quantity" bson:"quantity"`
-	AmountPaid float64 `json:"amount_paid" bson:"amount_paid"`
+	ID        string          `json:"id" bson:"id"`
+	GasType   ProductCategory `json:"gas_type" bson:"gas_type"`
+	ProductID string          `json:"product_id" bson:"product_id"`
+	VendorID  string          `json:"vendor_id" bson:"vendor_id"`
+	Weight    float32         `json:"weight" bson:"weight"`
+	TotalCost float64         `json:"total_cost" bson:"total_cost"`
 }
 
 type CartStatuses string

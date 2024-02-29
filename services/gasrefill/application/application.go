@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
 	"github.com/leetatech/leeta_backend/services/library"
@@ -23,6 +24,8 @@ type GasRefillHandler struct {
 
 type GasRefillApplication interface {
 	RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*library.DefaultResponse, error)
+	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error)
+	GetFees(ctx context.Context) (*models.Fees, error)
 }
 
 func NewGasRefillApplication(request library.DefaultApplicationRequest) GasRefillApplication {
@@ -42,7 +45,7 @@ func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasR
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	if !request.Guest && request.CustomerID != "" {
+	if !request.Guest {
 		customer, err := r.allRepository.UserRepository.GetCustomerByID(claims.UserID)
 		if err != nil {
 			r.logger.Error("error getting customer", zap.Error(err))
@@ -55,60 +58,54 @@ func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasR
 	}
 
 	if request.Guest && request.GuestBioData.Email != "" {
-		request.CustomerID = claims.SessionID
-		request.GuestBioData.SessionID = claims.SessionID
-		if request.ShippingInfo.ForMe {
-			request.ShippingInfo = r.forMeCheck(request.ShippingInfo, fmt.Sprintf("%s %s", request.GuestBioData.FirstName, request.GuestBioData.LastName), request.GuestBioData.Phone, request.GuestBioData.Email)
-		}
-	}
-
-	vendorID, err := r.requestRefill(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-
-	cartItems := models.CartItem{
-		ID:         r.idGenerator.Generate(),
-		CustomerID: request.CustomerID,
-		SessionID:  claims.SessionID,
-		ProductID:  request.RefillDetails.ProductID,
-		VendorID:   vendorID,
-		Weight:     request.RefillDetails.Weight,
-		AmountPaid: request.RefillDetails.AmountPaid,
-	}
-
-	cart, err := r.allRepository.CartRepository.GetCartBySessionOrCustomerID(ctx, request.CustomerID)
-	if err != nil {
-		r.logger.Error("error getting cart", zap.Error(err))
-		switch err {
-		case mongo.ErrNoDocuments:
-			err = r.allRepository.CartRepository.AddToCart(ctx, models.Cart{
-				ID:          r.idGenerator.Generate(),
-				CustomerID:  request.CustomerID,
-				CartItems:   []models.CartItem{cartItems},
-				DeliveryFee: 0,
-				Total:       request.RefillDetails.AmountPaid + 0,
-				Status:      models.CartActive,
-				StatusTs:    time.Now().Unix(),
-				Ts:          time.Now().Unix(),
-			})
-			return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
-		default:
+		request, err = r.Guest(ctx, request, claims)
+		if err != nil {
 			return nil, err
 		}
 	}
 
-	fmt.Println("cartsssss", cart)
-	cart.CartItems = append(cart.CartItems, cartItems)
-	cart.Total += request.RefillDetails.AmountPaid
-	cart.StatusTs = time.Now().Unix()
-	err = r.allRepository.CartRepository.AddToCartItem(ctx, cart.ID, cartItems, cart.Total, cart.StatusTs)
+	cart, err := r.allRepository.CartRepository.GetCartBySessionOrCustomerID(ctx, claims.UserID)
 	if err != nil {
-		r.logger.Error("error adding to cart", zap.Error(err))
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+	}
+
+	err = r.requestRefill(ctx, claims.UserID, request, cart)
+	if err != nil {
 		return nil, err
 	}
 
 	return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
+}
+
+func (r *GasRefillHandler) Guest(ctx context.Context, request domain.GasRefillRequest, claims *library.UserClaims) (domain.GasRefillRequest, error) {
+	request.GuestBioData.DeviceID = claims.UserID
+
+	cart, terr := r.allRepository.CartRepository.GetCartByDeviceID(ctx, claims.UserID)
+	if terr != nil {
+		if !errors.Is(terr, mongo.ErrNoDocuments) {
+			return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, terr)
+		}
+	}
+
+	if cart != nil {
+		ts := time.Unix(cart.Ts, 0)
+		expectedTime := ts.Add(24 * time.Hour)
+		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
+			err := r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
+			if err != nil {
+				return domain.GasRefillRequest{}, err
+			}
+			return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
+		}
+	}
+
+	claims.UserID = claims.SessionID
+	request.GuestBioData.SessionID = claims.SessionID
+	if request.ShippingInfo.ForMe {
+		request.ShippingInfo = r.forMeCheck(request.ShippingInfo, fmt.Sprintf("%s %s", request.GuestBioData.FirstName, request.GuestBioData.LastName), request.GuestBioData.Phone, request.GuestBioData.Email)
+	}
+
+	return request, nil
 }
 
 func (r *GasRefillHandler) forMeCheck(shippingInfo models.ShippingInfo, name, phone, email string) models.ShippingInfo {
@@ -125,32 +122,28 @@ func (r *GasRefillHandler) forMeCheck(shippingInfo models.ShippingInfo, name, ph
 	return shippingInfo
 }
 
-func (r *GasRefillHandler) requestRefill(ctx context.Context, request domain.GasRefillRequest) (string, error) {
-	product, err := r.allRepository.ProductRepository.GetProductByID(ctx, request.RefillDetails.ProductID)
+func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, request domain.GasRefillRequest, cart *models.Cart) error {
+	fees, err := r.GetFees(ctx)
 	if err != nil {
-		r.logger.Error("error getting product", zap.Error(err))
-		return "", err
+		return err
 	}
-
-	vendor, err := r.allRepository.UserRepository.GetVendorByID(product.VendorID)
-	if err != nil {
-		r.logger.Error("error getting vendor", zap.Error(err))
-		return "", err
-	}
-
+	var deliveryFee float64
+	totalCost := cart.Total + deliveryFee + fees.ServiceFee
 	refill := models.GasRefill{
 		ID:           r.idGenerator.Generate(),
 		Guest:        request.Guest,
 		GuestBioData: request.GuestBioData,
-		CustomerID:   request.CustomerID,
+		CustomerID:   userID,
 		RefillDetails: models.RefillDetails{
-			ProductID:  request.RefillDetails.ProductID,
-			VendorID:   vendor.ID,
-			Weight:     request.RefillDetails.Weight,
-			AmountPaid: request.RefillDetails.AmountPaid,
-			GasType:    request.RefillDetails.GasType,
+			OrderItems: cart.CartItems,
+			Status:     models.RefillPending,
+			StatusTs:   time.Now().Unix(),
+			Ts:         time.Now().Unix(),
 		},
 		ShippingInfo: request.ShippingInfo,
+		DeliveryFee:  deliveryFee,
+		ServiceFee:   fees.ServiceFee,
+		TotalCost:    totalCost,
 		Status:       models.RefillPending,
 		StatusTs:     time.Now().Unix(),
 		Ts:           time.Now().Unix(),
@@ -159,8 +152,59 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, request domain.Gas
 	err = r.allRepository.GasRefillRepository.RequestRefill(ctx, refill)
 	if err != nil {
 		r.logger.Error("error requesting refill", zap.Error(err))
-		return "", err
+		return err
 	}
 
-	return vendor.ID, nil
+	err = r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
+	if err != nil {
+		r.logger.Error("error inactivating cart", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (r *GasRefillHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error) {
+	newFees := models.Fees{
+		CostPerKg:  request.CostPerKg,
+		ServiceFee: request.ServiceFee,
+		Status:     models.CartActive,
+		StatusTs:   time.Now().Unix(),
+		Ts:         time.Now().Unix(),
+	}
+
+	fees, err := r.allRepository.GasRefillRepository.GetFees(ctx, models.CartActive)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			err = r.allRepository.GasRefillRepository.CreateFees(ctx, newFees)
+			if err != nil {
+				return nil, err
+			}
+
+			return &library.DefaultResponse{Success: "success", Message: "Fees created successfully"}, nil
+		}
+		return nil, err
+	}
+
+	if fees != nil {
+		err = r.allRepository.GasRefillRepository.UpdateFees(ctx, models.CartInactive)
+		if err != nil {
+			return nil, err
+		}
+		err = r.allRepository.GasRefillRepository.CreateFees(ctx, newFees)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &library.DefaultResponse{Success: "success", Message: "Fees created successfully"}, nil
+}
+
+func (r *GasRefillHandler) GetFees(ctx context.Context) (*models.Fees, error) {
+	fee, err := r.allRepository.GasRefillRepository.GetFees(ctx, models.CartActive)
+	if err != nil {
+		return nil, err
+	}
+
+	return fee, nil
 }

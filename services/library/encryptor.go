@@ -2,7 +2,6 @@ package library
 
 import (
 	"errors"
-	"fmt"
 	"github.com/badoux/checkmail"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"golang.org/x/crypto/bcrypt"
@@ -102,11 +101,8 @@ func (e *encryptorHandler) IsLeetaDomain(email, leetaDomain string) error {
 	}
 	domain := parts[1]
 
-	fmt.Println("email: ", email)
-	fmt.Println("leetaDomain: ", leetaDomain)
 	err := checkmail.ValidateHost(email)
 	if err != nil {
-		fmt.Println(err)
 		return leetError.ErrorResponseBody(leetError.ValidEmailHostError, err)
 	}
 

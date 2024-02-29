@@ -89,3 +89,15 @@ func (c *CartStoreHandler) InactivateCart(ctx context.Context, cartID string) er
 	}
 	return nil
 }
+
+func (c *CartStoreHandler) GetCartByDeviceID(ctx context.Context, deviceID string) (*models.Cart, error) {
+	var cart models.Cart
+	filter := bson.M{"device_id": deviceID, "status": models.CartActive}
+
+	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cart, nil
+}

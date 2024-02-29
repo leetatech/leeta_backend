@@ -4,6 +4,13 @@ definitions:
     properties:
       body: {}
     type: object
+  AddToCartRequest:
+    properties:
+      guest:
+        type: boolean
+      refill_details:
+        $ref: '#/definitions/CartRefillDetails'
+    type: object
   Address:
     properties:
       city:
@@ -77,6 +84,17 @@ definitions:
       role:
         type: string
     type: object
+  CartRefillDetails:
+    properties:
+      cost_per_kg:
+        type: number
+      gas_type:
+        $ref: '#/definitions/models.ProductCategory'
+      product_id:
+        type: string
+      weight:
+        type: number
+    type: object
   Coordinates:
     properties:
       latitude:
@@ -130,16 +148,19 @@ definitions:
       email:
         type: string
     type: object
+  FeeQuotationRequest:
+    properties:
+      cost_per_kg:
+        type: number
+      service_fee:
+        type: number
+    type: object
   GasRefillRequest:
     properties:
-      customer_id:
-        type: string
       guest:
         type: boolean
       guest_bio_data:
         $ref: '#/definitions/GuestBioData'
-      refill_details:
-        $ref: '#/definitions/RefillDetails'
       shipping_info:
         allOf:
         - $ref: '#/definitions/ShippingInfo'
@@ -172,6 +193,8 @@ definitions:
     type: object
   GuestBioData:
     properties:
+      device_id:
+        type: string
       email:
         type: string
       first_name:
@@ -185,6 +208,8 @@ definitions:
     type: object
   InactivateCart:
     properties:
+      device_id:
+        type: string
       id:
         type: string
     type: object
@@ -319,28 +344,19 @@ definitions:
     type: object
   ReceiveGuestRequest:
     properties:
+      device_id:
+        type: string
       guest:
         type: boolean
     type: object
   ReceiveGuestResponse:
     properties:
+      device_id:
+        type: string
       session_id:
         type: string
       token:
         type: string
-    type: object
-  RefillDetails:
-    properties:
-      amount_paid:
-        type: number
-      gas_type:
-        $ref: '#/definitions/models.ProductCategory'
-      product_id:
-        type: string
-      vendor_id:
-        type: string
-      weight:
-        type: number
     type: object
   ShippingInfo:
     properties:
@@ -386,8 +402,6 @@ definitions:
     properties:
       reason:
         type: string
-      refill_details:
-        $ref: '#/definitions/RefillDetails'
       refill_id:
         type: string
       request_status:
@@ -593,6 +607,36 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
+  /add:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to add items to cart
+      parameters:
+      - description: add to cart request body
+        in: body
+        name: domain.AddToCartRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AddToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Add items to cart
+      tags:
+      - Cart
   /gas-refill:
     post:
       consumes:
@@ -690,6 +734,62 @@ paths:
       summary: Gets a single gas refill
       tags:
       - GasRefill
+  /gas-refill/fees:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get fees for gas refill
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fees
+      tags:
+      - GasRefill/fees
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to create fees for gas refill
+      parameters:
+      - description: create fees request body
+        in: body
+        name: domain.FeeQuotationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/FeeQuotationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create fees
+      tags:
+      - GasRefill/fees
   /gas-refill/list:
     post:
       consumes:

@@ -23,6 +23,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/add": {
+            "post": {
+                "description": "The endpoint to add items to cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add items to cart",
+                "parameters": [
+                    {
+                        "description": "add to cart request body",
+                        "name": "domain.AddToCartRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AddToCartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/gas-refill": {
             "post": {
                 "security": [
@@ -100,6 +146,95 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateRefillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/fees": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get fees for gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill/fees"
+                ],
+                "summary": "Get fees",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to create fees for gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill/fees"
+                ],
+                "summary": "Create fees",
+                "parameters": [
+                    {
+                        "description": "create fees request body",
+                        "name": "domain.FeeQuotationRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FeeQuotationRequest"
                         }
                     }
                 ],
@@ -1347,6 +1482,17 @@ const docTemplate = `{
                 "body": {}
             }
         },
+        "AddToCartRequest": {
+            "type": "object",
+            "properties": {
+                "guest": {
+                    "type": "boolean"
+                },
+                "refill_details": {
+                    "$ref": "#/definitions/CartRefillDetails"
+                }
+            }
+        },
         "Address": {
             "type": "object",
             "properties": {
@@ -1458,6 +1604,23 @@ const docTemplate = `{
                 }
             }
         },
+        "CartRefillDetails": {
+            "type": "object",
+            "properties": {
+                "cost_per_kg": {
+                    "type": "number"
+                },
+                "gas_type": {
+                    "$ref": "#/definitions/models.ProductCategory"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
         "Coordinates": {
             "type": "object",
             "properties": {
@@ -1541,20 +1704,25 @@ const docTemplate = `{
                 }
             }
         },
+        "FeeQuotationRequest": {
+            "type": "object",
+            "properties": {
+                "cost_per_kg": {
+                    "type": "number"
+                },
+                "service_fee": {
+                    "type": "number"
+                }
+            }
+        },
         "GasRefillRequest": {
             "type": "object",
             "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
                 "guest": {
                     "type": "boolean"
                 },
                 "guest_bio_data": {
                     "$ref": "#/definitions/GuestBioData"
-                },
-                "refill_details": {
-                    "$ref": "#/definitions/RefillDetails"
                 },
                 "shipping_info": {
                     "description": "This object is to be sent when the customer is done with their order and payment",
@@ -1606,6 +1774,9 @@ const docTemplate = `{
         "GuestBioData": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -1626,6 +1797,9 @@ const docTemplate = `{
         "InactivateCart": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 }
@@ -1831,6 +2005,9 @@ const docTemplate = `{
         "ReceiveGuestRequest": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "guest": {
                     "type": "boolean"
                 }
@@ -1839,31 +2016,14 @@ const docTemplate = `{
         "ReceiveGuestResponse": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "session_id": {
                     "type": "string"
                 },
                 "token": {
                     "type": "string"
-                }
-            }
-        },
-        "RefillDetails": {
-            "type": "object",
-            "properties": {
-                "amount_paid": {
-                    "type": "number"
-                },
-                "gas_type": {
-                    "$ref": "#/definitions/models.ProductCategory"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "vendor_id": {
-                    "type": "string"
-                },
-                "weight": {
-                    "type": "number"
                 }
             }
         },
@@ -1934,9 +2094,6 @@ const docTemplate = `{
             "properties": {
                 "reason": {
                     "type": "string"
-                },
-                "refill_details": {
-                    "$ref": "#/definitions/RefillDetails"
                 },
                 "refill_id": {
                     "type": "string"

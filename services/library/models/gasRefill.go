@@ -7,6 +7,9 @@ type GasRefill struct {
 	CustomerID    string              `json:"customer_id" bson:"customer_id"`
 	RefillDetails RefillDetails       `json:"refill_details" bson:"refill_details"`
 	ShippingInfo  ShippingInfo        `json:"shipping_info,omitempty" bson:"shipping_info"`
+	DeliveryFee   float64             `json:"delivery_fee" bson:"delivery_fee"`
+	ServiceFee    float64             `json:"service_fee" bson:"service_fee"`
+	TotalCost     float64             `json:"total_cost" bson:"total_cost"`
 	Status        RefillRequestStatus `json:"status" bson:"status"`
 	StatusTs      int64               `json:"status_ts" bson:"status_ts"`
 	Ts            int64               `json:"ts" bson:"ts"`
@@ -14,6 +17,7 @@ type GasRefill struct {
 
 type GuestBioData struct {
 	SessionID string `json:"session_id,omitempty" bson:"session_id"`
+	DeviceID  string `json:"device_id" bson:"device_id"`
 	FirstName string `json:"first_name,omitempty" bson:"first_name"`
 	LastName  string `json:"last_name,omitempty" bson:"last_name"`
 	Email     string `json:"email,omitempty" bson:"email"`
@@ -31,11 +35,10 @@ type ShippingInfo struct {
 } // @name ShippingInfo
 
 type RefillDetails struct {
-	ProductID  string          `json:"product_id" bson:"product_id"`
-	VendorID   string          `json:"vendor_id,omitempty" bson:"vendor_id"`
-	Weight     float32         `json:"weight" bson:"weight"`
-	AmountPaid float64         `json:"amount_paid" bson:"amount_paid"`
-	GasType    ProductCategory `json:"gas_type" bson:"gas_type"`
+	OrderItems []CartItem          `json:"order_items" bson:"order_items"`
+	Status     RefillRequestStatus `json:"status" bson:"status"`
+	StatusTs   int64               `json:"status_ts" bson:"status_ts"`
+	Ts         int64               `json:"ts" bson:"ts"`
 } // @name RefillDetails
 
 type RefillRequestStatus string
@@ -47,3 +50,11 @@ const (
 	RefillPending   RefillRequestStatus = "pending"
 	RefillFulFilled RefillRequestStatus = "fulfilled"
 )
+
+type Fees struct {
+	CostPerKg  float64      `json:"cost_per_kg" bson:"cost_per_kg"`
+	ServiceFee float64      `json:"service_fee" bson:"service_fee"`
+	Status     CartStatuses `json:"status" bson:"status"`
+	StatusTs   int64        `json:"status_ts" bson:"status_ts"`
+	Ts         int64        `json:"ts" bson:"ts"`
+} // @name Fees
