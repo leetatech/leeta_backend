@@ -7,6 +7,7 @@ type GasRefill struct {
 	CustomerID    string              `json:"customer_id" bson:"customer_id"`
 	RefillDetails RefillDetails       `json:"refill_details" bson:"refill_details"`
 	ShippingInfo  ShippingInfo        `json:"shipping_info,omitempty" bson:"shipping_info"`
+	AmountPaid    float64             `json:"amount_paid" bson:"amount_paid"`
 	DeliveryFee   float64             `json:"delivery_fee" bson:"delivery_fee"`
 	ServiceFee    float64             `json:"service_fee" bson:"service_fee"`
 	TotalCost     float64             `json:"total_cost" bson:"total_cost"`

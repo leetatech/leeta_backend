@@ -43,6 +43,7 @@ const (
 	InvalidIdentityError       ErrorCode = 1031
 	InvalidOTPError            ErrorCode = 1032
 	CartStatusesError          ErrorCode = 1033
+	AmountPaidError            ErrorCode = 1034
 )
 
 var (
@@ -80,6 +81,7 @@ var (
 		InvalidIdentityError:       "InvalidIdentityError",
 		InvalidOTPError:            "InvalidOTPError",
 		CartStatusesError:          "CartStatusesError",
+		AmountPaidError:            "AmountPaidError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -116,6 +118,7 @@ var (
 		InvalidIdentityError:       "An error occurred because the user identity data is invalid",
 		InvalidOTPError:            "An error occurred because the OTP is invalid",
 		CartStatusesError:          "An error occurred because the cart status is invalid",
+		AmountPaidError:            "An error occurred because the amount paid is invalid",
 	}
 )
 

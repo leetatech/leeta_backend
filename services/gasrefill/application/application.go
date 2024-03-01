@@ -129,6 +129,10 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 	}
 	var deliveryFee float64
 	totalCost := cart.Total + deliveryFee + fees.ServiceFee
+	if request.AmountPaid != totalCost {
+		return leetError.ErrorResponseBody(leetError.AmountPaidError, errors.New("amount paid does not match total cost"))
+	}
+
 	refill := models.GasRefill{
 		ID:           r.idGenerator.Generate(),
 		Guest:        request.Guest,
@@ -141,6 +145,7 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 			Ts:         time.Now().Unix(),
 		},
 		ShippingInfo: request.ShippingInfo,
+		AmountPaid:   request.AmountPaid,
 		DeliveryFee:  deliveryFee,
 		ServiceFee:   fees.ServiceFee,
 		TotalCost:    totalCost,

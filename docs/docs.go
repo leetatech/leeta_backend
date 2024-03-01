@@ -1718,6 +1718,9 @@ const docTemplate = `{
         "GasRefillRequest": {
             "type": "object",
             "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
                 "guest": {
                     "type": "boolean"
                 },
@@ -2152,7 +2155,8 @@ const docTemplate = `{
                 1030,
                 1031,
                 1032,
-                1033
+                1033,
+                1034
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2187,7 +2191,8 @@ const docTemplate = `{
                 "InvalidUserRoleError",
                 "InvalidIdentityError",
                 "InvalidOTPError",
-                "CartStatusesError"
+                "CartStatusesError",
+                "AmountPaidError"
             ]
         },
         "leetError.ErrorResponse": {

@@ -157,6 +157,8 @@ definitions:
     type: object
   GasRefillRequest:
     properties:
+      amount_paid:
+        type: number
       guest:
         type: boolean
       guest_bio_data:
@@ -451,6 +453,7 @@ definitions:
     - 1031
     - 1032
     - 1033
+    - 1034
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -486,6 +489,7 @@ definitions:
     - InvalidIdentityError
     - InvalidOTPError
     - CartStatusesError
+    - AmountPaidError
   leetError.ErrorResponse:
     properties:
       error_code:

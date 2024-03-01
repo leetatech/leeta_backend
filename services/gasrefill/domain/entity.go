@@ -7,6 +7,7 @@ type GasRefillRequest struct {
 	GuestBioData models.GuestBioData `json:"guest_bio_data,omitempty" bson:"guest_bio_data"`
 	// This object is to be sent when the customer is done with their order and payment
 	ShippingInfo models.ShippingInfo `json:"shipping_info,omitempty" bson:"shipping_info"`
+	AmountPaid   float64             `json:"amount_paid" bson:"amount_paid"`
 } // @name GasRefillRequest
 
 type UpdateRefillRequest struct {
