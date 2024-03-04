@@ -86,10 +86,8 @@ definitions:
     type: object
   CartRefillDetails:
     properties:
-      cost_per_kg:
+      cost:
         type: number
-      gas_type:
-        $ref: '#/definitions/models.ProductCategory'
       product_id:
         type: string
       weight:
@@ -152,6 +150,8 @@ definitions:
     properties:
       cost_per_kg:
         type: number
+      product_id:
+        type: string
       service_fee:
         type: number
     type: object
@@ -210,8 +210,6 @@ definitions:
     type: object
   InactivateCart:
     properties:
-      device_id:
-        type: string
       id:
         type: string
     type: object
@@ -641,6 +639,68 @@ paths:
       summary: Add items to cart
       tags:
       - Cart
+  /fees/:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get fees for gas refill
+      parameters:
+      - description: product id
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fees
+      tags:
+      - fees
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to create fees for gas refill
+      parameters:
+      - description: create fees request body
+        in: body
+        name: domain.FeeQuotationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/FeeQuotationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create fees
+      tags:
+      - fees
   /gas-refill:
     post:
       consumes:
@@ -738,62 +798,6 @@ paths:
       summary: Gets a single gas refill
       tags:
       - GasRefill
-  /gas-refill/fees:
-    get:
-      consumes:
-      - application/json
-      description: The endpoint to get fees for gas refill
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Get fees
-      tags:
-      - GasRefill/fees
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to create fees for gas refill
-      parameters:
-      - description: create fees request body
-        in: body
-        name: domain.FeeQuotationRequest
-        required: true
-        schema:
-          $ref: '#/definitions/FeeQuotationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Create fees
-      tags:
-      - GasRefill/fees
   /gas-refill/list:
     post:
       consumes:

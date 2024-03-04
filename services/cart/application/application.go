@@ -54,7 +54,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 	if request.Guest {
 		deviceID = claims.UserID
 
-		err := c.guest(ctx, deviceID, claims)
+		err := c.manageGuestCartSession(ctx, deviceID, claims)
 		if err != nil {
 			return nil, err
 		}
@@ -67,16 +67,19 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 		return nil, err
 	}
 
+	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, product.ID, models.CartActive)
+	if err != nil {
+		return nil, err
+	}
 	cartItems := models.CartItem{
 		ID:        c.idGenerator.Generate(),
-		GasType:   request.RefillDetails.GasType,
 		ProductID: request.RefillDetails.ProductID,
 		VendorID:  product.VendorID,
 		Weight:    request.RefillDetails.Weight,
-		TotalCost: request.RefillDetails.CostPerKg * float64(request.RefillDetails.Weight),
+		TotalCost: fee.CostPerKg * float64(request.RefillDetails.Weight),
 	}
 
-	cart, err := c.allRepository.CartRepository.GetCartBySessionOrCustomerID(ctx, claims.UserID)
+	cart, err := c.allRepository.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
 	if err != nil {
 		c.logger.Error("error getting cart", zap.Error(err))
 		switch {
@@ -91,7 +94,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 				StatusTs:   time.Now().Unix(),
 				Ts:         time.Now().Unix(),
 			})
-			return &library.DefaultResponse{Success: "success", Message: "Refill added to cart"}, nil
+			return &library.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 		default:
 			return nil, err
 		}
@@ -99,12 +102,12 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 
 	cart.CartItems = append(cart.CartItems, cartItems)
 
-	fees, err := c.allRepository.GasRefillRepository.GetFees(ctx, models.CartActive)
+	cart.Total, err = c.calculateCartItemTotal(ctx, cart.CartItems)
 	if err != nil {
+		c.logger.Error("error calculating cart total", zap.Error(err))
 		return nil, err
 	}
 
-	cart.Total = calculateCartItemTotal(fees.CostPerKg, cart.CartItems)
 	cart.StatusTs = time.Now().Unix()
 	err = c.allRepository.CartRepository.AddToCartItem(ctx, cart.ID, cartItems, cart.Total, cart.StatusTs)
 	if err != nil {
@@ -112,10 +115,10 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Refill added to cart"}, nil
+	return &library.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 }
 
-func (c CartAppHandler) guest(ctx context.Context, deviceID string, claims *library.UserClaims) error {
+func (c CartAppHandler) manageGuestCartSession(ctx context.Context, deviceID string, claims *library.UserClaims) error {
 	cart, terr := c.allRepository.CartRepository.GetCartByDeviceID(ctx, deviceID)
 	if terr != nil {
 		if !errors.Is(terr, mongo.ErrNoDocuments) {
@@ -138,10 +141,21 @@ func (c CartAppHandler) guest(ctx context.Context, deviceID string, claims *libr
 	return nil
 }
 
-func calculateCartItemTotal(costPerKg float64, items []models.CartItem) float64 {
+func (c CartAppHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
 	var total float64
-	for _, item := range items {
-		total += costPerKg * float64(item.Weight)
+
+	fees, err := c.allRepository.FeesRepository.GetFees(ctx, models.CartActive)
+	if err != nil {
+		return 0, err
 	}
-	return total
+
+	for _, item := range items {
+		for _, fee := range fees {
+			if fee.ProductID == item.ProductID {
+				total += fee.CostPerKg * float64(item.Weight)
+			}
+		}
+	}
+
+	return total, nil
 }

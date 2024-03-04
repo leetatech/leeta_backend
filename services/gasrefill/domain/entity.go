@@ -24,8 +24,3 @@ type ListRefillFilter struct {
 	Limit      int64                        `json:"limit" bson:"limit"`
 	Page       int64                        `json:"page" bson:"page"`
 } // @name ListRefillFilter
-
-type FeeQuotationRequest struct {
-	CostPerKg  float64 `json:"cost_per_kg" bson:"cost_per_kg"`
-	ServiceFee float64 `json:"service_fee" bson:"service_fee"`
-} // @name FeeQuotationRequest

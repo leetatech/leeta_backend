@@ -33,9 +33,9 @@ func (c *CartStoreHandler) AddToCart(ctx context.Context, request models.Cart) e
 	return nil
 }
 
-func (c *CartStoreHandler) GetCartBySessionOrCustomerID(ctx context.Context, sessionOrCustomerID string) (*models.Cart, error) {
+func (c *CartStoreHandler) GetCartByCustomerID(ctx context.Context, customerID string) (*models.Cart, error) {
 	var cart models.Cart
-	filter := bson.M{"customer_id": sessionOrCustomerID, "status": models.CartActive}
+	filter := bson.M{"customer_id": customerID, "status": models.CartActive}
 
 	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
 	if err != nil {
@@ -78,7 +78,6 @@ func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartID, cartItemI
 }
 
 func (c *CartStoreHandler) InactivateCart(ctx context.Context, cartID string) error {
-	//filter := bson.M{"id": cartID}
 	filter := bson.M{"$or": []bson.M{{"id": cartID}, {"customer_id": cartID}}}
 
 	update := bson.M{"$set": bson.M{"status": models.CartInactive}}

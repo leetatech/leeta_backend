@@ -246,7 +246,7 @@ func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, 
 
 	token, err := handler.AuthApplication.ReceiveGuestToken(request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		library.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
 	library.EncodeResult(w, token, http.StatusOK)

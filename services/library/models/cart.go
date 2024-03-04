@@ -17,12 +17,11 @@ type Cart struct {
 }
 
 type CartItem struct {
-	ID        string          `json:"id" bson:"id"`
-	GasType   ProductCategory `json:"gas_type" bson:"gas_type"`
-	ProductID string          `json:"product_id" bson:"product_id"`
-	VendorID  string          `json:"vendor_id" bson:"vendor_id"`
-	Weight    float32         `json:"weight" bson:"weight"`
-	TotalCost float64         `json:"total_cost" bson:"total_cost"`
+	ID        string  `json:"id" bson:"id"`
+	ProductID string  `json:"product_id" bson:"product_id"`
+	VendorID  string  `json:"vendor_id" bson:"vendor_id"`
+	Weight    float32 `json:"weight" bson:"weight"`
+	TotalCost float64 `json:"total_cost" bson:"total_cost"`
 }
 
 type CartStatuses string
