@@ -77,8 +77,8 @@ func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartID, cartItemI
 	return nil
 }
 
-func (c *CartStoreHandler) InactivateCart(ctx context.Context, cartID string) error {
-	filter := bson.M{"$or": []bson.M{{"id": cartID}, {"customer_id": cartID}}}
+func (c *CartStoreHandler) InactivateCart(ctx context.Context, id string) error {
+	filter := bson.M{"id": id}
 
 	update := bson.M{"$set": bson.M{"status": models.CartInactive}}
 
