@@ -22,7 +22,7 @@ type FeesHandler struct {
 
 type FeesApplication interface {
 	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error)
-	GetFees(ctx context.Context) ([]models.Fees, error)
+	GetFees(ctx context.Context) ([]models.Fee, error)
 }
 
 func NewFeesApplication(request library.DefaultApplicationRequest) FeesApplication {
@@ -36,7 +36,7 @@ func NewFeesApplication(request library.DefaultApplicationRequest) FeesApplicati
 }
 
 func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error) {
-	newFees := models.Fees{
+	newFees := models.Fee{
 		ID:         f.idGenerator.Generate(),
 		ProductID:  request.ProductID,
 		CostPerKg:  request.CostPerKg,
@@ -55,7 +55,7 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 				return nil, err
 			}
 
-			return &library.DefaultResponse{Success: "success", Message: "Fees created successfully"}, nil
+			return &library.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 		}
 		return nil, err
 	}
@@ -71,10 +71,10 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		}
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Fees created successfully"}, nil
+	return &library.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 }
 
-func (f *FeesHandler) GetFees(ctx context.Context) ([]models.Fees, error) {
+func (f *FeesHandler) GetFees(ctx context.Context) ([]models.Fee, error) {
 	fee, err := f.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
 	if err != nil {
 		return nil, err

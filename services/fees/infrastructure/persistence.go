@@ -25,7 +25,7 @@ func NewFeesPersistence(client *mongo.Client, databaseName string, logger *zap.L
 	return &feeStoreHandler{client: client, databaseName: databaseName, logger: logger}
 }
 
-func (f feeStoreHandler) CreateFees(ctx context.Context, request models.Fees) error {
+func (f feeStoreHandler) CreateFees(ctx context.Context, request models.Fee) error {
 	_, err := f.col(models.FeesCollectionName).InsertOne(ctx, request)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
@@ -34,7 +34,7 @@ func (f feeStoreHandler) CreateFees(ctx context.Context, request models.Fees) er
 	return nil
 }
 
-func (f feeStoreHandler) GetFees(ctx context.Context, status models.FeesStatuses) ([]models.Fees, error) {
+func (f feeStoreHandler) GetFees(ctx context.Context, status models.FeesStatuses) ([]models.Fee, error) {
 	filter := bson.M{"status": status}
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filter)
@@ -42,7 +42,7 @@ func (f feeStoreHandler) GetFees(ctx context.Context, status models.FeesStatuses
 		return nil, err
 	}
 
-	fees := make([]models.Fees, cursor.RemainingBatchLength())
+	fees := make([]models.Fee, cursor.RemainingBatchLength())
 	if err := cursor.All(ctx, &fees); err != nil {
 		return nil, err
 	}
@@ -63,9 +63,9 @@ func (f feeStoreHandler) UpdateFees(ctx context.Context, status models.FeesStatu
 	return nil
 }
 
-func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fees, error) {
+func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fee, error) {
 	filter := bson.M{"product_id": productID, "status": status}
-	fee := &models.Fees{}
+	fee := &models.Fee{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

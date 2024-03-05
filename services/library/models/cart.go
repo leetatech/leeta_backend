@@ -25,6 +25,24 @@ type CartItem struct {
 	TotalCost float64 `json:"total_cost" bson:"total_cost"`
 }
 
+func (c *CartItem) CalculateCartFee(fee *Fee) float64 {
+	var totalCost float64
+
+	if fee.ProductID == c.ProductID {
+		var cost float64
+		if c.Weight != 0 {
+			cost = float64(c.Weight) * fee.CostPerKg
+		} else {
+			cost = fee.CostPerQty
+		}
+		totalCost += cost * float64(c.Quantity)
+	} else {
+		return 0
+	}
+
+	return totalCost
+}
+
 type CartStatuses string
 
 const (

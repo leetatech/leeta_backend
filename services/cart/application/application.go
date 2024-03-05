@@ -45,9 +45,6 @@ func (c CartAppHandler) InactivateCart(ctx context.Context, request domain.Inact
 }
 
 func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error) {
-
-	var totalCost float64
-
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -75,19 +72,17 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 		return nil, err
 	}
 
-	if request.CartDetails.Weight != 0 {
-		totalCost = fee.CostPerKg * float64(request.CartDetails.Weight)
-	}
-	if request.CartDetails.Quantity != 0 {
-		totalCost = fee.CostPerQty * float64(request.CartDetails.Quantity)
-	}
-
 	cartItems := models.CartItem{
 		ID:        c.idGenerator.Generate(),
 		ProductID: request.CartDetails.ProductID,
 		VendorID:  product.VendorID,
 		Weight:    request.CartDetails.Weight,
-		TotalCost: totalCost,
+	}
+
+	cartItems.TotalCost = cartItems.CalculateCartFee(fee)
+	if cartItems.TotalCost == 0 {
+		c.logger.Error("invalid product id")
+		return nil, errors.New("invalid product")
 	}
 
 	cart, err := c.allRepository.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
@@ -163,12 +158,7 @@ func (c CartAppHandler) calculateCartItemTotal(ctx context.Context, items []mode
 	for _, item := range items {
 		for _, fee := range fees {
 			if fee.ProductID == item.ProductID {
-				if item.Weight != 0 {
-					total += fee.CostPerKg * float64(item.Weight)
-				}
-				if item.Quantity != 0 {
-					total += fee.CostPerQty * float64(item.Quantity)
-				}
+				total += item.CalculateCartFee(&fee)
 			}
 		}
 	}

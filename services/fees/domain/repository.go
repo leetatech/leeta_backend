@@ -6,8 +6,8 @@ import (
 )
 
 type FeesRepository interface {
-	CreateFees(ctx context.Context, request models.Fees) error
-	GetFeeByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fees, error)
-	GetFees(ctx context.Context, status models.FeesStatuses) ([]models.Fees, error)
+	CreateFees(ctx context.Context, request models.Fee) error
+	GetFeeByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fee, error)
+	GetFees(ctx context.Context, status models.FeesStatuses) ([]models.Fee, error)
 	UpdateFees(ctx context.Context, status models.FeesStatuses) error
 }
