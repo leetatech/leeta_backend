@@ -172,7 +172,7 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 func (r GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
 	var serviceFee float64
 
-	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.CartActive)
+	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
 	if err != nil {
 		return 0, err
 	}

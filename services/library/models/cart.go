@@ -20,15 +20,16 @@ type CartItem struct {
 	ID        string  `json:"id" bson:"id"`
 	ProductID string  `json:"product_id" bson:"product_id"`
 	VendorID  string  `json:"vendor_id" bson:"vendor_id"`
-	Weight    float32 `json:"weight" bson:"weight"`
+	Weight    float32 `json:"weight,omitempty" bson:"weight"`
+	Quantity  int     `json:"quantity,omitempty" bson:"quantity"`
 	TotalCost float64 `json:"total_cost" bson:"total_cost"`
 }
 
 type CartStatuses string
 
 const (
-	CartActive   CartStatuses = "ACTIVE"   // order has been created and processing
-	CartInactive CartStatuses = "INACTIVE" // order was rejected by vendor or customer
+	CartActive   CartStatuses = "ACTIVE"   // cart has been created and active
+	CartInactive CartStatuses = "INACTIVE" // cart has been inactivated and no longer active due to check out or session expiry
 )
 
 func IsValidCartStatus(status CartStatuses) bool {
@@ -40,6 +41,6 @@ func SetCartStatus(status CartStatuses) (CartStatuses, error) {
 	case true:
 		return status, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.CartStatusesError, errors.New("invalid order status"))
+		return "", leetError.ErrorResponseBody(leetError.CartStatusesError, errors.New("invalid cart status"))
 	}
 }

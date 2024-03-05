@@ -22,7 +22,7 @@ type FeesHandler struct {
 
 type FeesApplication interface {
 	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error)
-	GetFees(ctx context.Context, productID string) ([]models.Fees, error)
+	GetFees(ctx context.Context) ([]models.Fees, error)
 }
 
 func NewFeesApplication(request library.DefaultApplicationRequest) FeesApplication {
@@ -40,13 +40,14 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		ID:         f.idGenerator.Generate(),
 		ProductID:  request.ProductID,
 		CostPerKg:  request.CostPerKg,
+		CostPerQty: request.CostPerQty,
 		ServiceFee: request.ServiceFee,
 		Status:     models.CartActive,
 		StatusTs:   time.Now().Unix(),
 		Ts:         time.Now().Unix(),
 	}
 
-	fees, err := f.allRepository.FeesRepository.GetFees(ctx, models.CartActive)
+	fees, err := f.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = f.allRepository.FeesRepository.CreateFees(ctx, newFees)
@@ -60,7 +61,7 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 	}
 
 	if fees != nil {
-		err = f.allRepository.FeesRepository.UpdateFees(ctx, models.CartInactive)
+		err = f.allRepository.FeesRepository.UpdateFees(ctx, models.FeesInactive)
 		if err != nil {
 			return nil, err
 		}
@@ -73,8 +74,8 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 	return &library.DefaultResponse{Success: "success", Message: "Fees created successfully"}, nil
 }
 
-func (f *FeesHandler) GetFees(ctx context.Context, productID string) ([]models.Fees, error) {
-	fee, err := f.allRepository.FeesRepository.GetFees(ctx, models.CartActive)
+func (f *FeesHandler) GetFees(ctx context.Context) ([]models.Fees, error) {
+	fee, err := f.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
 	if err != nil {
 		return nil, err
 	}

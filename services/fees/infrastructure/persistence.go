@@ -34,7 +34,7 @@ func (f feeStoreHandler) CreateFees(ctx context.Context, request models.Fees) er
 	return nil
 }
 
-func (f feeStoreHandler) GetFees(ctx context.Context, status models.CartStatuses) ([]models.Fees, error) {
+func (f feeStoreHandler) GetFees(ctx context.Context, status models.FeesStatuses) ([]models.Fees, error) {
 	filter := bson.M{"status": status}
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filter)
@@ -52,7 +52,7 @@ func (f feeStoreHandler) GetFees(ctx context.Context, status models.CartStatuses
 	return fees, nil
 }
 
-func (f feeStoreHandler) UpdateFees(ctx context.Context, status models.CartStatuses) error {
+func (f feeStoreHandler) UpdateFees(ctx context.Context, status models.FeesStatuses) error {
 	filter := bson.M{"status": models.CartActive}
 	update := bson.M{"$set": bson.M{"status": status, "status_ts": time.Now().Unix()}}
 	_, err := f.col(models.FeesCollectionName).UpdateMany(ctx, filter, update)
@@ -63,7 +63,7 @@ func (f feeStoreHandler) UpdateFees(ctx context.Context, status models.CartStatu
 	return nil
 }
 
-func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string, status models.CartStatuses) (*models.Fees, error) {
+func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fees, error) {
 	filter := bson.M{"product_id": productID, "status": status}
 	fee := &models.Fees{}
 

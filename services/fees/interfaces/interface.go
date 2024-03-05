@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/services/fees/application"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/library"
@@ -53,15 +52,13 @@ func (handler *FeesHttpHandler) CreateFees(w http.ResponseWriter, r *http.Reques
 // @Tags fees
 // @Accept json
 // @produce json
-// @Param			product_id	path		string	true	"product id"
 // @Security BearerToken
 // @success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /fees/ [GET]
 func (handler *FeesHttpHandler) GetFees(w http.ResponseWriter, r *http.Request) {
-	productID := chi.URLParam(r, "product_id")
-	response, err := handler.FeesApplication.GetFees(r.Context(), productID)
+	response, err := handler.FeesApplication.GetFees(r.Context())
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

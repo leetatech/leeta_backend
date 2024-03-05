@@ -44,6 +44,7 @@ const (
 	InvalidOTPError            ErrorCode = 1032
 	CartStatusesError          ErrorCode = 1033
 	AmountPaidError            ErrorCode = 1034
+	FeesStatusesError          ErrorCode = 1035
 )
 
 var (
@@ -82,6 +83,7 @@ var (
 		InvalidOTPError:            "InvalidOTPError",
 		CartStatusesError:          "CartStatusesError",
 		AmountPaidError:            "AmountPaidError",
+		FeesStatusesError:          "FeesStatusesError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -119,6 +121,7 @@ var (
 		InvalidOTPError:            "An error occurred because the OTP is invalid",
 		CartStatusesError:          "An error occurred because the cart status is invalid",
 		AmountPaidError:            "An error occurred because the amount paid is invalid",
+		FeesStatusesError:          "An error occurred because the fees status is invalid",
 	}
 )
 

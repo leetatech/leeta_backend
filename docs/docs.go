@@ -87,15 +87,6 @@ const docTemplate = `{
                     "fees"
                 ],
                 "summary": "Get fees",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "product id",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1494,11 +1485,11 @@ const docTemplate = `{
         "AddToCartRequest": {
             "type": "object",
             "properties": {
+                "cart_details": {
+                    "$ref": "#/definitions/CartRefillDetails"
+                },
                 "guest": {
                     "type": "boolean"
-                },
-                "refill_details": {
-                    "$ref": "#/definitions/CartRefillDetails"
                 }
             }
         },
@@ -1622,6 +1613,9 @@ const docTemplate = `{
                 "product_id": {
                     "type": "string"
                 },
+                "quantity": {
+                    "type": "integer"
+                },
                 "weight": {
                     "type": "number"
                 }
@@ -1714,6 +1708,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "cost_per_kg": {
+                    "type": "number"
+                },
+                "cost_per_qty": {
                     "type": "number"
                 },
                 "product_id": {
@@ -2162,7 +2159,8 @@ const docTemplate = `{
                 1031,
                 1032,
                 1033,
-                1034
+                1034,
+                1035
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2198,7 +2196,8 @@ const docTemplate = `{
                 "InvalidIdentityError",
                 "InvalidOTPError",
                 "CartStatusesError",
-                "AmountPaidError"
+                "AmountPaidError",
+                "FeesStatusesError"
             ]
         },
         "leetError.ErrorResponse": {

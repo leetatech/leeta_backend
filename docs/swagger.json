@@ -80,15 +80,6 @@
                     "fees"
                 ],
                 "summary": "Get fees",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "product id",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1487,11 +1478,11 @@
         "AddToCartRequest": {
             "type": "object",
             "properties": {
+                "cart_details": {
+                    "$ref": "#/definitions/CartRefillDetails"
+                },
                 "guest": {
                     "type": "boolean"
-                },
-                "refill_details": {
-                    "$ref": "#/definitions/CartRefillDetails"
                 }
             }
         },
@@ -1615,6 +1606,9 @@
                 "product_id": {
                     "type": "string"
                 },
+                "quantity": {
+                    "type": "integer"
+                },
                 "weight": {
                     "type": "number"
                 }
@@ -1707,6 +1701,9 @@
             "type": "object",
             "properties": {
                 "cost_per_kg": {
+                    "type": "number"
+                },
+                "cost_per_qty": {
                     "type": "number"
                 },
                 "product_id": {
@@ -2155,7 +2152,8 @@
                 1031,
                 1032,
                 1033,
-                1034
+                1034,
+                1035
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2191,7 +2189,8 @@
                 "InvalidIdentityError",
                 "InvalidOTPError",
                 "CartStatusesError",
-                "AmountPaidError"
+                "AmountPaidError",
+                "FeesStatusesError"
             ]
         },
         "leetError.ErrorResponse": {
