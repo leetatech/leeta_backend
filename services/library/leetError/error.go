@@ -41,6 +41,10 @@ const (
 	MissingUserNames           ErrorCode = 1029
 	InvalidUserRoleError       ErrorCode = 1030
 	InvalidIdentityError       ErrorCode = 1031
+	InvalidOTPError            ErrorCode = 1032
+	CartStatusesError          ErrorCode = 1033
+	AmountPaidError            ErrorCode = 1034
+	FeesStatusesError          ErrorCode = 1035
 )
 
 var (
@@ -76,6 +80,10 @@ var (
 		MissingUserNames:           "MissingUserNamesError",
 		InvalidUserRoleError:       "InvalidUserRoleError",
 		InvalidIdentityError:       "InvalidIdentityError",
+		InvalidOTPError:            "InvalidOTPError",
+		CartStatusesError:          "CartStatusesError",
+		AmountPaidError:            "AmountPaidError",
+		FeesStatusesError:          "FeesStatusesError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -110,6 +118,10 @@ var (
 		MissingUserNames:           "An error occurred because user first name/last name was not found",
 		InvalidUserRoleError:       "An error occurred because the user is trying to login with the wrong app",
 		InvalidIdentityError:       "An error occurred because the user identity data is invalid",
+		InvalidOTPError:            "An error occurred because the OTP is invalid",
+		CartStatusesError:          "An error occurred because the cart status is invalid",
+		AmountPaidError:            "An error occurred because the amount paid is invalid",
+		FeesStatusesError:          "An error occurred because the fees status is invalid",
 	}
 )
 

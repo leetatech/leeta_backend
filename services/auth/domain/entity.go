@@ -57,3 +57,14 @@ type AdminSignUpRequest struct {
 	Department string         `json:"department"`
 	Role       string         `json:"role"`
 } // @name AdminSignUpRequest
+
+type ReceiveGuestRequest struct {
+	Guest    bool   `json:"guest" bson:"guest"`
+	DeviceID string `json:"device_id" bson:"device_id"`
+} // @name ReceiveGuestRequest
+
+type ReceiveGuestResponse struct {
+	SessionID string `json:"session_id" bson:"session_id"`
+	DeviceID  string `json:"device_id" bson:"device_id"`
+	Token     string `json:"token" bson:"token"`
+} // @name ReceiveGuestResponse

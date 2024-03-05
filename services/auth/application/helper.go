@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
@@ -358,7 +357,6 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 			}
 			err = a.allRepository.AuthRepository.CreateUser(ctx, admin)
 			if err != nil {
-				fmt.Println("repo error", err)
 				return nil, err
 			}
 

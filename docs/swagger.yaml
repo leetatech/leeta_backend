@@ -4,6 +4,13 @@ definitions:
     properties:
       body: {}
     type: object
+  AddToCartRequest:
+    properties:
+      cart_details:
+        $ref: '#/definitions/CartRefillDetails'
+      guest:
+        type: boolean
+    type: object
   Address:
     properties:
       city:
@@ -77,6 +84,17 @@ definitions:
       role:
         type: string
     type: object
+  CartRefillDetails:
+    properties:
+      cost:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      weight:
+        type: number
+    type: object
   Coordinates:
     properties:
       latitude:
@@ -130,6 +148,31 @@ definitions:
       email:
         type: string
     type: object
+  FeeQuotationRequest:
+    properties:
+      cost_per_kg:
+        type: number
+      cost_per_qty:
+        type: number
+      product_id:
+        type: string
+      service_fee:
+        type: number
+    type: object
+  GasRefillRequest:
+    properties:
+      amount_paid:
+        type: number
+      guest:
+        type: boolean
+      guest_bio_data:
+        $ref: '#/definitions/GuestBioData'
+      shipping_info:
+        allOf:
+        - $ref: '#/definitions/ShippingInfo'
+        description: This object is to be sent when the customer is done with their
+          order and payment
+    type: object
   GetCustomerOrdersRequest:
     properties:
       limit:
@@ -153,6 +196,45 @@ definitions:
         type: array
       vendor_id:
         type: string
+    type: object
+  GuestBioData:
+    properties:
+      device_id:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      session_id:
+        type: string
+    type: object
+  InactivateCart:
+    properties:
+      id:
+        type: string
+    type: object
+  ListRefillFilter:
+    properties:
+      customer_id:
+        type: string
+      gas_type:
+        items:
+          $ref: '#/definitions/models.ProductCategory'
+        type: array
+      guest_email:
+        type: string
+      limit:
+        type: integer
+      page:
+        type: integer
+      status:
+        items:
+          $ref: '#/definitions/models.RefillRequestStatus'
+        type: array
     type: object
   OTPValidationRequest:
     properties:
@@ -264,6 +346,35 @@ definitions:
       weight:
         type: string
     type: object
+  ReceiveGuestRequest:
+    properties:
+      device_id:
+        type: string
+      guest:
+        type: boolean
+    type: object
+  ReceiveGuestResponse:
+    properties:
+      device_id:
+        type: string
+      session_id:
+        type: string
+      token:
+        type: string
+    type: object
+  ShippingInfo:
+    properties:
+      for_me:
+        type: boolean
+      recipient_address:
+        $ref: '#/definitions/Address'
+      recipient_email:
+        type: string
+      recipient_name:
+        type: string
+      recipient_phone:
+        type: string
+    type: object
   SigningRequest:
     properties:
       email:
@@ -290,6 +401,15 @@ definitions:
         type: string
       order_status:
         $ref: '#/definitions/models.OrderStatuses'
+    type: object
+  UpdateRefillRequest:
+    properties:
+      reason:
+        type: string
+      refill_id:
+        type: string
+      request_status:
+        $ref: '#/definitions/models.RefillRequestStatus'
     type: object
   domain.GetVendorProductsResponse:
     properties:
@@ -333,6 +453,10 @@ definitions:
     - 1029
     - 1030
     - 1031
+    - 1032
+    - 1033
+    - 1034
+    - 1035
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -362,10 +486,14 @@ definitions:
     - ProductCategoryError
     - ProductSubCategoryError
     - ProductStatusError
-    - InternalError
+    - ForgotPasswordError
     - MissingUserNames
     - InvalidUserRoleError
     - InvalidIdentityError
+    - InvalidOTPError
+    - CartStatusesError
+    - AmountPaidError
+    - FeesStatusesError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -423,6 +551,20 @@ definitions:
     - CylinderSubCategory
     - CookerSubCategory
     - AccessoriesSubCategory
+  models.RefillRequestStatus:
+    enum:
+    - cancelled
+    - accepted
+    - rejected
+    - pending
+    - fulfilled
+    type: string
+    x-enum-varnames:
+    - RefillCancelled
+    - RefillAccepted
+    - RefillRejected
+    - RefillPending
+    - RefillFulFilled
   models.Statuses:
     enum:
     - SIGNEDUP
@@ -454,11 +596,13 @@ definitions:
     - vendor
     - buyer
     - admin_leeta
+    - guest
     type: string
     x-enum-varnames:
     - VendorCategory
     - BuyerCategory
     - AdminCategory
+    - GuestCatergory
 host: https://leetabackend-e6d948d15ae2.herokuapp.com
 info:
   contact:
@@ -471,6 +615,285 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
+  /add:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to add items to cart
+      parameters:
+      - description: add to cart request body
+        in: body
+        name: domain.AddToCartRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AddToCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Add items to cart
+      tags:
+      - Cart
+  /fees/:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get fees for gas refill
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fees
+      tags:
+      - fees
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to create fees for gas refill
+      parameters:
+      - description: create fees request body
+        in: body
+        name: domain.FeeQuotationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/FeeQuotationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create fees
+      tags:
+      - fees
+  /gas-refill:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to request for a gas refill
+      parameters:
+      - description: Gas refill request body
+        in: body
+        name: domain.GasRefillRequest
+        required: true
+        schema:
+          $ref: '#/definitions/GasRefillRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Request gas refill
+      tags:
+      - GasRefill
+  /gas-refill/:
+    put:
+      consumes:
+      - application/json
+      description: This endpoint is used to update the status of a gas refill (Cancel,
+        Accept, Reject or Fulfill) request
+      parameters:
+      - description: update gas refill by status request body
+        in: body
+        name: domain.UpdateRefillRequest
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateRefillRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Update Gas refill request status
+      tags:
+      - GasRefill
+  /gas-refill/{refill_id}:
+    get:
+      consumes:
+      - application/json
+      description: This is the endpoint to get the details of a single gas refill
+        by refill-id
+      parameters:
+      - description: refill id
+        in: path
+        name: refill-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Gets a single gas refill
+      tags:
+      - GasRefill
+  /gas-refill/list:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes the order status, pages and limit and then returns
+        the requested orders
+      parameters:
+      - description: get refill by status, use filter for filtering responses (not
+          implemented)
+        in: body
+        name: domain.ListRefillFilter
+        required: true
+        schema:
+          $ref: '#/definitions/ListRefillFilter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/DefaultResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: List all gas refill requests
+      tags:
+      - GasRefill
+  /guest:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allow guests to shop
+      parameters:
+      - description: receive guest request body
+        in: body
+        name: domain.ReceiveGuestRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ReceiveGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ReceiveGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request accept guests
+      tags:
+      - Session
+  /inactivate:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to request for a cart inactivation
+      parameters:
+      - description: inactivate cart request body
+        in: body
+        name: domain.InactivateCart
+        required: true
+        schema:
+          $ref: '#/definitions/InactivateCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request cart inactivation
+      tags:
+      - Cart
   /order/:
     get:
       consumes:

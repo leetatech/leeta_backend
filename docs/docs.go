@@ -23,6 +23,438 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/add": {
+            "post": {
+                "description": "The endpoint to add items to cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add items to cart",
+                "parameters": [
+                    {
+                        "description": "add to cart request body",
+                        "name": "domain.AddToCartRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AddToCartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fees/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get fees for gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fees"
+                ],
+                "summary": "Get fees",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to create fees for gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "fees"
+                ],
+                "summary": "Create fees",
+                "parameters": [
+                    {
+                        "description": "create fees request body",
+                        "name": "domain.FeeQuotationRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/FeeQuotationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to request for a gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "Request gas refill",
+                "parameters": [
+                    {
+                        "description": "Gas refill request body",
+                        "name": "domain.GasRefillRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GasRefillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "Update Gas refill request status",
+                "parameters": [
+                    {
+                        "description": "update gas refill by status request body",
+                        "name": "domain.UpdateRefillRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateRefillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes the order status, pages and limit and then returns the requested orders",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "List all gas refill requests",
+                "parameters": [
+                    {
+                        "description": "get refill by status, use filter for filtering responses (not implemented)",
+                        "name": "domain.ListRefillFilter",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ListRefillFilter"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/DefaultResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/gas-refill/{refill_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "This is the endpoint to get the details of a single gas refill by refill-id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "GasRefill"
+                ],
+                "summary": "Gets a single gas refill",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "refill id",
+                        "name": "refill-id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/guest": {
+            "post": {
+                "description": "The endpoint to allow guests to shop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Request accept guests",
+                "parameters": [
+                    {
+                        "description": "receive guest request body",
+                        "name": "domain.ReceiveGuestRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/inactivate": {
+            "put": {
+                "description": "The endpoint to request for a cart inactivation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart inactivation",
+                "parameters": [
+                    {
+                        "description": "inactivate cart request body",
+                        "name": "domain.InactivateCart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InactivateCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/order/": {
             "get": {
                 "security": [
@@ -1050,6 +1482,17 @@ const docTemplate = `{
                 "body": {}
             }
         },
+        "AddToCartRequest": {
+            "type": "object",
+            "properties": {
+                "cart_details": {
+                    "$ref": "#/definitions/CartRefillDetails"
+                },
+                "guest": {
+                    "type": "boolean"
+                }
+            }
+        },
         "Address": {
             "type": "object",
             "properties": {
@@ -1161,6 +1604,23 @@ const docTemplate = `{
                 }
             }
         },
+        "CartRefillDetails": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
         "Coordinates": {
             "type": "object",
             "properties": {
@@ -1244,6 +1704,45 @@ const docTemplate = `{
                 }
             }
         },
+        "FeeQuotationRequest": {
+            "type": "object",
+            "properties": {
+                "cost_per_kg": {
+                    "type": "number"
+                },
+                "cost_per_qty": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "service_fee": {
+                    "type": "number"
+                }
+            }
+        },
+        "GasRefillRequest": {
+            "type": "object",
+            "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
+                "guest": {
+                    "type": "boolean"
+                },
+                "guest_bio_data": {
+                    "$ref": "#/definitions/GuestBioData"
+                },
+                "shipping_info": {
+                    "description": "This object is to be sent when the customer is done with their order and payment",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ShippingInfo"
+                        }
+                    ]
+                }
+            }
+        },
         "GetCustomerOrdersRequest": {
             "type": "object",
             "properties": {
@@ -1278,6 +1777,66 @@ const docTemplate = `{
                 },
                 "vendor_id": {
                     "type": "string"
+                }
+            }
+        },
+        "GuestBioData": {
+            "type": "object",
+            "properties": {
+                "device_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "InactivateCart": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "ListRefillFilter": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "gas_type": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ProductCategory"
+                    }
+                },
+                "guest_email": {
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RefillRequestStatus"
+                    }
                 }
             }
         },
@@ -1449,6 +2008,51 @@ const docTemplate = `{
                 }
             }
         },
+        "ReceiveGuestRequest": {
+            "type": "object",
+            "properties": {
+                "device_id": {
+                    "type": "string"
+                },
+                "guest": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "ReceiveGuestResponse": {
+            "type": "object",
+            "properties": {
+                "device_id": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "ShippingInfo": {
+            "type": "object",
+            "properties": {
+                "for_me": {
+                    "type": "boolean"
+                },
+                "recipient_address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "recipient_email": {
+                    "type": "string"
+                },
+                "recipient_name": {
+                    "type": "string"
+                },
+                "recipient_phone": {
+                    "type": "string"
+                }
+            }
+        },
         "SigningRequest": {
             "type": "object",
             "properties": {
@@ -1488,6 +2092,20 @@ const docTemplate = `{
                 },
                 "order_status": {
                     "$ref": "#/definitions/models.OrderStatuses"
+                }
+            }
+        },
+        "UpdateRefillRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "refill_id": {
+                    "type": "string"
+                },
+                "request_status": {
+                    "$ref": "#/definitions/models.RefillRequestStatus"
                 }
             }
         },
@@ -1538,7 +2156,11 @@ const docTemplate = `{
                 1028,
                 1029,
                 1030,
-                1031
+                1031,
+                1032,
+                1033,
+                1034,
+                1035
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -1568,10 +2190,14 @@ const docTemplate = `{
                 "ProductCategoryError",
                 "ProductSubCategoryError",
                 "ProductStatusError",
-                "InternalError",
+                "ForgotPasswordError",
                 "MissingUserNames",
                 "InvalidUserRoleError",
-                "InvalidIdentityError"
+                "InvalidIdentityError",
+                "InvalidOTPError",
+                "CartStatusesError",
+                "AmountPaidError",
+                "FeesStatusesError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -1650,6 +2276,23 @@ const docTemplate = `{
                 "AccessoriesSubCategory"
             ]
         },
+        "models.RefillRequestStatus": {
+            "type": "string",
+            "enum": [
+                "cancelled",
+                "accepted",
+                "rejected",
+                "pending",
+                "fulfilled"
+            ],
+            "x-enum-varnames": [
+                "RefillCancelled",
+                "RefillAccepted",
+                "RefillRejected",
+                "RefillPending",
+                "RefillFulFilled"
+            ]
+        },
         "models.Statuses": {
             "type": "string",
             "enum": [
@@ -1685,12 +2328,14 @@ const docTemplate = `{
             "enum": [
                 "vendor",
                 "buyer",
-                "admin_leeta"
+                "admin_leeta",
+                "guest"
             ],
             "x-enum-varnames": [
                 "VendorCategory",
                 "BuyerCategory",
-                "AdminCategory"
+                "AdminCategory",
+                "GuestCatergory"
             ]
         }
     },

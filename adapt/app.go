@@ -8,17 +8,34 @@ import (
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
+
+	cartApplication "github.com/leetatech/leeta_backend/services/cart/application"
+	cartInfrastructure "github.com/leetatech/leeta_backend/services/cart/infrastructure"
+	cartInterface "github.com/leetatech/leeta_backend/services/cart/interfaces"
+
+	gasrefillApplication "github.com/leetatech/leeta_backend/services/gasrefill/application"
+	gasrefillInfrastructure "github.com/leetatech/leeta_backend/services/gasrefill/infrastructure"
+	gasrefillInterface "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
+
 	"github.com/leetatech/leeta_backend/services/library"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
+
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
+
 	productApplication "github.com/leetatech/leeta_backend/services/product/application"
 	productInfrastructure "github.com/leetatech/leeta_backend/services/product/infrastructure"
 	productInterface "github.com/leetatech/leeta_backend/services/product/interfaces"
+
 	userApplication "github.com/leetatech/leeta_backend/services/user/application"
 	userInfrastructure "github.com/leetatech/leeta_backend/services/user/infrastructure"
 	userInterface "github.com/leetatech/leeta_backend/services/user/interfaces"
+
+	feesApplication "github.com/leetatech/leeta_backend/services/fees/application"
+	feesInfrastructure "github.com/leetatech/leeta_backend/services/fees/infrastructure"
+	feeInterface "github.com/leetatech/leeta_backend/services/fees/interfaces"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
@@ -114,12 +131,18 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	gasRefillPersistence := gasrefillInfrastructure.NewRefillPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
 	allRepositories := library.Repositories{
-		OrderRepository:   orderPersistence,
-		AuthRepository:    authPersistence,
-		UserRepository:    userPersistence,
-		ProductRepository: productPersistence,
+		OrderRepository:     orderPersistence,
+		AuthRepository:      authPersistence,
+		UserRepository:      userPersistence,
+		ProductRepository:   productPersistence,
+		GasRefillRepository: gasRefillPersistence,
+		CartRepository:      cartPersistence,
+		FeesRepository:      feesPersistence,
 	}
 
 	app.Repositories = allRepositories
@@ -135,17 +158,26 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	authApplications := authApplication.NewAuthApplication(request)
 	userApplications := userApplication.NewUserApplication(request)
 	productApplications := productApplication.NewProductApplication(request)
+	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
+	cartApplication := cartApplication.NewCartApplication(request)
+	feesApplication := feesApplication.NewFeesApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
 	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
 	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
+	gasRefillInterfaces := gasrefillInterface.NewGasRefillHTTPHandler(gasRefillApplications)
+	cartInterfaces := cartInterface.NewCartHTTPHandler(cartApplication)
+	feesInterfaces := feeInterface.NewFeesHTTPHandler(feesApplication)
 
 	allInterfaces := routes.AllHTTPHandlers{
-		Order:   orderInterfaces,
-		Auth:    authInterfaces,
-		User:    userInterfaces,
-		Product: productInterfaces,
+		Order:     orderInterfaces,
+		Auth:      authInterfaces,
+		User:      userInterfaces,
+		Product:   productInterfaces,
+		GasRefill: gasRefillInterfaces,
+		Cart:      cartInterfaces,
+		Fees:      feesInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }
