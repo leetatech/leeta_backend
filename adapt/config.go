@@ -47,7 +47,7 @@ type LeetaConfig struct {
 }
 
 func LoadEnv() error {
-	err := godotenv.Load("../local.env")
+	err := godotenv.Load("./local.env")
 	if err != nil {
 		return fmt.Errorf("failed to load environment variables: %v", err)
 	}
