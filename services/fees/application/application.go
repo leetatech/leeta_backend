@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/mailer"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -52,22 +53,25 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = f.allRepository.FeesRepository.CreateFees(ctx, newFees)
 			if err != nil {
-				return nil, err
+				f.logger.Error("create fees", zap.Error(err))
+				return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 			}
 
 			return &library.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 		}
-		return nil, err
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	if fees != nil {
 		err = f.allRepository.FeesRepository.UpdateFees(ctx, models.FeesInactive)
 		if err != nil {
-			return nil, err
+			f.logger.Error("update fees", zap.Error(err))
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 		}
 		err = f.allRepository.FeesRepository.CreateFees(ctx, newFees)
 		if err != nil {
-			return nil, err
+			f.logger.Error("create fees after inactivating the previous one", zap.Error(err))
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 		}
 	}
 
@@ -77,7 +81,8 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 func (f *FeesHandler) GetFees(ctx context.Context) ([]models.Fee, error) {
 	fee, err := f.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
 	if err != nil {
-		return nil, err
+		f.logger.Error("get fees", zap.Error(err))
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	return fee, nil

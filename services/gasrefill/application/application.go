@@ -47,7 +47,7 @@ func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasR
 		customer, err := r.allRepository.UserRepository.GetCustomerByID(claims.UserID)
 		if err != nil {
 			r.logger.Error("error getting customer", zap.Error(err))
-			return nil, err
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 		}
 
 		if request.ShippingInfo.ForMe {
@@ -64,6 +64,7 @@ func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasR
 
 	cart, err := r.allRepository.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
 	if err != nil {
+		r.logger.Error("error getting cart", zap.Error(err))
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
 	}
 
@@ -91,7 +92,8 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
 			err := r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
 			if err != nil {
-				return domain.GasRefillRequest{}, err
+				r.logger.Error("error inactivating cart", zap.Error(err))
+				return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 			}
 			return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
 		}
@@ -157,13 +159,13 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 	err = r.allRepository.GasRefillRepository.RequestRefill(ctx, refill)
 	if err != nil {
 		r.logger.Error("error requesting refill", zap.Error(err))
-		return err
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	err = r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
 	if err != nil {
 		r.logger.Error("error inactivating cart", zap.Error(err))
-		return err
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	return nil
@@ -174,7 +176,8 @@ func (r GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []mo
 
 	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
 	if err != nil {
-		return 0, err
+		r.logger.Error("get fees", zap.Error(err))
+		return 0, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	for _, item := range items {

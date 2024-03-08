@@ -15,3 +15,12 @@ type CartItem struct {
 	Quantity  int     `json:"quantity,omitempty" bson:"quantity"`
 	Cost      float64 `json:"cost" bson:"cost"`
 } // @name CartRefillDetails
+
+type DeleteCartItemRequest struct {
+	CartID               string  `json:"cart_id"`
+	CartItemID           string  `json:"cart_item_id"`
+	ProductID            string  `json:"product_id"`
+	ReducedQuantityCount int     `json:"reduced_quantity_count"`
+	ReducedWeightCount   float64 `json:"reduced_weight_count"`
+	TotalReducedItemCost float64 `json:"total_reduced_item_cost"`
+} // @name DeleteCartItemRequest

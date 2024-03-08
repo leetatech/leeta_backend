@@ -29,13 +29,11 @@ func (c *CartItem) CalculateCartFee(fee *Fee) float64 {
 	var totalCost float64
 
 	if fee.ProductID == c.ProductID {
-		var cost float64
 		if c.Weight != 0 {
-			cost = float64(c.Weight) * fee.CostPerKg
+			totalCost += float64(c.Weight) * fee.CostPerKg
 		} else {
-			cost = fee.CostPerQty
+			totalCost += float64(c.Quantity) * fee.CostPerQty
 		}
-		totalCost += cost * float64(c.Quantity)
 	} else {
 		return 0
 	}

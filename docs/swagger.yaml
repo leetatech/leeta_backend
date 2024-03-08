@@ -642,7 +642,58 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
       summary: Add items to cart
+      tags:
+      - Cart
+  /delete:
+    delete:
+      consumes:
+      - application/json
+      description: The endpoint to delete items from cart
+      parameters:
+      - description: cartID
+        in: query
+        name: cartID
+        required: true
+        type: string
+      - description: cartItemID
+        in: query
+        name: cartItemID
+        required: true
+        type: string
+      - description: productID
+        in: query
+        name: productID
+        required: true
+        type: string
+      - description: weight
+        in: query
+        name: weight
+        type: string
+      - description: quantity
+        in: query
+        name: quantity
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Delete items from cart
       tags:
       - Cart
   /fees/:
