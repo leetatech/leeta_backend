@@ -58,8 +58,6 @@ func New(logger *zap.Logger) (*Application, error) {
 		log.Fatal(err)
 	}
 
-	//defer app.db.Disconnect(ctx)
-
 	app.EmailClient = mailer.NewMailerClient(library.PostMarkAPIToken, app.Logger)
 
 	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)

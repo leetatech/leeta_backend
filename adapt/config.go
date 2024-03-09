@@ -107,7 +107,7 @@ func overrideWithEnvVars(config *ServerConfig) {
 
 func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	if config.AppEnv == "staging" {
+	if config.AppEnv == "dev" {
 		return options.Client().
 			SetConnectTimeout(databaseTimeout).
 			ApplyURI(devMongoURI).
