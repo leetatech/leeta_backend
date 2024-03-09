@@ -56,11 +56,11 @@ type Application struct {
 
 // New instances a new application
 // The application contains all the related components that allow the execution of the service
-func New(logger *zap.Logger) (*Application, error) {
+func New(logger *zap.Logger, configFile string) (*Application, error) {
 	var app Application
 	var err error
 	app.Logger = logger
-	app.Config, err = app.buildConfig()
+	app.Config, err = app.buildConfig(configFile)
 
 	if err != nil {
 		return nil, err
@@ -120,8 +120,8 @@ func (app *Application) Run() error {
 	return nil
 }
 
-func (app *Application) buildConfig() (*ServerConfig, error) {
-	return ReadConfig(*app.Logger)
+func (app *Application) buildConfig(configFile string) (*ServerConfig, error) {
+	return ReadConfig(*app.Logger, configFile)
 }
 
 func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {

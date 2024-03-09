@@ -4,6 +4,7 @@ package main
 //go:generate swag init --parseDependency --parseInternal -o ../docs
 
 import (
+	"flag"
 	"fmt"
 	"github.com/leetatech/leeta_backend/adapt"
 	"github.com/leetatech/leeta_backend/services/library/logger"
@@ -25,7 +26,12 @@ import (
 func main() {
 	appLogger := logger.New()
 
-	app, err := adapt.New(appLogger)
+	var configFile string
+	flag.StringVar(&configFile, "config", "local.env", "configuration file")
+	flag.StringVar(&configFile, "c", "local.env", "configuration file (shorthand)")
+	flag.Parse()
+
+	app, err := adapt.New(appLogger, configFile)
 	if err != nil {
 		appLogger.Error(fmt.Sprintf("Fatal error creating application: %v", err))
 		os.Exit(1)
