@@ -47,26 +47,23 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 	library.EncodeResult(w, response, http.StatusOK)
 }
 
-// InactivateCartHandler is the endpoint to inactivate carts
-// @Summary Request cart inactivation
-// @Description The endpoint to request for a cart inactivation
+// DeleteCartHandler is the endpoint to delete carts
+// @Summary Request cart deletion
+// @Description The endpoint to request for a cart deletion
 // @Tags Cart
 // @Accept json
 // @Produce json
-// @Param domain.InactivateCart body domain.InactivateCart true "inactivate cart request body"
+// @Param cartID query string true "cartID"
 // @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
-// @Router /inactivate [put]
-func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.InactivateCart
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
+// @Router / [delete]
+func (handler *CartHttpHandler) DeleteCartHandler(w http.ResponseWriter, r *http.Request) {
+	cartID := r.URL.Query().Get("cartID")
 
-	response, err := handler.CartApplication.InactivateCart(r.Context(), request)
+	response, err := handler.CartApplication.DeleteCart(r.Context(), domain.DeleteCartRequest{
+		ID: cartID,
+	})
 	if err != nil {
 		library.EncodeResult(w, err, http.StatusBadRequest)
 		return

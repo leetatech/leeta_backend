@@ -22,7 +22,7 @@ type CartAppHandler struct {
 }
 
 type CartApplication interface {
-	InactivateCart(ctx context.Context, request domain.InactivateCart) (*library.DefaultResponse, error)
+	DeleteCart(ctx context.Context, request domain.DeleteCartRequest) (*library.DefaultResponse, error)
 	AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error)
 	DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*library.DefaultResponse, error)
 }
@@ -37,12 +37,12 @@ func NewCartApplication(request library.DefaultApplicationRequest) CartApplicati
 	}
 }
 
-func (c CartAppHandler) InactivateCart(ctx context.Context, request domain.InactivateCart) (*library.DefaultResponse, error) {
-	err := c.allRepository.CartRepository.InactivateCart(ctx, request.ID)
+func (c CartAppHandler) DeleteCart(ctx context.Context, request domain.DeleteCartRequest) (*library.DefaultResponse, error) {
+	err := c.allRepository.CartRepository.DeleteCart(ctx, request.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &library.DefaultResponse{Success: "success", Message: "Cart inactivated successfully"}, nil
+	return &library.DefaultResponse{Success: "success", Message: "Cart deleted successfully"}, nil
 }
 
 func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error) {
@@ -137,7 +137,7 @@ func (c CartAppHandler) manageGuestCartSession(ctx context.Context, deviceID str
 		ts := time.Unix(cart.Ts, 0)
 		expectedTime := ts.Add(24 * time.Hour)
 		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
-			err := c.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
+			err := c.allRepository.CartRepository.DeleteCart(ctx, cart.ID)
 			if err != nil {
 				c.logger.Error("error inactivating cart", zap.Error(err))
 				return leetError.ErrorResponseBody(leetError.DatabaseError, err)

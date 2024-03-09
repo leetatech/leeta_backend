@@ -152,7 +152,7 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *li
 	})
 
 	router.Group(func(r chi.Router) {
-		r.Put("/inactivate", handler.InactivateCartHandler)
+		r.Delete("/", handler.DeleteCartHandler)
 	})
 
 	return router

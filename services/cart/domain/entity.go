@@ -1,8 +1,8 @@
 package domain
 
-type InactivateCart struct {
+type DeleteCartRequest struct {
 	ID string `json:"id"`
-} // @name InactivateCart
+} // @name DeleteCartRequest
 
 type AddToCartRequest struct {
 	Guest       bool     `json:"guest" bson:"guest"`
