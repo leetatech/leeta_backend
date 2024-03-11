@@ -46,16 +46,16 @@ type LeetaConfig struct {
 	Domain string `env:"DOMAIN"`
 }
 
-func LoadEnv() error {
-	err := godotenv.Load("./local.env")
+func LoadEnv(configFile string) error {
+	err := godotenv.Load(configFile)
 	if err != nil {
 		return fmt.Errorf("failed to load environment variables: %v", err)
 	}
 	return nil
 }
 
-func ReadConfig(logger zap.Logger) (*ServerConfig, error) {
-	err := LoadEnv()
+func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
+	err := LoadEnv(configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func overrideWithEnvVars(config *ServerConfig) {
 
 func (config *ServerConfig) GetClientOptions() *options.ClientOptions {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	if config.AppEnv == "staging" {
+	if config.AppEnv == "dev" {
 		return options.Client().
 			SetConnectTimeout(databaseTimeout).
 			ApplyURI(devMongoURI).
