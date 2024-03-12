@@ -29,3 +29,8 @@ type ProductRequest struct {
 	DiscountPrice       float64                   `json:"discount_price"`
 	Status              models.ProductStatus      `json:"status"`
 }
+
+type GasProductRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}

@@ -126,6 +126,7 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/create", product.CreateProductHandler)
+	router.Post("/", product.CreateGasProductHandler)
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
 	return router
@@ -161,8 +162,9 @@ func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *li
 	router := chi.NewRouter()
 
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", handler.CreateFees)
-	router.Get("/", handler.GetFees)
+	router.Post("/", handler.CreateFeeHandler)
+	router.Get("/", handler.GetFeesHandler)
+	router.Get("/product/{product_id}", handler.GetFeeByProductIDHandler)
 
 	return router
 }

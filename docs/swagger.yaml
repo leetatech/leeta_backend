@@ -411,6 +411,13 @@ definitions:
       request_status:
         $ref: '#/definitions/models.RefillRequestStatus'
     type: object
+  domain.GasProductRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   domain.GetVendorProductsResponse:
     properties:
       has_next_page:
@@ -649,7 +656,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: The endpoint to get fees for gas refill
+      description: The endpoint to get all active fees for gas refill
       produces:
       - application/json
       responses:
@@ -699,6 +706,37 @@ paths:
       security:
       - BearerToken: []
       summary: Create fees
+      tags:
+      - fees
+  /fees/product/{product_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get fees for gas refill by product ID
+      parameters:
+      - description: product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fee by product ID
       tags:
       - fees
   /gas-refill:
@@ -834,36 +872,6 @@ paths:
       summary: List all gas refill requests
       tags:
       - GasRefill
-  /guest:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to allow guests to shop
-      parameters:
-      - description: receive guest request body
-        in: body
-        name: domain.ReceiveGuestRequest
-        required: true
-        schema:
-          $ref: '#/definitions/ReceiveGuestRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ReceiveGuestResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      summary: Request accept guests
-      tags:
-      - Session
   /inactivate:
     put:
       consumes:
@@ -1057,6 +1065,38 @@ paths:
       security:
       - BearerToken: []
       summary: Get All Vendor Products By Status
+      tags:
+      - Product
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes the gas product request and creates a new gas
+        product
+      parameters:
+      - description: create gas product request body
+        in: body
+        name: domain.GasProductRequest
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GasProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create Gas Product
       tags:
       - Product
   /product/create:
@@ -1269,6 +1309,36 @@ paths:
           schema:
             $ref: '#/definitions/DefaultResponse'
       summary: Forgot Password
+      tags:
+      - Session
+  /session/guest:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allow guests to shop
+      parameters:
+      - description: receive guest request body
+        in: body
+        name: domain.ReceiveGuestRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ReceiveGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ReceiveGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request accept guests
       tags:
       - Session
   /session/otp/request:

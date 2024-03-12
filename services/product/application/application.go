@@ -25,6 +25,7 @@ type ProductApplication interface {
 	CreateProduct(ctx context.Context, request domain.ProductRequest) (*library.DefaultResponse, error)
 	GetProductByID(ctx context.Context, id string) (*models.Product, error)
 	GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) (*domain.GetVendorProductsResponse, error)
+	CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*library.DefaultResponse, error)
 }
 
 func NewProductApplication(request library.DefaultApplicationRequest) ProductApplication {
@@ -96,6 +97,29 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 	return &library.DefaultResponse{Success: "success", Message: "Product successfully created"}, nil
 }
 
+func (p productAppHandler) CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*library.DefaultResponse, error) {
+	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	product := models.Product{
+		ID:          p.idGenerator.Generate(),
+		Name:        request.Name,
+		Description: request.Description,
+		Status:      models.InStock,
+		StatusTs:    time.Now().Unix(),
+		Ts:          time.Now().Unix(),
+	}
+
+	err = p.allRepository.ProductRepository.CreateProduct(ctx, product)
+	if err != nil {
+		return nil, err
+	}
+
+	return &library.DefaultResponse{Success: "success", Message: "Gas Product successfully created"}, nil
+}
+
 func (p productAppHandler) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
 	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
@@ -103,7 +127,7 @@ func (p productAppHandler) GetProductByID(ctx context.Context, id string) (*mode
 	}
 	product, err := p.allRepository.ProductRepository.GetProductByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	return product, nil
