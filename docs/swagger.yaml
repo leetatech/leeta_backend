@@ -615,7 +615,7 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
-  /add:
+  /cart/add:
     post:
       consumes:
       - application/json
@@ -645,6 +645,36 @@ paths:
       summary: Add items to cart
       tags:
       - Cart
+  /cart/inactivate:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to request for a cart inactivation
+      parameters:
+      - description: inactivate cart request body
+        in: body
+        name: domain.InactivateCart
+        required: true
+        schema:
+          $ref: '#/definitions/InactivateCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request cart inactivation
+      tags:
+      - Cart
   /fees/:
     get:
       consumes:
@@ -669,7 +699,7 @@ paths:
       - BearerToken: []
       summary: Get fees
       tags:
-      - fees
+      - Fees
     post:
       consumes:
       - application/json
@@ -700,8 +730,8 @@ paths:
       - BearerToken: []
       summary: Create fees
       tags:
-      - fees
-  /gas-refill:
+      - Fees
+  /gas-refill/:
     post:
       consumes:
       - application/json
@@ -732,8 +762,7 @@ paths:
       - BearerToken: []
       summary: Request gas refill
       tags:
-      - GasRefill
-  /gas-refill/:
+      - Gas Refill
     put:
       consumes:
       - application/json
@@ -765,7 +794,7 @@ paths:
       - BearerToken: []
       summary: Update Gas refill request status
       tags:
-      - GasRefill
+      - Gas Refill
   /gas-refill/{refill_id}:
     get:
       consumes:
@@ -797,7 +826,7 @@ paths:
       - BearerToken: []
       summary: Gets a single gas refill
       tags:
-      - GasRefill
+      - Gas Refill
   /gas-refill/list:
     post:
       consumes:
@@ -833,67 +862,7 @@ paths:
       - BearerToken: []
       summary: List all gas refill requests
       tags:
-      - GasRefill
-  /guest:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to allow guests to shop
-      parameters:
-      - description: receive guest request body
-        in: body
-        name: domain.ReceiveGuestRequest
-        required: true
-        schema:
-          $ref: '#/definitions/ReceiveGuestRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ReceiveGuestResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      summary: Request accept guests
-      tags:
-      - Session
-  /inactivate:
-    put:
-      consumes:
-      - application/json
-      description: The endpoint to request for a cart inactivation
-      parameters:
-      - description: inactivate cart request body
-        in: body
-        name: domain.InactivateCart
-        required: true
-        schema:
-          $ref: '#/definitions/InactivateCart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      summary: Request cart inactivation
-      tags:
-      - Cart
+      - Gas Refill
   /order/:
     get:
       consumes:
@@ -1271,6 +1240,36 @@ paths:
       summary: Forgot Password
       tags:
       - Session
+  /session/guest:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allow guests to shop
+      parameters:
+      - description: receive guest request body
+        in: body
+        name: domain.ReceiveGuestRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ReceiveGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ReceiveGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request accept guests
+      tags:
+      - Session
   /session/otp/request:
     post:
       consumes:
@@ -1464,7 +1463,7 @@ paths:
       - BearerToken: []
       summary: Admin adds vendor and business
       tags:
-      - user/admin/vendor
+      - Admin
   /user/vendor/verification:
     post:
       consumes:
@@ -1570,7 +1569,7 @@ paths:
       - BearerToken: []
       summary: Vendor Verification
       tags:
-      - user/vendor
+      - Vendor
 securityDefinitions:
   BearerToken:
     in: header

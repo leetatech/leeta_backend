@@ -235,7 +235,7 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 // @Success 200 {object} domain.ReceiveGuestResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
-// @Router /guest [post]
+// @Router /session/guest [post]
 func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.ReceiveGuestRequest
 	err := json.NewDecoder(r.Body).Decode(&request)

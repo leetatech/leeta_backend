@@ -21,7 +21,7 @@ func NewGasRefillHTTPHandler(refillApplication application.GasRefillApplication)
 // RequestRefill is the endpoint to handle gas refill
 // @Summary Request gas refill
 // @Description The endpoint to request for a gas refill
-// @Tags GasRefill
+// @Tags Gas Refill
 // @Accept json
 // @Produce json
 // @Param domain.GasRefillRequest body domain.GasRefillRequest true "Gas refill request body"
@@ -29,7 +29,7 @@ func NewGasRefillHTTPHandler(refillApplication application.GasRefillApplication)
 // @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
-// @Router /gas-refill [post]
+// @Router /gas-refill/ [post]
 func (handler *GasRefillHttpHandler) RequestRefill(w http.ResponseWriter, r *http.Request) {
 	var request domain.GasRefillRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -49,7 +49,7 @@ func (handler *GasRefillHttpHandler) RequestRefill(w http.ResponseWriter, r *htt
 // UpdateGasRefillStatus is the endpoint used to update the status of a gas refill
 // @Summary Update Gas refill request status
 // @Description This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request
-// @Tags GasRefill
+// @Tags Gas Refill
 // @Accept json
 // @Produce json
 // @Param domain.UpdateRefillRequest body domain.UpdateRefillRequest true "update gas refill by status request body"
@@ -65,7 +65,7 @@ func (handler *GasRefillHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter
 // GetGasRefill is the endpoint to get a single gas refill by id
 // @Summary Gets a single gas refill
 // @Description This is the endpoint to get the details of a single gas refill by refill-id
-// @Tags GasRefill
+// @Tags Gas Refill
 // @Accept json
 // @produce json
 // @Param			refill-id	path		string	true	"refill id"
@@ -81,7 +81,7 @@ func (handler *GasRefillHttpHandler) GetGasRefill(w http.ResponseWriter, r *http
 // ListRefill handles listing all refill requests
 // @Summary List all gas refill requests
 // @Description The endpoint takes the order status, pages and limit and then returns the requested orders
-// @Tags GasRefill
+// @Tags Gas Refill
 // @Accept json
 // @produce json
 // @param domain.ListRefillFilter body domain.ListRefillFilter true "get refill by status, use filter for filtering responses (not implemented)"
