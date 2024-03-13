@@ -21,7 +21,7 @@ func NewFeesHTTPHandler(feesApplication application.FeesApplication) *FeesHttpHa
 // CreateFees is the endpoint to create fees
 // @Summary Create fees
 // @Description The endpoint to create fees for gas refill
-// @Tags fees
+// @Tags Fees
 // @Accept json
 // @produce json
 // @param domain.FeeQuotationRequest body domain.FeeQuotationRequest true "create fees request body"
@@ -49,7 +49,7 @@ func (handler *FeesHttpHandler) CreateFees(w http.ResponseWriter, r *http.Reques
 // GetFees is the endpoint to get fees
 // @Summary Get fees
 // @Description The endpoint to get fees for gas refill
-// @Tags fees
+// @Tags Fees
 // @Accept json
 // @produce json
 // @Security BearerToken
