@@ -23,7 +23,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/add": {
+        "/cart/add": {
             "post": {
                 "description": "The endpoint to add items to cart",
                 "consumes": [
@@ -44,6 +44,52 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/AddToCartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/inactivate": {
+            "put": {
+                "description": "The endpoint to request for a cart inactivation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart inactivation",
+                "parameters": [
+                    {
+                        "description": "inactivate cart request body",
+                        "name": "domain.InactivateCart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InactivateCart"
                         }
                     }
                 ],
@@ -207,14 +253,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/gas-refill": {
-            "post": {
+        "/gas-refill/": {
+            "put": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to request for a gas refill",
+                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
                 "consumes": [
                     "application/json"
                 ],
@@ -222,17 +268,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
-                "summary": "Request gas refill",
+                "summary": "Update Gas refill request status",
                 "parameters": [
                     {
-                        "description": "Gas refill request body",
-                        "name": "domain.GasRefillRequest",
+                        "description": "update gas refill by status request body",
+                        "name": "domain.UpdateRefillRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/GasRefillRequest"
+                            "$ref": "#/definitions/UpdateRefillRequest"
                         }
                     }
                 ],
@@ -256,16 +302,14 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/gas-refill/": {
-            "put": {
+            },
+            "post": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
+                "description": "The endpoint to request for a gas refill",
                 "consumes": [
                     "application/json"
                 ],
@@ -273,17 +317,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
-                "summary": "Update Gas refill request status",
+                "summary": "Request gas refill",
                 "parameters": [
                     {
-                        "description": "update gas refill by status request body",
-                        "name": "domain.UpdateRefillRequest",
+                        "description": "Gas refill request body",
+                        "name": "domain.GasRefillRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/UpdateRefillRequest"
+                            "$ref": "#/definitions/GasRefillRequest"
                         }
                     }
                 ],
@@ -324,7 +368,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
                 "summary": "List all gas refill requests",
                 "parameters": [
@@ -378,7 +422,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
                 "summary": "Gets a single gas refill",
                 "parameters": [
@@ -388,98 +432,6 @@ const docTemplate = `{
                         "name": "refill-id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/guest": {
-            "post": {
-                "description": "The endpoint to allow guests to shop",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Request accept guests",
-                "parameters": [
-                    {
-                        "description": "receive guest request body",
-                        "name": "domain.ReceiveGuestRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ReceiveGuestRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ReceiveGuestResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/inactivate": {
-            "put": {
-                "description": "The endpoint to request for a cart inactivation",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Request cart inactivation",
-                "parameters": [
-                    {
-                        "description": "inactivate cart request body",
-                        "name": "domain.InactivateCart",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/InactivateCart"
-                        }
                     }
                 ],
                 "responses": {
@@ -1129,6 +1081,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/session/guest": {
+            "post": {
+                "description": "The endpoint to allow guests to shop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Request accept guests",
+                "parameters": [
+                    {
+                        "description": "receive guest request body",
+                        "name": "domain.ReceiveGuestRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/session/otp/request": {
             "post": {
                 "description": "The endpoint allows client side to request for new OTP for target",
@@ -1280,7 +1278,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user/admin/vendor"
+                    "Admin"
                 ],
                 "summary": "Admin adds vendor and business",
                 "parameters": [
@@ -1434,7 +1432,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user/vendor"
+                    "Vendor"
                 ],
                 "summary": "Vendor Verification",
                 "parameters": [

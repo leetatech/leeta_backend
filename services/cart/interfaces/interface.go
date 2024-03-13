@@ -28,7 +28,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 // @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
-// @Router /add [post]
+// @Router /cart/add [post]
 func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.AddToCartRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -55,7 +55,7 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 // @Success 200 {object} library.DefaultResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
-// @Router /inactivate [put]
+// @Router /cart/inactivate [put]
 func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.InactivateCart
 	err := json.NewDecoder(r.Body).Decode(&request)
