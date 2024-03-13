@@ -19,7 +19,7 @@ func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHa
 // VendorVerificationHandler godoc
 // @Summary Vendor Verification
 // @Description The endpoint allows the verification process of vendor
-// @Tags user/vendor
+// @Tags Vendor
 // @Accept multipart/form-data
 // @Produce json
 // @Param first_name formData string true "First name of the vendor"
@@ -60,7 +60,7 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 // AddVendorByAdminHandler godoc
 // @Summary Admin adds vendor and business
 // @Description The endpoint allows the admin to add a vendor and their business
-// @Tags user/admin/vendor
+// @Tags Admin
 // @Accept multipart/form-data
 // @Produce json
 // @Param first_name formData string true "First name of the vendor"
