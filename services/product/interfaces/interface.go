@@ -46,6 +46,7 @@ func NewProductHTTPHandler(productApplication application.ProductApplication) *P
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /product/create [post]
+// @deprecated
 func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileAndAddProducts(r)
 	if err != nil {

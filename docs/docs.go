@@ -412,6 +412,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/guest": {
+            "post": {
+                "description": "The endpoint to allow guests to shop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Request accept guests",
+                "parameters": [
+                    {
+                        "description": "receive guest request body",
+                        "name": "domain.ReceiveGuestRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/inactivate": {
             "put": {
                 "description": "The endpoint to request for a cart inactivation",
@@ -781,6 +827,7 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Create Product",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -1077,52 +1124,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/guest": {
-            "post": {
-                "description": "The endpoint to allow guests to shop",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Request accept guests",
-                "parameters": [
-                    {
-                        "description": "receive guest request body",
-                        "name": "domain.ReceiveGuestRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ReceiveGuestRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ReceiveGuestResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
                         }
                     }
                 }
