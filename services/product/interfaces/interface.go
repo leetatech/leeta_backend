@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -45,6 +46,7 @@ func NewProductHTTPHandler(productApplication application.ProductApplication) *P
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /product/create [post]
+// @deprecated
 func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileAndAddProducts(r)
 	if err != nil {
@@ -113,4 +115,32 @@ func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWr
 		return
 	}
 	library.EncodeResult(w, products, http.StatusOK)
+}
+
+// CreateGasProductHandler godoc
+// @Summary Create Gas Product
+// @Description The endpoint takes the gas product request and creates a new gas product
+// @Tags Product
+// @Accept json
+// @Produce json
+// @param domain.GasProductRequest body domain.GasProductRequest true "create gas product request body"
+// @Security BearerToken
+// @Success 200 {object} library.DefaultResponse
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /product/ [post]
+func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.GasProductRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		return
+	}
+
+	result, err := handler.ProductApplication.CreateGasProduct(r.Context(), request)
+	if err != nil {
+		library.CheckErrorType(err, w)
+		return
+	}
+	library.EncodeResult(w, result, http.StatusOK)
 }

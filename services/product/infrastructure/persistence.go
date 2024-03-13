@@ -37,6 +37,17 @@ func (p productStoreHandler) CreateProduct(ctx context.Context, request models.P
 	return nil
 }
 
+func (p productStoreHandler) CreateGasProduct(ctx context.Context, request models.Product) error {
+	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	_, err := p.col(models.ProductCollectionName).InsertOne(updatedCtx, request)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+	return nil
+}
+
 func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
 	product := &models.Product{}
 	filter := bson.M{
@@ -48,7 +59,7 @@ func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*mo
 
 	err := p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(product)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, err
 	}
 
 	return product, nil
