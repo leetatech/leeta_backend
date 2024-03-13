@@ -51,7 +51,6 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		ProductID:  request.ProductID,
 		CostPerKg:  request.CostPerKg,
 		CostPerQty: request.CostPerQty,
-		ServiceFee: request.ServiceFee,
 		Status:     models.CartActive,
 		StatusTs:   time.Now().Unix(),
 		Ts:         time.Now().Unix(),

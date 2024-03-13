@@ -156,8 +156,6 @@ definitions:
         type: number
       product_id:
         type: string
-      service_fee:
-        type: number
     type: object
   GasRefillRequest:
     properties:
@@ -410,6 +408,13 @@ definitions:
         type: string
       request_status:
         $ref: '#/definitions/models.RefillRequestStatus'
+    type: object
+  domain.GasProductRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
     type: object
   domain.GetVendorProductsResponse:
     properties:
@@ -731,6 +736,37 @@ paths:
       summary: Create fees
       tags:
       - Fees
+  /fees/product/{product_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get fees for gas refill by product ID
+      parameters:
+      - description: product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fee by product ID
+      tags:
+      - Fees
   /gas-refill/:
     post:
       consumes:
@@ -1028,10 +1064,43 @@ paths:
       summary: Get All Vendor Products By Status
       tags:
       - Product
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes the gas product request and creates a new gas
+        product
+      parameters:
+      - description: create gas product request body
+        in: body
+        name: domain.GasProductRequest
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GasProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create Gas Product
+      tags:
+      - Product
   /product/create:
     post:
       consumes:
       - multipart/form-data
+      deprecated: true
       description: The endpoint takes the product request and creates a new product
       parameters:
       - description: Vendor ID

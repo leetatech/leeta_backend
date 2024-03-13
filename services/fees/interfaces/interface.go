@@ -71,7 +71,7 @@ func (handler *FeesHttpHandler) GetFeesHandler(w http.ResponseWriter, r *http.Re
 // GetFeeByProductIDHandler is the endpoint to get fees by product ID
 // @Summary Get fee by product ID
 // @Description The endpoint to get fees for gas refill by product ID
-// @Tags fees
+// @Tags Fees
 // @Accept json
 // @produce json
 // @param product_id path string true "product ID"
