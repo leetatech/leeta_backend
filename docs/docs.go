@@ -122,7 +122,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to get all active fees for gas refill",
+                "description": "The endpoint to get fees for gas refill",
                 "consumes": [
                     "application/json"
                 ],
@@ -130,7 +130,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "fees"
+                    "Fees"
                 ],
                 "summary": "Get fees",
                 "responses": {
@@ -168,7 +168,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "fees"
+                    "Fees"
                 ],
                 "summary": "Create fees",
                 "parameters": [
@@ -180,55 +180,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/FeeQuotationRequest"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/fees/product/{product_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to get fees for gas refill by product ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "fees"
-                ],
-                "summary": "Get fee by product ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "product ID",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -710,55 +661,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint takes the gas product request and creates a new gas product",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Product"
-                ],
-                "summary": "Create Gas Product",
-                "parameters": [
-                    {
-                        "description": "create gas product request body",
-                        "name": "domain.GasProductRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.GasProductRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
             }
         },
         "/product/create": {
@@ -779,7 +681,6 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Create Product",
-                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -2203,17 +2104,6 @@ const docTemplate = `{
                 },
                 "request_status": {
                     "$ref": "#/definitions/models.RefillRequestStatus"
-                }
-            }
-        },
-        "domain.GasProductRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },
