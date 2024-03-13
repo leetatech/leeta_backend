@@ -6,20 +6,20 @@ import (
 )
 
 type Product struct {
-	ID                  string             `json:"id" bson:"id"`
-	VendorID            string             `json:"vendor_id" bson:"vendor_id"`
-	ParentCategory      ProductCategory    `json:"parent_category" bson:"parent_category"`
-	SubCategory         ProductSubCategory `json:"sub_category" bson:"sub_category"`
-	Images              []string           `json:"images" bson:"images"`
-	Name                string             `json:"name" bson:"name"`
-	Weight              string             `json:"weight" bson:"weight"`
-	Description         string             `json:"description" bson:"description"`
-	OriginalPrice       float64            `json:"original_price" bson:"original_price"`
-	Vat                 float64            `json:"vat" bson:"vat"`
-	OriginalPriceAndVat float64            `json:"original_price_and_vat" bson:"original_price_and_vat"`
-	Discount            bool               `json:"discount" bson:"discount"`
-	DiscountPrice       float64            `json:"discount_price" bson:"discount_price"`
-	FinalPrice          float64            `json:"final_price" bson:"final_price"`
+	ID                  string             `json:"id,omitempty" bson:"id"`
+	VendorID            string             `json:"vendor_id,omitempty" bson:"vendor_id"`
+	ParentCategory      ProductCategory    `json:"parent_category,omitempty" bson:"parent_category"`
+	SubCategory         ProductSubCategory `json:"sub_category,omitempty" bson:"sub_category"`
+	Images              []string           `json:"images,omitempty" bson:"images"`
+	Name                string             `json:"name,omitempty" bson:"name"`
+	Weight              string             `json:"weight,omitempty" bson:"weight"`
+	Description         string             `json:"description,omitempty" bson:"description"`
+	OriginalPrice       float64            `json:"original_price,omitempty" bson:"original_price"`
+	Vat                 float64            `json:"vat,omitempty" bson:"vat"`
+	OriginalPriceAndVat float64            `json:"original_price_and_vat,omitempty" bson:"original_price_and_vat"`
+	Discount            bool               `json:"discount,omitempty" bson:"discount"`
+	DiscountPrice       float64            `json:"discount_price,omitempty" bson:"discount_price"`
+	FinalPrice          float64            `json:"final_price,omitempty" bson:"final_price"`
 	Status              ProductStatus      `json:"status" bson:"status"`
 	StatusTs            int64              `json:"status_ts" bson:"status_ts"`
 	Ts                  int64              `json:"ts" bson:"ts"`
