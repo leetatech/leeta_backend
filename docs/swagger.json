@@ -13,7 +13,7 @@
         },
         "version": "1.0"
     },
-    "host": "https://leetabackend-e6d948d15ae2.herokuapp.com",
+    "host": "localhost:3000",
     "basePath": "/api",
     "paths": {
         "/cart/add": {
@@ -921,6 +921,57 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes in the limit, page and product status and returns the requested products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "List Products",
+                "parameters": [
+                    {
+                        "description": "list products request body",
+                        "name": "domain.ListProductsRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GetVendorProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ListProductsResponse"
                         }
                     },
                     "400": {
@@ -2208,6 +2259,20 @@
             }
         },
         "domain.GetVendorProductsResponse": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
+                }
+            }
+        },
+        "domain.ListProductsResponse": {
             "type": "object",
             "properties": {
                 "has_next_page": {

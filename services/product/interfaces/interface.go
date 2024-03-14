@@ -144,3 +144,31 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 	}
 	library.EncodeResult(w, result, http.StatusOK)
 }
+
+// ListProductsHandler godoc
+// @Summary List Products
+// @Description The endpoint takes in the limit, page and product status and returns the requested products
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param domain.ListProductsRequest body domain.ListProductsRequest true "list products request body"
+// @Security BearerToken
+// @Success 200 {object} domain.ListProductsResponse
+// @Failure 401 {object} library.DefaultErrorResponse
+// @Failure 400 {object} library.DefaultErrorResponse
+// @Router /product/list [post]
+func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.ListProductsRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		library.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		return
+	}
+
+	products, err := handler.ProductApplication.ListProducts(r.Context(), request)
+	if err != nil {
+		library.CheckErrorType(err, w)
+		return
+	}
+	library.EncodeResult(w, products, http.StatusOK)
+}

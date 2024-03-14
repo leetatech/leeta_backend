@@ -425,6 +425,15 @@ definitions:
           $ref: '#/definitions/Product'
         type: array
     type: object
+  domain.ListProductsResponse:
+    properties:
+      has_next_page:
+        type: boolean
+      products:
+        items:
+          $ref: '#/definitions/Product'
+        type: array
+    type: object
   leetError.ErrorCode:
     enum:
     - 1001
@@ -608,7 +617,7 @@ definitions:
     - BuyerCategory
     - AdminCategory
     - GuestCatergory
-host: https://leetabackend-e6d948d15ae2.herokuapp.com
+host: localhost:3000
 info:
   contact:
     email: admin@getlleta.com
@@ -1219,6 +1228,39 @@ paths:
       security:
       - BearerToken: []
       summary: Get Vendor Product By id
+      tags:
+      - Product
+  /product/list:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes in the limit, page and product status and returns
+        the requested products
+      parameters:
+      - description: list products request body
+        in: body
+        name: domain.ListProductsRequest
+        required: true
+        schema:
+          $ref: '#/definitions/GetVendorProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ListProductsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: List Products
       tags:
       - Product
   /session/admin/signup:

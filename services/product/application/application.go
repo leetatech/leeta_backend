@@ -26,6 +26,7 @@ type ProductApplication interface {
 	GetProductByID(ctx context.Context, id string) (*models.Product, error)
 	GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) (*domain.GetVendorProductsResponse, error)
 	CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*library.DefaultResponse, error)
+	ListProducts(ctx context.Context, request domain.ListProductsRequest) (*domain.ListProductsResponse, error)
 }
 
 func NewProductApplication(request library.DefaultApplicationRequest) ProductApplication {
@@ -140,6 +141,20 @@ func (p productAppHandler) GetAllVendorProducts(ctx context.Context, request dom
 	}
 
 	products, err := p.allRepository.ProductRepository.GetAllVendorProducts(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (p productAppHandler) ListProducts(ctx context.Context, request domain.ListProductsRequest) (*domain.ListProductsResponse, error) {
+	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	products, err := p.allRepository.ProductRepository.ListProducts(ctx, request)
 	if err != nil {
 		return nil, err
 	}

@@ -34,3 +34,15 @@ type GasProductRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+type ListProductsRequest struct {
+	VendorID      string                 `json:"vendor_id" bson:"vendor_id"`
+	ProductStatus []models.ProductStatus `json:"product_status" bson:"product_status"`
+	Limit         int64                  `json:"limit" bson:"limit"`
+	Page          int64                  `json:"page" bson:"page"`
+} // @name GetVendorProductRequest
+
+type ListProductsResponse struct {
+	Products    []models.Product `json:"products" bson:"products"`
+	HasNextPage bool             `json:"has_next_page" bson:"has_next_page"`
+}

@@ -945,6 +945,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/product/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes in the limit, page and product status and returns the requested products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "List Products",
+                "parameters": [
+                    {
+                        "description": "list products request body",
+                        "name": "domain.ListProductsRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GetVendorProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ListProductsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/session/admin/signup": {
             "post": {
                 "description": "The endpoint allows admins to sign up",
@@ -2228,6 +2279,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.ListProductsResponse": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
+                }
+            }
+        },
         "leetError.ErrorCode": {
             "type": "integer",
             "enum": [
@@ -2456,7 +2521,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "https://leetabackend-e6d948d15ae2.herokuapp.com",
+	Host:             "localhost:3000",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "LEETA BACKEND API",
