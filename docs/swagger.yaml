@@ -215,6 +215,28 @@ definitions:
       id:
         type: string
     type: object
+  ListProductsRequest:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      product_status:
+        items:
+          $ref: '#/definitions/models.ProductStatus'
+        type: array
+      vendor_id:
+        type: string
+    type: object
+  ListProductsResponse:
+    properties:
+      has_next_page:
+        type: boolean
+      products:
+        items:
+          $ref: '#/definitions/Product'
+        type: array
+    type: object
   ListRefillFilter:
     properties:
       customer_id:
@@ -417,15 +439,6 @@ definitions:
         type: string
     type: object
   domain.GetVendorProductsResponse:
-    properties:
-      has_next_page:
-        type: boolean
-      products:
-        items:
-          $ref: '#/definitions/Product'
-        type: array
-    type: object
-  domain.ListProductsResponse:
     properties:
       has_next_page:
         type: boolean
@@ -1242,14 +1255,14 @@ paths:
         name: domain.ListProductsRequest
         required: true
         schema:
-          $ref: '#/definitions/GetVendorProductRequest'
+          $ref: '#/definitions/ListProductsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.ListProductsResponse'
+            $ref: '#/definitions/ListProductsResponse'
         "400":
           description: Bad Request
           schema:

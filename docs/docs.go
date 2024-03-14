@@ -970,7 +970,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/GetVendorProductRequest"
+                            "$ref": "#/definitions/ListProductsRequest"
                         }
                     }
                 ],
@@ -978,7 +978,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.ListProductsResponse"
+                            "$ref": "#/definitions/ListProductsResponse"
                         }
                     },
                     "400": {
@@ -1956,6 +1956,40 @@ const docTemplate = `{
                 }
             }
         },
+        "ListProductsRequest": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "product_status": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ProductStatus"
+                    }
+                },
+                "vendor_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "ListProductsResponse": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
+                }
+            }
+        },
         "ListRefillFilter": {
             "type": "object",
             "properties": {
@@ -2266,20 +2300,6 @@ const docTemplate = `{
             }
         },
         "domain.GetVendorProductsResponse": {
-            "type": "object",
-            "properties": {
-                "has_next_page": {
-                    "type": "boolean"
-                },
-                "products": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Product"
-                    }
-                }
-            }
-        },
-        "domain.ListProductsResponse": {
             "type": "object",
             "properties": {
                 "has_next_page": {
