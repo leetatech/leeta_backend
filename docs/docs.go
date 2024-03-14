@@ -679,6 +679,7 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Get All Vendor Products By Status",
+                "deprecated": true,
                 "parameters": [
                     {
                         "description": "get all vendor products request body",
@@ -914,6 +915,7 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Get Vendor Product By id",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -966,11 +968,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "list products request body",
-                        "name": "domain.ListProductsRequest",
+                        "name": "library.ResultSelector",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ListProductsRequest"
+                            "$ref": "#/definitions/library.ResultSelector"
                         }
                     }
                 ],
@@ -991,6 +993,48 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/options": {
+            "get": {
+                "description": "Retrieve products filter options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Get Product filter options",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "Bearer lnsjkfbnkjkdjnfjk",
+                        "description": "Authentication header",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/library.RequestOption"
+                            }
+                        },
+                        "headers": {
+                            "api-version": {
+                                "type": "string",
+                                "description": "API version"
+                            }
                         }
                     }
                 }
@@ -1956,26 +2000,6 @@ const docTemplate = `{
                 }
             }
         },
-        "ListProductsRequest": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "product_status": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ProductStatus"
-                    }
-                },
-                "vendor_id": {
-                    "type": "string"
-                }
-            }
-        },
         "ListProductsResponse": {
             "type": "object",
             "properties": {
@@ -2410,6 +2434,149 @@ const docTemplate = `{
                 }
             }
         },
+        "library.CompareOperator": {
+            "type": "string",
+            "enum": [
+                "isEqualTo"
+            ],
+            "x-enum-varnames": [
+                "CompareOperatorIsEqualTo"
+            ]
+        },
+        "library.ControlType": {
+            "type": "string",
+            "enum": [
+                "string"
+            ],
+            "x-enum-varnames": [
+                "ControlTypeString"
+            ]
+        },
+        "library.FilterRequest": {
+            "type": "object",
+            "required": [
+                "operator"
+            ],
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/library.RequestField"
+                    }
+                },
+                "operator": {
+                    "type": "string"
+                }
+            }
+        },
+        "library.PagingRequest": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "library.ReadableValue-string": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "description": "Label is the human-readable form of the value",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the value for the backend",
+                    "type": "string"
+                }
+            }
+        },
+        "library.RequestField": {
+            "type": "object",
+            "required": [
+                "name",
+                "value"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value can be a list of values or a value"
+                }
+            }
+        },
+        "library.RequestOption": {
+            "type": "object",
+            "properties": {
+                "control": {
+                    "$ref": "#/definitions/library.RequestOptionType"
+                },
+                "multiSelect": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "$ref": "#/definitions/library.ReadableValue-string"
+                },
+                "operators": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "description": "Label is the human-readable form of the value",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Value is the value for the backend",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/library.CompareOperator"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "library.RequestOptionType": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "string",
+                        "float",
+                        "integer",
+                        "enum"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/library.ControlType"
+                        }
+                    ]
+                }
+            }
+        },
+        "library.ResultSelector": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/library.FilterRequest"
+                },
+                "paging": {
+                    "$ref": "#/definitions/library.PagingRequest"
+                }
+            }
+        },
         "models.OrderStatuses": {
             "type": "string",
             "enum": [
@@ -2541,7 +2708,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3000",
+	Host:             "https://leetabackend-e6d948d15ae2.herokuapp.com",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "LEETA BACKEND API",

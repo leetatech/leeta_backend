@@ -130,6 +130,7 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
 	router.Post("/list", product.ListProductsHandler)
+	router.Get("/options", product.ListProductOptions)
 	return router
 }
 

@@ -215,19 +215,6 @@ definitions:
       id:
         type: string
     type: object
-  ListProductsRequest:
-    properties:
-      limit:
-        type: integer
-      page:
-        type: integer
-      product_status:
-        items:
-          $ref: '#/definitions/models.ProductStatus'
-        type: array
-      vendor_id:
-        type: string
-    type: object
   ListProductsResponse:
     properties:
       has_next_page:
@@ -534,6 +521,98 @@ definitions:
       timestamp:
         type: string
     type: object
+  library.CompareOperator:
+    enum:
+    - isEqualTo
+    type: string
+    x-enum-varnames:
+    - CompareOperatorIsEqualTo
+  library.ControlType:
+    enum:
+    - string
+    type: string
+    x-enum-varnames:
+    - ControlTypeString
+  library.FilterRequest:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/library.RequestField'
+        type: array
+      operator:
+        type: string
+    required:
+    - operator
+    type: object
+  library.PagingRequest:
+    properties:
+      index:
+        type: integer
+      size:
+        type: integer
+    type: object
+  library.ReadableValue-string:
+    properties:
+      label:
+        description: Label is the human-readable form of the value
+        type: string
+      value:
+        description: Value is the value for the backend
+        type: string
+    type: object
+  library.RequestField:
+    properties:
+      name:
+        type: string
+      value:
+        description: Value can be a list of values or a value
+    required:
+    - name
+    - value
+    type: object
+  library.RequestOption:
+    properties:
+      control:
+        $ref: '#/definitions/library.RequestOptionType'
+      multiSelect:
+        type: boolean
+      name:
+        $ref: '#/definitions/library.ReadableValue-string'
+      operators:
+        items:
+          properties:
+            label:
+              description: Label is the human-readable form of the value
+              type: string
+            value:
+              allOf:
+              - $ref: '#/definitions/library.CompareOperator'
+              description: Value is the value for the backend
+          type: object
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  library.RequestOptionType:
+    properties:
+      type:
+        allOf:
+        - $ref: '#/definitions/library.ControlType'
+        enum:
+        - string
+        - float
+        - integer
+        - enum
+    type: object
+  library.ResultSelector:
+    properties:
+      filter:
+        $ref: '#/definitions/library.FilterRequest'
+      paging:
+        $ref: '#/definitions/library.PagingRequest'
+    type: object
   models.OrderStatuses:
     enum:
     - PENDING
@@ -630,7 +709,7 @@ definitions:
     - BuyerCategory
     - AdminCategory
     - GuestCatergory
-host: localhost:3000
+host: https://leetabackend-e6d948d15ae2.herokuapp.com
 info:
   contact:
     email: admin@getlleta.com
@@ -1057,6 +1136,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: The endpoint takes the vendor ID, product status, pages and limit
         and then returns the requested products
       parameters:
@@ -1215,6 +1295,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: The endpoint takes the product id and then returns the requested
         product
       parameters:
@@ -1252,10 +1333,10 @@ paths:
       parameters:
       - description: list products request body
         in: body
-        name: domain.ListProductsRequest
+        name: library.ResultSelector
         required: true
         schema:
-          $ref: '#/definitions/ListProductsRequest'
+          $ref: '#/definitions/library.ResultSelector'
       produces:
       - application/json
       responses:
@@ -1274,6 +1355,34 @@ paths:
       security:
       - BearerToken: []
       summary: List Products
+      tags:
+      - Product
+  /product/options:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve products filter options
+      parameters:
+      - description: Authentication header
+        example: Bearer lnsjkfbnkjkdjnfjk
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            api-version:
+              description: API version
+              type: string
+          schema:
+            items:
+              $ref: '#/definitions/library.RequestOption'
+            type: array
+      summary: Get Product filter options
       tags:
       - Product
   /session/admin/signup:

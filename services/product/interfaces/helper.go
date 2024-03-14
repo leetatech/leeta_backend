@@ -133,3 +133,7 @@ func stringToFloat64(strValue string) (float64, error) {
 
 	return value, nil
 }
+
+func ToFilterOption(options library.RequestOption, _ int) library.RequestOption {
+	return options
+}

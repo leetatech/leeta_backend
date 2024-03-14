@@ -8,6 +8,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
+	"github.com/samber/lo"
 	"net/http"
 )
 
@@ -73,6 +74,7 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /product/id/{product_id} [get]
+// @deprecated
 func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		product *models.Product
@@ -101,6 +103,7 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /product/ [get]
+// @deprecated
 func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.GetVendorProductsRequest
 
@@ -151,7 +154,7 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Tags Product
 // @Accept json
 // @Produce json
-// @Param domain.ListProductsRequest body domain.ListProductsRequest true "list products request body"
+// @Param library.ResultSelector body library.ResultSelector true "list products request body"
 // @Security BearerToken
 // @Success 200 {object} domain.ListProductsResponse
 // @Failure 401 {object} library.DefaultErrorResponse
@@ -171,4 +174,19 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 		return
 	}
 	library.EncodeResult(w, products, http.StatusOK)
+}
+
+// ListProductOptions list product filter options
+// @Summary Get Product filter options
+// @Description Retrieve products filter options
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Authentication header" example(Bearer lnsjkfbnkjkdjnfjk)
+// @Success 200 {object} []library.RequestOption
+// @Header 200 {string} api-version "API version"
+// @Router /product/options [get]
+func (handler *ProductHttpHandler) ListProductOptions(w http.ResponseWriter, r *http.Request) {
+	requestOptions := lo.Map(listProductOptions, ToFilterOption)
+	library.EncodeResult(w, requestOptions, http.StatusOK)
 }
