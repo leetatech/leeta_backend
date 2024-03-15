@@ -1,6 +1,9 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import (
+	"github.com/leetatech/leeta_backend/services/library/filter"
+	"github.com/leetatech/leeta_backend/services/library/models"
+)
 
 type GetVendorProductsRequest struct {
 	VendorID      string                 `json:"vendor_id" bson:"vendor_id"`
@@ -36,10 +39,9 @@ type GasProductRequest struct {
 }
 
 type ListProductsRequest struct {
-	VendorID      string                 `json:"vendor_id" bson:"vendor_id"`
-	ProductStatus []models.ProductStatus `json:"product_status" bson:"product_status"`
-	Limit         int64                  `json:"limit" bson:"limit"`
-	Page          int64                  `json:"page" bson:"page"`
+	Filters *filter.FilterRequest `json:"filters" bson:"filters"`
+	Limit   int64                 `json:"limit" bson:"limit"`
+	Page    int64                 `json:"page" bson:"page"`
 } // @name ListProductsRequest
 
 type ListProductsResponse struct {

@@ -968,11 +968,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "list products request body",
-                        "name": "library.ResultSelector",
+                        "name": "filter.ResultSelector",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/library.ResultSelector"
+                            "$ref": "#/definitions/ResultSelector"
                         }
                     }
                 ],
@@ -1027,13 +1027,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/library.RequestOption"
-                            }
-                        },
-                        "headers": {
-                            "api-version": {
-                                "type": "string",
-                                "description": "API version"
+                                "$ref": "#/definitions/RequestOption"
                             }
                         }
                     }
@@ -1813,6 +1807,24 @@ const docTemplate = `{
                 }
             }
         },
+        "CompareOperator": {
+            "type": "string",
+            "enum": [
+                "isEqualTo"
+            ],
+            "x-enum-varnames": [
+                "CompareOperatorIsEqualTo"
+            ]
+        },
+        "ControlType": {
+            "type": "string",
+            "enum": [
+                "string"
+            ],
+            "x-enum-varnames": [
+                "ControlTypeString"
+            ]
+        },
         "Coordinates": {
             "type": "object",
             "properties": {
@@ -1906,6 +1918,23 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "product_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "FilterRequest": {
+            "type": "object",
+            "required": [
+                "operator"
+            ],
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/RequestField"
+                    }
+                },
+                "operator": {
                     "type": "string"
                 }
             }
@@ -2138,6 +2167,17 @@ const docTemplate = `{
                 }
             }
         },
+        "PagingRequest": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "Phone": {
             "type": "object",
             "properties": {
@@ -2211,6 +2251,19 @@ const docTemplate = `{
                 }
             }
         },
+        "ReadableValue-string": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "description": "Label is the human-readable form of the value",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the value for the backend",
+                    "type": "string"
+                }
+            }
+        },
         "ReceiveGuestRequest": {
             "type": "object",
             "properties": {
@@ -2233,6 +2286,90 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "RequestField": {
+            "type": "object",
+            "required": [
+                "name",
+                "value"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value can be a list of values or a value"
+                }
+            }
+        },
+        "RequestOption": {
+            "type": "object",
+            "properties": {
+                "control": {
+                    "$ref": "#/definitions/RequestOptionType"
+                },
+                "multiSelect": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "$ref": "#/definitions/ReadableValue-string"
+                },
+                "operators": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "description": "Label is the human-readable form of the value",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Value is the value for the backend",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/CompareOperator"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "RequestOptionType": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "string",
+                        "float",
+                        "integer",
+                        "enum"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ControlType"
+                        }
+                    ]
+                }
+            }
+        },
+        "ResultSelector": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/FilterRequest"
+                },
+                "paging": {
+                    "$ref": "#/definitions/PagingRequest"
                 }
             }
         },
@@ -2431,149 +2568,6 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "string"
-                }
-            }
-        },
-        "library.CompareOperator": {
-            "type": "string",
-            "enum": [
-                "isEqualTo"
-            ],
-            "x-enum-varnames": [
-                "CompareOperatorIsEqualTo"
-            ]
-        },
-        "library.ControlType": {
-            "type": "string",
-            "enum": [
-                "string"
-            ],
-            "x-enum-varnames": [
-                "ControlTypeString"
-            ]
-        },
-        "library.FilterRequest": {
-            "type": "object",
-            "required": [
-                "operator"
-            ],
-            "properties": {
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/library.RequestField"
-                    }
-                },
-                "operator": {
-                    "type": "string"
-                }
-            }
-        },
-        "library.PagingRequest": {
-            "type": "object",
-            "properties": {
-                "index": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "library.ReadableValue-string": {
-            "type": "object",
-            "properties": {
-                "label": {
-                    "description": "Label is the human-readable form of the value",
-                    "type": "string"
-                },
-                "value": {
-                    "description": "Value is the value for the backend",
-                    "type": "string"
-                }
-            }
-        },
-        "library.RequestField": {
-            "type": "object",
-            "required": [
-                "name",
-                "value"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "value": {
-                    "description": "Value can be a list of values or a value"
-                }
-            }
-        },
-        "library.RequestOption": {
-            "type": "object",
-            "properties": {
-                "control": {
-                    "$ref": "#/definitions/library.RequestOptionType"
-                },
-                "multiSelect": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "$ref": "#/definitions/library.ReadableValue-string"
-                },
-                "operators": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "label": {
-                                "description": "Label is the human-readable form of the value",
-                                "type": "string"
-                            },
-                            "value": {
-                                "description": "Value is the value for the backend",
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/library.CompareOperator"
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                },
-                "values": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "library.RequestOptionType": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "enum": [
-                        "string",
-                        "float",
-                        "integer",
-                        "enum"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/library.ControlType"
-                        }
-                    ]
-                }
-            }
-        },
-        "library.ResultSelector": {
-            "type": "object",
-            "properties": {
-                "filter": {
-                    "$ref": "#/definitions/library.FilterRequest"
-                },
-                "paging": {
-                    "$ref": "#/definitions/library.PagingRequest"
                 }
             }
         },

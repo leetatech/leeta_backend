@@ -103,15 +103,13 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request domain.Li
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{}
-	if len(request.ProductStatus) > 0 {
-		filter["status"] = bson.M{"$in": request.ProductStatus}
-	}
+	filter := library.BuildMongoFilterQuery(request.Filters)
 
 	opts := library.GetPaginatedOpts(request.Limit, request.Page)
 
 	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*opts.Skip+*opts.Limit).SetLimit(1))
 	if err != nil {
+		p.logger.Error("error getting extra document", zap.Error(err))
 		return nil, err
 	}
 	defer extraDocumentCursor.Close(ctx)
@@ -119,10 +117,12 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request domain.Li
 
 	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, opts)
 	if err != nil {
+		p.logger.Error("error getting products", zap.Error(err))
 		return nil, err
 	}
 	products := make([]models.Product, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &products); err != nil {
+		p.logger.Error("error getting products", zap.Error(err))
 		return nil, err
 	}
 

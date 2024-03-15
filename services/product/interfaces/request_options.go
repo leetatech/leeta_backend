@@ -1,10 +1,12 @@
 package interfaces
 
-import "github.com/leetatech/leeta_backend/services/library"
+import (
+	"github.com/leetatech/leeta_backend/services/library/filter"
+)
 
-var productStatusRequestName = library.ReadableValue[string]{
+var productStatusRequestName = filter.ReadableValue[string]{
 	Label: "Product Status",
-	Value: "product_status",
+	Value: "status",
 }
 
 // Filter request options operator labels
@@ -12,18 +14,18 @@ const (
 	LabelIsEqualTo = "is equal to"
 )
 
-var operatorEqual = library.ReadableValue[library.CompareOperator]{
+var operatorEqual = filter.ReadableValue[filter.CompareOperator]{
 	Label: LabelIsEqualTo,
-	Value: library.CompareOperatorIsEqualTo,
+	Value: filter.CompareOperatorIsEqualTo,
 }
 
-var listProductOptions = []library.RequestOption{
+var listProductOptions = []filter.RequestOption{
 	{
 		Name: productStatusRequestName,
-		Control: library.RequestOptionType{
-			Type: library.ControlTypeString,
+		Control: filter.RequestOptionType{
+			Type: filter.ControlTypeString,
 		},
-		Operators: []library.ReadableValue[library.CompareOperator]{
+		Operators: []filter.ReadableValue[filter.CompareOperator]{
 			operatorEqual,
 		},
 		MultiSelect: true,

@@ -3,6 +3,7 @@ package interfaces
 import (
 	"errors"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/filter"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -134,6 +135,6 @@ func stringToFloat64(strValue string) (float64, error) {
 	return value, nil
 }
 
-func ToFilterOption(options library.RequestOption, _ int) library.RequestOption {
+func ToFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
 	return options
 }

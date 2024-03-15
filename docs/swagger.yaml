@@ -95,6 +95,18 @@ definitions:
       weight:
         type: number
     type: object
+  CompareOperator:
+    enum:
+    - isEqualTo
+    type: string
+    x-enum-varnames:
+    - CompareOperatorIsEqualTo
+  ControlType:
+    enum:
+    - string
+    type: string
+    x-enum-varnames:
+    - ControlTypeString
   Coordinates:
     properties:
       latitude:
@@ -156,6 +168,17 @@ definitions:
         type: number
       product_id:
         type: string
+    type: object
+  FilterRequest:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/RequestField'
+        type: array
+      operator:
+        type: string
+    required:
+    - operator
     type: object
   GasRefillRequest:
     properties:
@@ -305,6 +328,13 @@ definitions:
       vendor_id:
         type: string
     type: object
+  PagingRequest:
+    properties:
+      index:
+        type: integer
+      size:
+        type: integer
+    type: object
   Phone:
     properties:
       number:
@@ -353,6 +383,15 @@ definitions:
       weight:
         type: string
     type: object
+  ReadableValue-string:
+    properties:
+      label:
+        description: Label is the human-readable form of the value
+        type: string
+      value:
+        description: Value is the value for the backend
+        type: string
+    type: object
   ReceiveGuestRequest:
     properties:
       device_id:
@@ -368,6 +407,59 @@ definitions:
         type: string
       token:
         type: string
+    type: object
+  RequestField:
+    properties:
+      name:
+        type: string
+      value:
+        description: Value can be a list of values or a value
+    required:
+    - name
+    - value
+    type: object
+  RequestOption:
+    properties:
+      control:
+        $ref: '#/definitions/RequestOptionType'
+      multiSelect:
+        type: boolean
+      name:
+        $ref: '#/definitions/ReadableValue-string'
+      operators:
+        items:
+          properties:
+            label:
+              description: Label is the human-readable form of the value
+              type: string
+            value:
+              allOf:
+              - $ref: '#/definitions/CompareOperator'
+              description: Value is the value for the backend
+          type: object
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  RequestOptionType:
+    properties:
+      type:
+        allOf:
+        - $ref: '#/definitions/ControlType'
+        enum:
+        - string
+        - float
+        - integer
+        - enum
+    type: object
+  ResultSelector:
+    properties:
+      filter:
+        $ref: '#/definitions/FilterRequest'
+      paging:
+        $ref: '#/definitions/PagingRequest'
     type: object
   ShippingInfo:
     properties:
@@ -520,98 +612,6 @@ definitions:
         type: string
       timestamp:
         type: string
-    type: object
-  library.CompareOperator:
-    enum:
-    - isEqualTo
-    type: string
-    x-enum-varnames:
-    - CompareOperatorIsEqualTo
-  library.ControlType:
-    enum:
-    - string
-    type: string
-    x-enum-varnames:
-    - ControlTypeString
-  library.FilterRequest:
-    properties:
-      fields:
-        items:
-          $ref: '#/definitions/library.RequestField'
-        type: array
-      operator:
-        type: string
-    required:
-    - operator
-    type: object
-  library.PagingRequest:
-    properties:
-      index:
-        type: integer
-      size:
-        type: integer
-    type: object
-  library.ReadableValue-string:
-    properties:
-      label:
-        description: Label is the human-readable form of the value
-        type: string
-      value:
-        description: Value is the value for the backend
-        type: string
-    type: object
-  library.RequestField:
-    properties:
-      name:
-        type: string
-      value:
-        description: Value can be a list of values or a value
-    required:
-    - name
-    - value
-    type: object
-  library.RequestOption:
-    properties:
-      control:
-        $ref: '#/definitions/library.RequestOptionType'
-      multiSelect:
-        type: boolean
-      name:
-        $ref: '#/definitions/library.ReadableValue-string'
-      operators:
-        items:
-          properties:
-            label:
-              description: Label is the human-readable form of the value
-              type: string
-            value:
-              allOf:
-              - $ref: '#/definitions/library.CompareOperator'
-              description: Value is the value for the backend
-          type: object
-        type: array
-      values:
-        items:
-          type: string
-        type: array
-    type: object
-  library.RequestOptionType:
-    properties:
-      type:
-        allOf:
-        - $ref: '#/definitions/library.ControlType'
-        enum:
-        - string
-        - float
-        - integer
-        - enum
-    type: object
-  library.ResultSelector:
-    properties:
-      filter:
-        $ref: '#/definitions/library.FilterRequest'
-      paging:
-        $ref: '#/definitions/library.PagingRequest'
     type: object
   models.OrderStatuses:
     enum:
@@ -1333,10 +1333,10 @@ paths:
       parameters:
       - description: list products request body
         in: body
-        name: library.ResultSelector
+        name: filter.ResultSelector
         required: true
         schema:
-          $ref: '#/definitions/library.ResultSelector'
+          $ref: '#/definitions/ResultSelector'
       produces:
       - application/json
       responses:
@@ -1374,13 +1374,9 @@ paths:
       responses:
         "200":
           description: OK
-          headers:
-            api-version:
-              description: API version
-              type: string
           schema:
             items:
-              $ref: '#/definitions/library.RequestOption'
+              $ref: '#/definitions/RequestOption'
             type: array
       summary: Get Product filter options
       tags:

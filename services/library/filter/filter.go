@@ -1,4 +1,4 @@
-package library
+package filter
 
 // FilterRequest is a struct representing a filter request.
 // Operator is the logic operator used for the request.
@@ -6,12 +6,12 @@ package library
 type FilterRequest struct {
 	Operator LogicOperator  `json:"operator" binding:"required"`
 	Fields   []RequestField `json:"fields" binding:"dive"`
-}
+} // @name FilterRequest
 
 type PagingRequest struct {
 	PageIndex int `json:"index"`
 	PageSize  int `json:"size"`
-}
+} // @name PagingRequest
 
 /*
 LogicOperator ENUM(
@@ -21,7 +21,7 @@ LogicOperator ENUM(
 
 )
 */
-type LogicOperator string
+type LogicOperator string // @name LogicOperator
 
 /*
 ControlType ENUM(
@@ -46,7 +46,7 @@ const (
 	CompareOperatorIsEqualTo CompareOperator = "isEqualTo"
 )
 
-type ControlType string
+type ControlType string // @name ControlType
 
 /*
 CompareOperator ENUM(
@@ -55,7 +55,7 @@ CompareOperator ENUM(
 
 )
 */
-type CompareOperator string
+type CompareOperator string // @name CompareOperator
 
 // RequestField represents a field in a request
 // Field Name: The name of the field
@@ -64,7 +64,7 @@ type RequestField struct {
 	Name string `json:"name" binding:"required"`
 	// Value can be a list of values or a value
 	Value any `json:"value" binding:"required"`
-}
+} // @name RequestField
 
 // ResultSelector is a type that represents the selection criteria for querying data. It contains a filter, sorting, and paging information.
 // Filter is a pointer to a filter.Request struct that specifies the filtering criteria for the query.
@@ -73,7 +73,7 @@ type RequestField struct {
 type ResultSelector struct {
 	Filter *FilterRequest `json:"filter" binding:"omitempty"`
 	Paging *PagingRequest `json:"paging" binding:"omitempty"`
-}
+} // @name ResultSelector
 
 // ReadableValue is a generic type that represents a human-readable value with a corresponding backend value.
 // It has two fields: `Label` (the human-readable form of the value) and `Value` (the value for the backend).
@@ -82,12 +82,12 @@ type ReadableValue[T any] struct {
 	Label string `json:"label"`
 	// Value is the value for the backend
 	Value T `json:"value"`
-}
+} // @name ReadableValue
 
 // RequestOptionType configures the type of control for a field in a request option.
 type RequestOptionType struct {
 	Type ControlType `json:"type" enums:"string,float,integer,enum"`
-}
+} // @name RequestOptionType
 
 // RequestOption configures a field for validation
 //
@@ -102,4 +102,4 @@ type RequestOption struct {
 	Operators   []ReadableValue[CompareOperator]
 	Values      []string
 	MultiSelect bool
-}
+} // @name RequestOption

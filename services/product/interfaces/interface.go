@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/services/library/filter"
 	"github.com/leetatech/leeta_backend/services/library/leetError"
 	"github.com/leetatech/leeta_backend/services/library/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
@@ -154,21 +155,25 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Tags Product
 // @Accept json
 // @Produce json
-// @Param library.ResultSelector body library.ResultSelector true "list products request body"
+// @Param filter.ResultSelector body filter.ResultSelector true "list products request body"
 // @Security BearerToken
 // @Success 200 {object} domain.ListProductsResponse
 // @Failure 401 {object} library.DefaultErrorResponse
 // @Failure 400 {object} library.DefaultErrorResponse
 // @Router /product/list [post]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.ListProductsRequest
+	var request filter.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		library.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
 
-	products, err := handler.ProductApplication.ListProducts(r.Context(), request)
+	products, err := handler.ProductApplication.ListProducts(r.Context(), domain.ListProductsRequest{
+		Filters: request.Filter,
+		Limit:   int64(request.Paging.PageSize),
+		Page:    int64(request.Paging.PageIndex),
+	})
 	if err != nil {
 		library.CheckErrorType(err, w)
 		return
@@ -183,8 +188,7 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Authentication header" example(Bearer lnsjkfbnkjkdjnfjk)
-// @Success 200 {object} []library.RequestOption
-// @Header 200 {string} api-version "API version"
+// @Success 200 {object} []filter.RequestOption
 // @Router /product/options [get]
 func (handler *ProductHttpHandler) ListProductOptions(w http.ResponseWriter, r *http.Request) {
 	requestOptions := lo.Map(listProductOptions, ToFilterOption)
