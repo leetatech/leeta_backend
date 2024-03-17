@@ -3,32 +3,32 @@ package application
 import (
 	"context"
 	"errors"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"time"
 )
 
 type CartAppHandler struct {
-	idGenerator   library.IDGenerator
-	tokenHandler  library.TokenHandler
+	idGenerator   pkg.IDGenerator
+	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type CartApplication interface {
-	InactivateCart(ctx context.Context, request domain.InactivateCart) (*library.DefaultResponse, error)
-	AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error)
+	InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error)
+	AddToCart(ctx context.Context, request domain.AddToCartRequest) (*pkg.DefaultResponse, error)
 }
 
-func NewCartApplication(request library.DefaultApplicationRequest) CartApplication {
+func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
 	return &CartAppHandler{
-		idGenerator:   library.NewIDGenerator(),
+		idGenerator:   pkg.NewIDGenerator(),
 		logger:        request.Logger,
 		tokenHandler:  request.TokenHandler,
 		EmailClient:   request.EmailClient,
@@ -36,15 +36,15 @@ func NewCartApplication(request library.DefaultApplicationRequest) CartApplicati
 	}
 }
 
-func (c CartAppHandler) InactivateCart(ctx context.Context, request domain.InactivateCart) (*library.DefaultResponse, error) {
+func (c CartAppHandler) InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error) {
 	err := c.allRepository.CartRepository.InactivateCart(ctx, request.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &library.DefaultResponse{Success: "success", Message: "Cart inactivated successfully"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Cart inactivated successfully"}, nil
 }
 
-func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartRequest) (*library.DefaultResponse, error) {
+func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartRequest) (*pkg.DefaultResponse, error) {
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -100,7 +100,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 				StatusTs:   time.Now().Unix(),
 				Ts:         time.Now().Unix(),
 			})
-			return &library.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
+			return &pkg.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 		default:
 			return nil, err
 		}
@@ -121,10 +121,10 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.AddToCartR
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 }
 
-func (c CartAppHandler) manageGuestCartSession(ctx context.Context, deviceID string, claims *library.UserClaims) error {
+func (c CartAppHandler) manageGuestCartSession(ctx context.Context, deviceID string, claims *pkg.UserClaims) error {
 	cart, terr := c.allRepository.CartRepository.GetCartByDeviceID(ctx, deviceID)
 	if terr != nil {
 		if !errors.Is(terr, mongo.ErrNoDocuments) {

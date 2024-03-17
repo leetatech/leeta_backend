@@ -1,4 +1,4 @@
-package library
+package pkg
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
 	"net/http"

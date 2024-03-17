@@ -2,45 +2,45 @@ package application
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"go.uber.org/zap"
 	"time"
 )
 
 type orderAppHandler struct {
-	tokenHandler  library.TokenHandler
-	encryptor     library.EncryptorManager
-	idGenerator   library.IDGenerator
-	otpGenerator  library.OtpGenerator
+	tokenHandler  pkg.TokenHandler
+	encryptor     pkg.EncryptorManager
+	idGenerator   pkg.IDGenerator
+	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type OrderApplication interface {
-	CreateOrder(ctx context.Context, request domain.OrderRequest) (*library.DefaultResponse, error)
-	UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*library.DefaultResponse, error)
+	CreateOrder(ctx context.Context, request domain.OrderRequest) (*pkg.DefaultResponse, error)
+	UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*pkg.DefaultResponse, error)
 	GetOrderByID(ctx context.Context, id string) (*models.Order, error)
 	GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error)
 }
 
-func NewOrderApplication(request library.DefaultApplicationRequest) OrderApplication {
+func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication {
 	return &orderAppHandler{
 		tokenHandler:  request.TokenHandler,
-		encryptor:     library.NewEncryptor(),
-		idGenerator:   library.NewIDGenerator(),
-		otpGenerator:  library.NewOTPGenerator(),
+		encryptor:     pkg.NewEncryptor(),
+		idGenerator:   pkg.NewIDGenerator(),
+		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
 		allRepository: request.AllRepository,
 	}
 }
 
-func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRequest) (*library.DefaultResponse, error) {
+func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRequest) (*pkg.DefaultResponse, error) {
 	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -81,10 +81,10 @@ func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRe
 	if err != nil {
 		return nil, err
 	}
-	return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
 }
 
-func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*library.DefaultResponse, error) {
+func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*pkg.DefaultResponse, error) {
 	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -108,7 +108,7 @@ func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.U
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Order status successfully updated"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Order status successfully updated"}, nil
 }
 
 func (o orderAppHandler) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {

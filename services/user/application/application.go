@@ -2,43 +2,43 @@ package application
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
 	"go.uber.org/zap"
 	"time"
 )
 
 type userAppHandler struct {
-	tokenHandler  library.TokenHandler
-	encryptor     library.EncryptorManager
-	idGenerator   library.IDGenerator
-	otpGenerator  library.OtpGenerator
+	tokenHandler  pkg.TokenHandler
+	encryptor     pkg.EncryptorManager
+	idGenerator   pkg.IDGenerator
+	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type UserApplication interface {
-	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error)
-	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error)
+	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
+	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
 }
 
-func NewUserApplication(request library.DefaultApplicationRequest) UserApplication {
+func NewUserApplication(request pkg.DefaultApplicationRequest) UserApplication {
 	return &userAppHandler{
 		tokenHandler:  request.TokenHandler,
-		encryptor:     library.NewEncryptor(),
-		idGenerator:   library.NewIDGenerator(),
-		otpGenerator:  library.NewOTPGenerator(),
+		encryptor:     pkg.NewEncryptor(),
+		idGenerator:   pkg.NewIDGenerator(),
+		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
 		allRepository: request.AllRepository,
 	}
 }
 
-func (u userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error) {
+func (u userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -82,10 +82,10 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }
 
-func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*library.DefaultResponse, error) {
+func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -137,5 +137,5 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }

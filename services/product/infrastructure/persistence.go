@@ -2,9 +2,9 @@ package infrastructure
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -72,7 +72,7 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 		filter["status"] = bson.M{"$in": request.ProductStatus}
 	}
 
-	opts := library.GetPaginatedOpts(request.Limit, request.Page)
+	opts := pkg.GetPaginatedOpts(request.Limit, request.Page)
 
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

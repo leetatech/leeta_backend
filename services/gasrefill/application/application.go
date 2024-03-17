@@ -4,31 +4,31 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"time"
 )
 
 type GasRefillHandler struct {
-	idGenerator   library.IDGenerator
-	tokenHandler  library.TokenHandler
+	idGenerator   pkg.IDGenerator
+	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type GasRefillApplication interface {
-	RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*library.DefaultResponse, error)
+	RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error)
 }
 
-func NewGasRefillApplication(request library.DefaultApplicationRequest) GasRefillApplication {
+func NewGasRefillApplication(request pkg.DefaultApplicationRequest) GasRefillApplication {
 	return &GasRefillHandler{
-		idGenerator:   library.NewIDGenerator(),
+		idGenerator:   pkg.NewIDGenerator(),
 		logger:        request.Logger,
 		tokenHandler:  request.TokenHandler,
 		EmailClient:   request.EmailClient,
@@ -36,7 +36,7 @@ func NewGasRefillApplication(request library.DefaultApplicationRequest) GasRefil
 	}
 }
 
-func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*library.DefaultResponse, error) {
+func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error) {
 
 	claims, err := r.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
@@ -72,10 +72,10 @@ func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasR
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
 }
 
-func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request domain.GasRefillRequest, claims *library.UserClaims) (domain.GasRefillRequest, error) {
+func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request domain.GasRefillRequest, claims *pkg.UserClaims) (domain.GasRefillRequest, error) {
 	request.GuestBioData.DeviceID = claims.UserID
 
 	cart, terr := r.allRepository.CartRepository.GetCartByDeviceID(ctx, claims.UserID)

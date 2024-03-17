@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import "github.com/leetatech/leeta_backend/services/models"
 
 type GetVendorProductsRequest struct {
 	VendorID      string                 `json:"vendor_id" bson:"vendor_id"`

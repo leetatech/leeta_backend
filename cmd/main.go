@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/leetatech/leeta_backend/adapt"
-	"github.com/leetatech/leeta_backend/services/library/logger"
+	"github.com/leetatech/leeta_backend/pkg/logger"
 	"os"
 )
 
