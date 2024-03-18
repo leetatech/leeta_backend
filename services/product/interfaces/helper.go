@@ -2,9 +2,9 @@ package interfaces
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"net/http"
 	"strconv"
@@ -102,17 +102,17 @@ func GetImages(r *http.Request) ([]string, error) {
 		}
 		defer file.Close()
 
-		imageFormat, err := library.CheckImageFormat(fileHeader)
+		imageFormat, err := pkg.CheckImageFormat(fileHeader)
 		if err != nil {
 			return nil, err
 		}
 
-		img, err := library.CheckImageSizeAndDimension(fileHeader, file, 500, 600)
+		img, err := pkg.CheckImageSizeAndDimension(fileHeader, file, 500, 600)
 		if err != nil {
 			return nil, err
 		}
 
-		encodedImage, err := library.EncodeImageToBase64(img, imageFormat)
+		encodedImage, err := pkg.EncodeImageToBase64(img, imageFormat)
 		if err != nil {
 			return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
 		}

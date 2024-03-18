@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import "github.com/leetatech/leeta_backend/services/models"
 
 type OrderRequest struct {
 	ProductID string `json:"product_id" bson:"product_id"`
