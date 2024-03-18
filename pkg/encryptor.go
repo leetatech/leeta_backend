@@ -1,9 +1,9 @@
-package library
+package pkg
 
 import (
 	"errors"
 	"github.com/badoux/checkmail"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"unicode"

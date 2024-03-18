@@ -3,33 +3,33 @@ package application
 import (
 	"context"
 	"errors"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"time"
 )
 
 type FeesHandler struct {
-	idGenerator   library.IDGenerator
-	tokenHandler  library.TokenHandler
+	idGenerator   pkg.IDGenerator
+	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type FeesApplication interface {
-	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error)
+	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error)
 	GetFees(ctx context.Context) ([]models.Fee, error)
 	GetFeeByProductID(ctx context.Context, productID string) (*models.Fee, error)
 }
 
-func NewFeesApplication(request library.DefaultApplicationRequest) FeesApplication {
+func NewFeesApplication(request pkg.DefaultApplicationRequest) FeesApplication {
 	return &FeesHandler{
-		idGenerator:   library.NewIDGenerator(),
+		idGenerator:   pkg.NewIDGenerator(),
 		logger:        request.Logger,
 		tokenHandler:  request.TokenHandler,
 		EmailClient:   request.EmailClient,
@@ -37,7 +37,7 @@ func NewFeesApplication(request library.DefaultApplicationRequest) FeesApplicati
 	}
 }
 
-func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*library.DefaultResponse, error) {
+func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error) {
 	_, err := f.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -65,7 +65,7 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 				return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 			}
 
-			return &library.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
+			return &pkg.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 		}
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
@@ -83,7 +83,7 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		}
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 }
 
 func (f *FeesHandler) GetFees(ctx context.Context) ([]models.Fee, error) {

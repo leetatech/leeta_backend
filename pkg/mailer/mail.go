@@ -3,7 +3,7 @@ package mailer
 import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.uber.org/zap"
 	"net/http"
 )

@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import "github.com/leetatech/leeta_backend/services/models"
 
 type GasRefillRequest struct {
 	Guest        bool                `json:"guest" bson:"guest"`
