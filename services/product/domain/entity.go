@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/services/models"
 )
 
@@ -37,12 +36,6 @@ type GasProductRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
-
-type ListProductsRequest struct {
-	Filters *filter.FilterRequest `json:"filters" bson:"filters"`
-	Limit   int64                 `json:"limit" bson:"limit"`
-	Page    int64                 `json:"page" bson:"page"`
-} // @name ListProductsRequest
 
 type ListProductsResponse struct {
 	Products    []models.Product `json:"products" bson:"products"`

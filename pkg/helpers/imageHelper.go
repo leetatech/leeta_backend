@@ -1,42 +1,16 @@
-package pkg
+package helpers
 
 import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"mime/multipart"
-	"net/http"
 	"strings"
 )
-
-func CheckErrorType(err error, w http.ResponseWriter) {
-	switch err := err.(type) {
-	case *leetError.ErrorResponse:
-		if err.Code() == leetError.ErrorUnauthorized {
-			EncodeErrorResult(w, http.StatusUnauthorized)
-			return
-		}
-	default:
-		EncodeErrorResult(w, http.StatusInternalServerError)
-		return
-	}
-
-}
-
-func GetPaginatedOpts(limit, page int64) *options.FindOptions {
-	l := limit
-	skip := page*limit - limit
-	fOpt := options.FindOptions{Limit: &l, Skip: &skip}
-
-	return &fOpt
-}
 
 func EncodeImageToBase64(img image.Image, format string) (string, error) {
 	var buf bytes.Buffer
@@ -90,23 +64,4 @@ func CheckImageSizeAndDimension(fileHeader *multipart.FileHeader, file multipart
 	}
 
 	return img, nil
-}
-
-func BuildMongoFilterQuery(filter *filter.FilterRequest) bson.M {
-	query := bson.M{}
-
-	switch filter.Operator {
-	case "and":
-		for _, field := range filter.Fields {
-			query[field.Name] = field.Value
-		}
-	case "or":
-		var orConditions []bson.M
-		for _, field := range filter.Fields {
-			orConditions = append(orConditions, bson.M{field.Name: field.Value})
-		}
-		query["$or"] = orConditions
-	}
-
-	return query
 }

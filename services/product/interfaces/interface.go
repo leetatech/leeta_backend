@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
@@ -57,7 +58,7 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 
 	resp, err := handler.ProductApplication.CreateProduct(r.Context(), *request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, resp, http.StatusOK)
@@ -85,7 +86,7 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 
 	product, err = handler.ProductApplication.GetProductByID(r.Context(), productID)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 
@@ -115,7 +116,7 @@ func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWr
 	}
 	products, err := handler.ProductApplication.GetAllVendorProducts(r.Context(), request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, products, http.StatusOK)
@@ -143,7 +144,7 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 
 	result, err := handler.ProductApplication.CreateGasProduct(r.Context(), request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, result, http.StatusOK)
@@ -158,8 +159,8 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Param filter.ResultSelector body filter.ResultSelector true "list products request body"
 // @Security BearerToken
 // @Success 200 {object} domain.ListProductsResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/list [post]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	var request filter.ResultSelector
@@ -169,13 +170,9 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	products, err := handler.ProductApplication.ListProducts(r.Context(), domain.ListProductsRequest{
-		Filters: request.Filter,
-		Limit:   int64(request.Paging.PageSize),
-		Page:    int64(request.Paging.PageIndex),
-	})
+	products, err := handler.ProductApplication.ListProducts(r.Context(), request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, products, http.StatusOK)

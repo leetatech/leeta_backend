@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -25,7 +26,7 @@ type ProductApplication interface {
 	CreateProduct(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error)
 	GetProductByID(ctx context.Context, id string) (*models.Product, error)
 	GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) (*domain.GetVendorProductsResponse, error)
-	ListProducts(ctx context.Context, request domain.ListProductsRequest) (*domain.ListProductsResponse, error)
+	ListProducts(ctx context.Context, request filter.ResultSelector) (*domain.ListProductsResponse, error)
 	CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error)
 }
 
@@ -148,7 +149,7 @@ func (p productAppHandler) GetAllVendorProducts(ctx context.Context, request dom
 	return products, nil
 }
 
-func (p productAppHandler) ListProducts(ctx context.Context, request domain.ListProductsRequest) (*domain.ListProductsResponse, error) {
+func (p productAppHandler) ListProducts(ctx context.Context, request filter.ResultSelector) (*domain.ListProductsResponse, error) {
 	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)

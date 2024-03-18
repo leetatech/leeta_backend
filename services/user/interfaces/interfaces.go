@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/services/user/application"
 	"net/http"
 )
@@ -51,7 +52,7 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 
 	token, err := handler.UserApplication.VendorVerification(r.Context(), *request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, token, http.StatusOK)
@@ -92,7 +93,7 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 
 	token, err := handler.UserApplication.AddVendorByAdmin(r.Context(), *request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, token, http.StatusOK)
