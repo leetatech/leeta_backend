@@ -2,9 +2,12 @@ package adapt
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
+	"github.com/leetatech/leeta_backend/pkg/config"
+	"github.com/leetatech/leeta_backend/pkg/database"
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
@@ -39,14 +42,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"time"
 )
 
 type Application struct {
 	Logger       *zap.Logger
-	Config       *ServerConfig
+	Config       *config.ServerConfig
 	Db           *mongo.Client
 	Ctx          context.Context
 	Router       *chi.Mux
@@ -69,10 +71,17 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	//build application clients
-	app.Db = app.buildMongoClient(ctx)
+	// verify application config
+	if app.Config == nil {
+		return nil, errors.New("application config is empty")
+	}
+
+	app.Db, err = database.MongoDBClient(ctx, app.Config)
+	if err != nil {
+		return nil, fmt.Errorf("error connecting to mongo db client %w", err)
+	}
 	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
-		app.Logger.Info("msg", zap.String("msg", "failed to ping to database"))
-		log.Fatal(err)
+		return nil, errors.New("error pinging database")
 	}
 
 	app.EmailClient = mailer.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
@@ -120,8 +129,8 @@ func (app *Application) Run() error {
 	return nil
 }
 
-func (app *Application) buildConfig(configFile string) (*ServerConfig, error) {
-	return ReadConfig(*app.Logger, configFile)
+func (app *Application) buildConfig(configFile string) (*config.ServerConfig, error) {
+	return config.ReadConfig(*app.Logger, configFile)
 }
 
 func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) *routes.AllHTTPHandlers {

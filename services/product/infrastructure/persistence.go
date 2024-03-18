@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"context"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -103,7 +104,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request domain.Li
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	filter := pkg.BuildMongoFilterQuery(request.Filters)
+	filter := database.BuildMongoFilterQuery(request.Filters)
 
 	opts := pkg.GetPaginatedOpts(request.Limit, request.Page)
 

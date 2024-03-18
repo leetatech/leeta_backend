@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"image"
 	"image/jpeg"
@@ -90,23 +88,4 @@ func CheckImageSizeAndDimension(fileHeader *multipart.FileHeader, file multipart
 	}
 
 	return img, nil
-}
-
-func BuildMongoFilterQuery(filter *filter.FilterRequest) bson.M {
-	query := bson.M{}
-
-	switch filter.Operator {
-	case "and":
-		for _, field := range filter.Fields {
-			query[field.Name] = field.Value
-		}
-	case "or":
-		var orConditions []bson.M
-		for _, field := range filter.Fields {
-			orConditions = append(orConditions, bson.M{field.Name: field.Value})
-		}
-		query["$or"] = orConditions
-	}
-
-	return query
 }
