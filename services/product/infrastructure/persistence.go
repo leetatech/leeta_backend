@@ -2,8 +2,8 @@ package infrastructure
 
 import (
 	"context"
+	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/filter"
-	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -74,7 +74,7 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 		filter["status"] = bson.M{"$in": request.ProductStatus}
 	}
 
-	opts := helpers.GetPaginatedOpts(request.Limit, request.Page)
+	opts := database.GetPaginatedOpts(request.Limit, request.Page)
 
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -104,9 +104,9 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request filter.Re
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	filter := helpers.BuildMongoFilterQuery(request.Filter)
+	filter := database.BuildMongoFilterQuery(request.Filter)
 
-	opts := helpers.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+	opts := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*opts.Skip+*opts.Limit).SetLimit(1))
 	if err != nil {
