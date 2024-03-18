@@ -31,6 +31,10 @@ func GetPaginatedOpts(limit, page int64) *options.FindOptions {
 func BuildMongoFilterQuery(filter *filter.FilterRequest) bson.M {
 	query := bson.M{}
 
+	if filter == nil {
+		return query
+	}
+
 	switch filter.Operator {
 	case "and":
 		for _, field := range filter.Fields {
