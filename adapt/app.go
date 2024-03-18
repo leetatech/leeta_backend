@@ -17,8 +17,8 @@ import (
 	gasrefillInfrastructure "github.com/leetatech/leeta_backend/services/gasrefill/infrastructure"
 	gasrefillInterface "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
@@ -51,7 +51,7 @@ type Application struct {
 	Ctx          context.Context
 	Router       *chi.Mux
 	EmailClient  mailer.MailerClient
-	Repositories library.Repositories
+	Repositories pkg.Repositories
 }
 
 // New instances a new application
@@ -75,9 +75,9 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 		log.Fatal(err)
 	}
 
-	app.EmailClient = mailer.NewMailerClient(library.PostMarkAPIToken, app.Logger)
+	app.EmailClient = mailer.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
 
-	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
+	tokenHandler, err := pkg.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (app *Application) buildConfig(configFile string) (*ServerConfig, error) {
 	return ReadConfig(*app.Logger, configFile)
 }
 
-func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
+func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) *routes.AllHTTPHandlers {
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
@@ -133,7 +133,7 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
-	allRepositories := library.Repositories{
+	allRepositories := pkg.Repositories{
 		OrderRepository:     orderPersistence,
 		AuthRepository:      authPersistence,
 		UserRepository:      userPersistence,
@@ -144,7 +144,7 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	}
 
 	app.Repositories = allRepositories
-	request := library.DefaultApplicationRequest{
+	request := pkg.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
 		Logger:        app.Logger,
 		AllRepository: allRepositories,

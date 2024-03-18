@@ -3,10 +3,9 @@ package interfaces
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/filter"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"github.com/samber/lo"
@@ -44,9 +43,9 @@ func NewProductHTTPHandler(productApplication application.ProductApplication) *P
 // @Param status formData string true "product status"
 // @Param images formData file true "Images of the product" format(multi)
 // @Security BearerToken
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/create [post]
 // @deprecated
 func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +56,10 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 
 	resp, err := handler.ProductApplication.CreateProduct(r.Context(), *request)
 	if err != nil {
-		library.CheckErrorType(err, w)
+		pkg.CheckErrorType(err, w)
 		return
 	}
-	library.EncodeResult(w, resp, http.StatusOK)
+	pkg.EncodeResult(w, resp, http.StatusOK)
 }
 
 // GetProductByIDHandler godoc
@@ -72,8 +71,8 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 // @Param			product_id	path		string	true	"product id"
 // @Security BearerToken
 // @success 200 {object} models.Product
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/id/{product_id} [get]
 // @deprecated
 func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
@@ -85,11 +84,11 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 
 	product, err = handler.ProductApplication.GetProductByID(r.Context(), productID)
 	if err != nil {
-		library.CheckErrorType(err, w)
+		pkg.CheckErrorType(err, w)
 		return
 	}
 
-	library.EncodeResult(w, product, http.StatusOK)
+	pkg.EncodeResult(w, product, http.StatusOK)
 }
 
 // GetAllVendorProductsHandler godoc
@@ -101,8 +100,8 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 // @param domain.GetVendorProductsRequest body domain.GetVendorProductsRequest true "get all vendor products request body"
 // @Security BearerToken
 // @success 200 {object} domain.GetVendorProductsResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/ [get]
 // @deprecated
 func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWriter, r *http.Request) {
@@ -110,15 +109,15 @@ func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWr
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 	products, err := handler.ProductApplication.GetAllVendorProducts(r.Context(), request)
 	if err != nil {
-		library.CheckErrorType(err, w)
+		pkg.CheckErrorType(err, w)
 		return
 	}
-	library.EncodeResult(w, products, http.StatusOK)
+	pkg.EncodeResult(w, products, http.StatusOK)
 }
 
 // CreateGasProductHandler godoc
@@ -129,24 +128,24 @@ func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWr
 // @Produce json
 // @param domain.GasProductRequest body domain.GasProductRequest true "create gas product request body"
 // @Security BearerToken
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/ [post]
 func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.GasProductRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
 
 	result, err := handler.ProductApplication.CreateGasProduct(r.Context(), request)
 	if err != nil {
-		library.CheckErrorType(err, w)
+		pkg.CheckErrorType(err, w)
 		return
 	}
-	library.EncodeResult(w, result, http.StatusOK)
+	pkg.EncodeResult(w, result, http.StatusOK)
 }
 
 // ListProductsHandler godoc

@@ -1,12 +1,10 @@
-package library
+package pkg
 
 import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library/filter"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"image"
 	"image/jpeg"

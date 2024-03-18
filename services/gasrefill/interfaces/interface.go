@@ -2,9 +2,9 @@ package interfaces
 
 import (
 	"encoding/json"
+	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/services/gasrefill/application"
 	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
-	"github.com/leetatech/leeta_backend/services/library"
 	"net/http"
 )
 
@@ -26,24 +26,24 @@ func NewGasRefillHTTPHandler(refillApplication application.GasRefillApplication)
 // @Produce json
 // @Param domain.GasRefillRequest body domain.GasRefillRequest true "Gas refill request body"
 // @Security BearerToken
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/ [post]
 func (handler *GasRefillHttpHandler) RequestRefill(w http.ResponseWriter, r *http.Request) {
 	var request domain.GasRefillRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.GasRefillApplication.RequestRefill(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
-	library.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // UpdateGasRefillStatus is the endpoint used to update the status of a gas refill
@@ -54,9 +54,9 @@ func (handler *GasRefillHttpHandler) RequestRefill(w http.ResponseWriter, r *htt
 // @Produce json
 // @Param domain.UpdateRefillRequest body domain.UpdateRefillRequest true "update gas refill by status request body"
 // @Security BearerToken
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/ [put]
 func (handler *GasRefillHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter, r *http.Request) {
 
@@ -70,9 +70,9 @@ func (handler *GasRefillHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter
 // @produce json
 // @Param			refill-id	path		string	true	"refill id"
 // @Security BearerToken
-// @success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/{refill_id} [get]
 func (handler *GasRefillHttpHandler) GetGasRefill(w http.ResponseWriter, r *http.Request) {
 
@@ -86,9 +86,9 @@ func (handler *GasRefillHttpHandler) GetGasRefill(w http.ResponseWriter, r *http
 // @produce json
 // @param domain.ListRefillFilter body domain.ListRefillFilter true "get refill by status, use filter for filtering responses (not implemented)"
 // @Security BearerToken
-// @success 200 {object} []library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @success 200 {object} []pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/list [POST]
 func (handler *GasRefillHttpHandler) ListRefill(w http.ResponseWriter, r *http.Request) {
 }
