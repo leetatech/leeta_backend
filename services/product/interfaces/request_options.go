@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"github.com/leetatech/leeta_backend/services/library/filter"
+	"github.com/leetatech/leeta_backend/pkg/filter"
 )
 
 var productStatusRequestName = filter.ReadableValue[string]{

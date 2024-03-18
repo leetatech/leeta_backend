@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
@@ -164,7 +165,7 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 	var request filter.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
 
@@ -174,10 +175,10 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 		Page:    int64(request.Paging.PageIndex),
 	})
 	if err != nil {
-		library.CheckErrorType(err, w)
+		pkg.CheckErrorType(err, w)
 		return
 	}
-	library.EncodeResult(w, products, http.StatusOK)
+	pkg.EncodeResult(w, products, http.StatusOK)
 }
 
 // ListProductOptions list product filter options
@@ -191,5 +192,5 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 // @Router /product/options [get]
 func (handler *ProductHttpHandler) ListProductOptions(w http.ResponseWriter, r *http.Request) {
 	requestOptions := lo.Map(listProductOptions, ToFilterOption)
-	library.EncodeResult(w, requestOptions, http.StatusOK)
+	pkg.EncodeResult(w, requestOptions, http.StatusOK)
 }

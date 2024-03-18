@@ -3,6 +3,7 @@ package interfaces
 import (
 	"errors"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"

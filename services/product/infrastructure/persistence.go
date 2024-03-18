@@ -103,9 +103,9 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request domain.Li
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	filter := library.BuildMongoFilterQuery(request.Filters)
+	filter := pkg.BuildMongoFilterQuery(request.Filters)
 
-	opts := library.GetPaginatedOpts(request.Limit, request.Page)
+	opts := pkg.GetPaginatedOpts(request.Limit, request.Page)
 
 	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*opts.Skip+*opts.Limit).SetLimit(1))
 	if err != nil {
