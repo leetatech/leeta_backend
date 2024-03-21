@@ -23,18 +23,23 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 
 }
 
-func ValidateQueryFilter(request *filter.PagingRequest) (*filter.PagingRequest, error) {
-	if request == nil {
+func ValidateQueryFilter(request filter.ResultSelector) (*filter.PagingRequest, error) {
+	var resultSelector filter.ResultSelector
+	if request == resultSelector {
 		return nil, leetError.ErrorResponseBody(leetError.InvalidPageRequestError, errors.New("the paging field is required but it is missing"))
 	}
 
-	if request.PageIndex == 0 {
-		request.PageIndex = 1
+	if request.Paging == nil {
+		return nil, leetError.ErrorResponseBody(leetError.InvalidPageRequestError, errors.New("the paging field is required but it is missing"))
 	}
 
-	if request.PageSize == 0 {
-		request.PageSize = 10
+	if request.Paging.PageIndex == 0 {
+		request.Paging.PageIndex = 1
 	}
 
-	return request, nil
+	if request.Paging.PageSize == 0 {
+		request.Paging.PageSize = 10
+	}
+
+	return request.Paging, nil
 }
