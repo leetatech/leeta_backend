@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"runtime"
 	"time"
 )
 
@@ -45,6 +46,7 @@ const (
 	CartStatusesError          ErrorCode = 1033
 	AmountPaidError            ErrorCode = 1034
 	FeesStatusesError          ErrorCode = 1035
+	InvalidPageRequestError    ErrorCode = 1036
 )
 
 var (
@@ -84,6 +86,7 @@ var (
 		CartStatusesError:          "CartStatusesError",
 		AmountPaidError:            "AmountPaidError",
 		FeesStatusesError:          "FeesStatusesError",
+		InvalidPageRequestError:    "InvalidPageRequestError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -122,6 +125,7 @@ var (
 		CartStatusesError:          "An error occurred because the cart status is invalid",
 		AmountPaidError:            "An error occurred because the amount paid is invalid",
 		FeesStatusesError:          "An error occurred because the fees status is invalid",
+		InvalidPageRequestError:    "An error occurred because the page request field is required",
 	}
 )
 
@@ -133,31 +137,37 @@ type ErrorResponse struct {
 	Message        string    `json:"message"`
 	Err            error     `json:"-"`
 	StackTrace     string    `json:"-"`
+	File           string    `json:"-"`
+	Line           int       `json:"-"`
 	TimeStamp      string    `json:"timestamp"`
 }
 
-func (err ErrorResponse) Error() string {
-	if err.Err != nil {
-		return err.Err.Error()
-	}
-	return err.Message
+func (e ErrorResponse) Error() string {
+	return e.Format()
 }
 
-func (err ErrorResponse) Unwrap() error {
-	return err.Err
+func (e ErrorResponse) Unwrap() error {
+	return e.Err
 }
 
-func (err ErrorResponse) Wrap(message string) error {
-	return errors.Wrap(err.Err, message)
+func (e ErrorResponse) Wrap(message string) error {
+	return errors.Wrap(e.Err, message)
+}
+
+func (e *ErrorResponse) Format() string {
+	return fmt.Sprintf("%s:%s | %s:%s | %s:%d | stackTrace:%s", e.ErrorReference, e.Err, e.ErrorType, e.Message, e.File, e.Line, e.StackTrace)
 }
 
 func ErrorResponseBody(code ErrorCode, err error) error {
+	_, file, line, _ := runtime.Caller(1)
 	errorResponse := ErrorResponse{
 		ErrorReference: uuid.New(),
 		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
 		Message:        errorMessages[code],
 		Err:            err,
+		File:           file,
+		Line:           line,
 		TimeStamp:      time.Now().Format(time.RFC3339),
 	}
 
@@ -178,6 +188,6 @@ func ErrorType(code ErrorCode) string {
 }
 
 // Code getter
-func (err ErrorResponse) Code() ErrorCode {
-	return err.code
+func (e ErrorResponse) Code() ErrorCode {
+	return e.code
 }
