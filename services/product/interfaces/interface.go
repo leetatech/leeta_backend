@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
+	"github.com/samber/lo"
 	"net/http"
 )
 
@@ -55,7 +58,7 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 
 	resp, err := handler.ProductApplication.CreateProduct(r.Context(), *request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, resp, http.StatusOK)
@@ -73,6 +76,7 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/id/{product_id} [get]
+// @deprecated
 func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		product *models.Product
@@ -82,7 +86,7 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 
 	product, err = handler.ProductApplication.GetProductByID(r.Context(), productID)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 
@@ -101,6 +105,7 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/ [get]
+// @deprecated
 func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.GetVendorProductsRequest
 
@@ -111,7 +116,7 @@ func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWr
 	}
 	products, err := handler.ProductApplication.GetAllVendorProducts(r.Context(), request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, products, http.StatusOK)
@@ -139,8 +144,56 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 
 	result, err := handler.ProductApplication.CreateGasProduct(r.Context(), request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, result, http.StatusOK)
+}
+
+// ListProductsHandler godoc
+// @Summary List Products
+// @Description The endpoint takes in the limit, page and product status and returns the requested products
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param filter.ResultSelector body filter.ResultSelector true "list products request body"
+// @Security BearerToken
+// @Success 200 {object} domain.ListProductsResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /product/list [post]
+func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
+	var request filter.ResultSelector
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		return
+	}
+
+	request.Paging, err = helpers.ValidateQueryFilter(request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	products, err := handler.ProductApplication.ListProducts(r.Context(), request)
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+	pkg.EncodeResult(w, products, http.StatusOK)
+}
+
+// ListProductOptions list product filter options
+// @Summary Get Product filter options
+// @Description Retrieve products filter options
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Authentication header" example(Bearer lnsjkfbnkjkdjnfjk)
+// @Success 200 {object} []filter.RequestOption
+// @Router /product/options [get]
+func (handler *ProductHttpHandler) ListProductOptions(w http.ResponseWriter, r *http.Request) {
+	requestOptions := lo.Map(listProductOptions, ToFilterOption)
+	pkg.EncodeResult(w, requestOptions, http.StatusOK)
 }

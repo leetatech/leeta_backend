@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
@@ -44,7 +45,7 @@ func (handler *OrderHttpHandler) CreateOrderHandler(w http.ResponseWriter, r *ht
 	}
 	resp, err := handler.OrderApplication.CreateOrder(r.Context(), newOrder)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, resp, http.StatusOK)
@@ -74,7 +75,7 @@ func (handler *OrderHttpHandler) UpdateOrderStatusHandler(w http.ResponseWriter,
 	resp, err := handler.OrderApplication.UpdateOrderStatus(r.Context(), request)
 	if err != nil {
 		log.Err(err).Msg("error updating order status")
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 
@@ -98,7 +99,7 @@ func (handler *OrderHttpHandler) GetOrderByIDHandler(w http.ResponseWriter, r *h
 	var order *models.Order
 	order, err := handler.OrderApplication.GetOrderByID(r.Context(), orderID)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 
@@ -127,7 +128,7 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 	}
 	orders, err := handler.OrderApplication.GetCustomerOrdersByStatus(r.Context(), request)
 	if err != nil {
-		pkg.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
 	pkg.EncodeResult(w, orders, http.StatusOK)

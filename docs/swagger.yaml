@@ -95,6 +95,18 @@ definitions:
       weight:
         type: number
     type: object
+  CompareOperator:
+    enum:
+    - isEqualTo
+    type: string
+    x-enum-varnames:
+    - CompareOperatorIsEqualTo
+  ControlType:
+    enum:
+    - string
+    type: string
+    x-enum-varnames:
+    - ControlTypeString
   Coordinates:
     properties:
       latitude:
@@ -157,6 +169,17 @@ definitions:
       product_id:
         type: string
     type: object
+  FilterRequest:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/RequestField'
+        type: array
+      operator:
+        type: string
+    required:
+    - operator
+    type: object
   GasRefillRequest:
     properties:
       amount_paid:
@@ -214,6 +237,15 @@ definitions:
     properties:
       id:
         type: string
+    type: object
+  ListProductsResponse:
+    properties:
+      has_next_page:
+        type: boolean
+      products:
+        items:
+          $ref: '#/definitions/Product'
+        type: array
     type: object
   ListRefillFilter:
     properties:
@@ -296,6 +328,13 @@ definitions:
       vendor_id:
         type: string
     type: object
+  PagingRequest:
+    properties:
+      index:
+        type: integer
+      size:
+        type: integer
+    type: object
   Phone:
     properties:
       number:
@@ -344,6 +383,15 @@ definitions:
       weight:
         type: string
     type: object
+  ReadableValue-string:
+    properties:
+      label:
+        description: Label is the human-readable form of the value
+        type: string
+      value:
+        description: Value is the value for the backend
+        type: string
+    type: object
   ReceiveGuestRequest:
     properties:
       device_id:
@@ -359,6 +407,59 @@ definitions:
         type: string
       token:
         type: string
+    type: object
+  RequestField:
+    properties:
+      name:
+        type: string
+      value:
+        description: Value can be a list of values or a value
+    required:
+    - name
+    - value
+    type: object
+  RequestOption:
+    properties:
+      control:
+        $ref: '#/definitions/RequestOptionType'
+      multiSelect:
+        type: boolean
+      name:
+        $ref: '#/definitions/ReadableValue-string'
+      operators:
+        items:
+          properties:
+            label:
+              description: Label is the human-readable form of the value
+              type: string
+            value:
+              allOf:
+              - $ref: '#/definitions/CompareOperator'
+              description: Value is the value for the backend
+          type: object
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  RequestOptionType:
+    properties:
+      type:
+        allOf:
+        - $ref: '#/definitions/ControlType'
+        enum:
+        - string
+        - float
+        - integer
+        - enum
+    type: object
+  ResultSelector:
+    properties:
+      filter:
+        $ref: '#/definitions/FilterRequest'
+      paging:
+        $ref: '#/definitions/PagingRequest'
     type: object
   ShippingInfo:
     properties:
@@ -1035,6 +1136,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: The endpoint takes the vendor ID, product status, pages and limit
         and then returns the requested products
       parameters:
@@ -1193,6 +1295,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: The endpoint takes the product id and then returns the requested
         product
       parameters:
@@ -1219,6 +1322,63 @@ paths:
       security:
       - BearerToken: []
       summary: Get Vendor Product By id
+      tags:
+      - Product
+  /product/list:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes in the limit, page and product status and returns
+        the requested products
+      parameters:
+      - description: list products request body
+        in: body
+        name: filter.ResultSelector
+        required: true
+        schema:
+          $ref: '#/definitions/ResultSelector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ListProductsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: List Products
+      tags:
+      - Product
+  /product/options:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve products filter options
+      parameters:
+      - description: Authentication header
+        example: Bearer lnsjkfbnkjkdjnfjk
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RequestOption'
+            type: array
+      summary: Get Product filter options
       tags:
       - Product
   /session/admin/signup:
