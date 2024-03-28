@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
+	"time"
 )
 
 type CartStoreHandler struct {
@@ -99,4 +100,43 @@ func (c *CartStoreHandler) GetCartByDeviceID(ctx context.Context, deviceID strin
 	}
 
 	return &cart, nil
+}
+
+func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID string) (*models.Cart, error) {
+	var cart models.Cart
+	filter := bson.M{"cart_items.id": cartItemID}
+
+	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cart, nil
+}
+
+func (c *CartStoreHandler) UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantity) error {
+	filter := bson.M{"cart_items.id": request.CartItemID}
+	updateFields := bson.M{}
+	if request.Quantity != 0 {
+		updateFields["cart_items.$.quantity"] = request.Quantity
+		updateFields["cart_items.$.total_cost"] = request.ItemTotalCost
+		updateFields["total"] = request.ItemTotalCost
+	}
+	if request.Weight != 0 {
+		updateFields["cart_items.$.weight"] = request.Weight
+		updateFields["cart_items.$.total_cost"] = request.ItemTotalCost
+		updateFields["total"] = request.ItemTotalCost
+	}
+
+	update := bson.M{
+		"$inc": updateFields,
+		"$set": bson.M{"status_ts": time.Now().Unix()},
+	}
+
+	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -494,6 +494,15 @@ definitions:
       user_type:
         $ref: '#/definitions/models.UserCategory'
     type: object
+  UpdateCartItemQuantityRequest:
+    properties:
+      cart_item_id:
+        type: string
+      quantity:
+        type: integer
+      weight:
+        type: number
+    type: object
   UpdateOrderStatusRequest:
     properties:
       order_id:
@@ -563,6 +572,9 @@ definitions:
     - 1033
     - 1034
     - 1035
+    - 1036
+    - 1037
+    - 1038
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -600,6 +612,9 @@ definitions:
     - CartStatusesError
     - AmountPaidError
     - FeesStatusesError
+    - InvalidPageRequestError
+    - CartItemQuantityError
+    - CartItemRequestQuantityError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -748,6 +763,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
       summary: Add items to cart
       tags:
       - Cart
@@ -779,6 +796,70 @@ paths:
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
       summary: Request cart inactivation
+      tags:
+      - Cart
+  /cart/item/decrease:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to decrease cart item quantity
+      parameters:
+      - description: update cart item quantity request body
+        in: body
+        name: domain.UpdateCartItemQuantityRequest
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCartItemQuantityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Decrease cart item quantity
+      tags:
+      - Cart
+  /cart/item/increase:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to increase cart item quantity
+      parameters:
+      - description: update cart item quantity request body
+        in: body
+        name: domain.UpdateCartItemQuantityRequest
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCartItemQuantityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Increase cart item quantity
       tags:
       - Cart
   /fees/:

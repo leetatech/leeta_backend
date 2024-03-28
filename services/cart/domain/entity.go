@@ -15,3 +15,16 @@ type CartItem struct {
 	Quantity  int     `json:"quantity,omitempty" bson:"quantity"`
 	Cost      float64 `json:"cost" bson:"cost"`
 } // @name CartRefillDetails
+
+type UpdateCartItemQuantityRequest struct {
+	CartItemID string  `json:"cart_item_id"`
+	Weight     float64 `json:"weight"`
+	Quantity   int     `json:"quantity"`
+} // @name UpdateCartItemQuantityRequest
+
+type UpdateCartItemQuantity struct {
+	CartItemID    string  `json:"cart_item_id"`
+	Weight        float64 `json:"weight"`
+	Quantity      int     `json:"quantity"`
+	ItemTotalCost float64 `json:"item_total_cost"`
+}

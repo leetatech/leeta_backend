@@ -25,6 +25,11 @@ const docTemplate = `{
     "paths": {
         "/cart/add": {
             "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
                 "description": "The endpoint to add items to cart",
                 "consumes": [
                     "application/json"
@@ -90,6 +95,108 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/InactivateCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/decrease": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to decrease cart item quantity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Decrease cart item quantity",
+                "parameters": [
+                    {
+                        "description": "update cart item quantity request body",
+                        "name": "domain.UpdateCartItemQuantityRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/increase": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to increase cart item quantity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Increase cart item quantity",
+                "parameters": [
+                    {
+                        "description": "update cart item quantity request body",
+                        "name": "domain.UpdateCartItemQuantityRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
                         }
                     }
                 ],
@@ -2424,6 +2531,20 @@ const docTemplate = `{
                 }
             }
         },
+        "UpdateCartItemQuantityRequest": {
+            "type": "object",
+            "properties": {
+                "cart_item_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2511,7 +2632,10 @@ const docTemplate = `{
                 1032,
                 1033,
                 1034,
-                1035
+                1035,
+                1036,
+                1037,
+                1038
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2548,7 +2672,10 @@ const docTemplate = `{
                 "InvalidOTPError",
                 "CartStatusesError",
                 "AmountPaidError",
-                "FeesStatusesError"
+                "FeesStatusesError",
+                "InvalidPageRequestError",
+                "CartItemQuantityError",
+                "CartItemRequestQuantityError"
             ]
         },
         "leetError.ErrorResponse": {

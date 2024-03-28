@@ -25,6 +25,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 // @Accept json
 // @Produce json
 // @Param domain.AddToCartRequest body domain.AddToCartRequest true "add to cart request body"
+// @Security BearerToken
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
@@ -69,5 +70,62 @@ func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
+	pkg.EncodeResult(w, response, http.StatusOK)
+}
+
+// IncreaseCartItemQuantityHandler is the endpoint to increase cart item quantity
+// @Summary Increase cart item quantity
+// @Description The endpoint to increase cart item quantity
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param domain.UpdateCartItemQuantityRequest body domain.UpdateCartItemQuantityRequest true "update cart item quantity request body"
+// @Security BearerToken
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart/item/increase [put]
+func (handler *CartHttpHandler) IncreaseCartItemQuantityHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.UpdateCartItemQuantityRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	response, err := handler.CartApplication.IncreaseCartItemQuantity(r.Context(), request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	pkg.EncodeResult(w, response, http.StatusOK)
+}
+
+// DecreaseCartItemQuantityHandler is the endpoint to decrease cart item quantity
+// @Summary Decrease cart item quantity
+// @Description The endpoint to decrease cart item quantity
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param domain.UpdateCartItemQuantityRequest body domain.UpdateCartItemQuantityRequest true "update cart item quantity request body"
+// @Security BearerToken
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart/item/decrease [put]
+func (handler *CartHttpHandler) DecreaseCartItemQuantityHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.UpdateCartItemQuantityRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.CartApplication.DecreaseCartItemQuantity(r.Context(), request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
 	pkg.EncodeResult(w, response, http.StatusOK)
 }

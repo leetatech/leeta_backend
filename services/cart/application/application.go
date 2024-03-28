@@ -24,6 +24,8 @@ type CartAppHandler struct {
 type CartApplication interface {
 	InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error)
 	AddToCart(ctx context.Context, request domain.AddToCartRequest) (*pkg.DefaultResponse, error)
+	IncreaseCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error)
+	DecreaseCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error)
 }
 
 func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
@@ -164,4 +166,96 @@ func (c CartAppHandler) calculateCartItemTotal(ctx context.Context, items []mode
 	}
 
 	return total, nil
+}
+
+func (c CartAppHandler) IncreaseCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error) {
+	var updateRequest domain.UpdateCartItemQuantity
+	fee, err := c.updateCartItemQuantity(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.Quantity != 0 {
+		updateRequest.CartItemID = request.CartItemID
+		updateRequest.Quantity = request.Quantity
+		updateRequest.ItemTotalCost = float64(request.Quantity) * fee.CostPerQty
+	} else {
+		updateRequest.CartItemID = request.CartItemID
+		updateRequest.Weight = request.Weight
+		updateRequest.ItemTotalCost = request.Weight * fee.CostPerKg
+	}
+
+	err = c.allRepository.CartRepository.UpdateCartItemQuantity(ctx, updateRequest)
+	if err != nil {
+		c.logger.Error("error updating cart item quantity", zap.Error(err))
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return &pkg.DefaultResponse{Success: "success", Message: "Successfully updated cart item quantity"}, nil
+}
+
+func (c CartAppHandler) DecreaseCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error) {
+	var updateRequest domain.UpdateCartItemQuantity
+
+	fee, err := c.updateCartItemQuantity(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	if request.Quantity != 0 {
+		updateRequest.CartItemID = request.CartItemID
+		updateRequest.Quantity = -request.Quantity
+		itemTotal := float64(request.Quantity) * fee.CostPerQty
+		updateRequest.ItemTotalCost = -itemTotal
+	} else {
+		updateRequest.CartItemID = request.CartItemID
+		updateRequest.Weight = -request.Weight
+		itemTotal := request.Weight * fee.CostPerKg
+		updateRequest.ItemTotalCost = -itemTotal
+	}
+
+	err = c.allRepository.CartRepository.UpdateCartItemQuantity(ctx, updateRequest)
+	if err != nil {
+		c.logger.Error("error updating cart item quantity", zap.Error(err))
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return &pkg.DefaultResponse{Success: "success", Message: "Successfully updated cart item quantity"}, nil
+}
+
+func (c CartAppHandler) updateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*models.Fee, error) {
+	_, err := c.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	var (
+		productID        string
+		quantityErrorMsg = "invalid quantity"
+	)
+
+	cart, err := c.allRepository.CartRepository.GetCartByCartItemID(ctx, request.CartItemID)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	if request.Quantity == 0 && request.Weight == 0 {
+		return nil, leetError.ErrorResponseBody(leetError.CartItemRequestQuantityError, errors.New(quantityErrorMsg))
+	}
+
+	for _, item := range cart.CartItems {
+		if item.ID == request.CartItemID {
+			productID = item.ProductID
+			if item.Quantity == 0 && item.Weight == 0 {
+				return nil, leetError.ErrorResponseBody(leetError.CartItemQuantityError, errors.New(quantityErrorMsg))
+			}
+		}
+	}
+
+	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, productID, models.FeesActive)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return fee, nil
 }
