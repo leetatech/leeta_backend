@@ -152,9 +152,6 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pk
 		r.Use(tokenHandler.ValidateMiddleware)
 		r.Post("/add", handler.AddToCartHandler)
 		r.Delete("/item", handler.DeleteCartItemHandler)
-	})
-
-	router.Group(func(r chi.Router) {
 		r.Delete("/", handler.DeleteCartHandler)
 	})
 

@@ -16,6 +16,55 @@
     "host": "https://leetabackend-e6d948d15ae2.herokuapp.com",
     "basePath": "/api",
     "paths": {
+        "/cart/": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to request for a cart deletion",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart deletion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cartID",
+                        "name": "cartID",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cart/add": {
             "post": {
                 "security": [
@@ -42,52 +91,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/AddToCartRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/cart/inactivate": {
-            "put": {
-                "description": "The endpoint to request for a cart inactivation",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Request cart inactivation",
-                "parameters": [
-                    {
-                        "description": "inactivate cart request body",
-                        "name": "domain.InactivateCart",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/InactivateCart"
                         }
                     }
                 ],
@@ -2064,14 +2067,6 @@
                     "type": "string"
                 },
                 "session_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "InactivateCart": {
-            "type": "object",
-            "properties": {
-                "id": {
                     "type": "string"
                 }
             }
