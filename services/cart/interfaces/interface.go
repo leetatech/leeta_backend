@@ -6,7 +6,6 @@ import (
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"net/http"
-	"strconv"
 )
 
 type CartHttpHandler struct {
@@ -81,52 +80,19 @@ func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *
 // @Accept json
 // @Produce json
 // @Security BearerToken
-// @Param cartID query string true "cartID"
 // @Param cartItemID query string true "cartItemID"
-// @Param productID query string true "productID"
-// @Param weight query string false "weight"
-// @Param quantity query string false "quantity"
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
-// @Router /delete [delete]
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart/item [delete]
 func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
-	var (
-		reducedWeightCount   float64
-		reducedQuantityCount int
-		err                  error
-	)
-	cartID := r.URL.Query().Get("cartID")
 	cartItemID := r.URL.Query().Get("cartItemID")
-	productID := r.URL.Query().Get("productID")
-	weight := r.URL.Query().Get("weight")
-	if weight != "" {
-		reducedWeightCount, err = strconv.ParseFloat(weight, 32)
-		if err != nil {
-			library.EncodeResult(w, err, http.StatusBadRequest)
-			return
-		}
-	}
-	quantity := r.URL.Query().Get("quantity")
-	if quantity != "" {
-		reducedQuantityCount, _ = strconv.Atoi(quantity)
-		if err != nil {
-			library.EncodeResult(w, err, http.StatusBadRequest)
-			return
-		}
-	}
 
-	response, err := handler.CartApplication.DeleteCartItem(r.Context(), domain.DeleteCartItemRequest{
-		CartID:               cartID,
-		CartItemID:           cartItemID,
-		ProductID:            productID,
-		ReducedQuantityCount: reducedQuantityCount,
-		ReducedWeightCount:   reducedWeightCount,
-	})
+	response, err := handler.CartApplication.DeleteCartItem(r.Context(), domain.DeleteCartItemRequest{CartItemID: cartItemID})
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	library.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
