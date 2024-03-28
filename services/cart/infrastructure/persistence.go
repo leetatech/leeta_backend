@@ -97,12 +97,10 @@ func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartItemID string
 	return nil
 }
 
-func (c *CartStoreHandler) InactivateCart(ctx context.Context, id string) error {
+func (c *CartStoreHandler) DeleteCart(ctx context.Context, id string) error {
 	filter := bson.M{"id": id}
 
-	update := bson.M{"$set": bson.M{"status": models.CartInactive}}
-
-	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
+	_, err := c.col(models.CartsCollectionName).DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}
