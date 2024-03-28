@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 )
 
 type Fee struct {

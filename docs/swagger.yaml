@@ -95,6 +95,18 @@ definitions:
       weight:
         type: number
     type: object
+  CompareOperator:
+    enum:
+    - isEqualTo
+    type: string
+    x-enum-varnames:
+    - CompareOperatorIsEqualTo
+  ControlType:
+    enum:
+    - string
+    type: string
+    x-enum-varnames:
+    - ControlTypeString
   Coordinates:
     properties:
       latitude:
@@ -156,8 +168,17 @@ definitions:
         type: number
       product_id:
         type: string
-      service_fee:
-        type: number
+    type: object
+  FilterRequest:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/RequestField'
+        type: array
+      operator:
+        type: string
+    required:
+    - operator
     type: object
   GasRefillRequest:
     properties:
@@ -216,6 +237,15 @@ definitions:
     properties:
       id:
         type: string
+    type: object
+  ListProductsResponse:
+    properties:
+      has_next_page:
+        type: boolean
+      products:
+        items:
+          $ref: '#/definitions/Product'
+        type: array
     type: object
   ListRefillFilter:
     properties:
@@ -298,6 +328,13 @@ definitions:
       vendor_id:
         type: string
     type: object
+  PagingRequest:
+    properties:
+      index:
+        type: integer
+      size:
+        type: integer
+    type: object
   Phone:
     properties:
       number:
@@ -346,6 +383,15 @@ definitions:
       weight:
         type: string
     type: object
+  ReadableValue-string:
+    properties:
+      label:
+        description: Label is the human-readable form of the value
+        type: string
+      value:
+        description: Value is the value for the backend
+        type: string
+    type: object
   ReceiveGuestRequest:
     properties:
       device_id:
@@ -361,6 +407,59 @@ definitions:
         type: string
       token:
         type: string
+    type: object
+  RequestField:
+    properties:
+      name:
+        type: string
+      value:
+        description: Value can be a list of values or a value
+    required:
+    - name
+    - value
+    type: object
+  RequestOption:
+    properties:
+      control:
+        $ref: '#/definitions/RequestOptionType'
+      multiSelect:
+        type: boolean
+      name:
+        $ref: '#/definitions/ReadableValue-string'
+      operators:
+        items:
+          properties:
+            label:
+              description: Label is the human-readable form of the value
+              type: string
+            value:
+              allOf:
+              - $ref: '#/definitions/CompareOperator'
+              description: Value is the value for the backend
+          type: object
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  RequestOptionType:
+    properties:
+      type:
+        allOf:
+        - $ref: '#/definitions/ControlType'
+        enum:
+        - string
+        - float
+        - integer
+        - enum
+    type: object
+  ResultSelector:
+    properties:
+      filter:
+        $ref: '#/definitions/FilterRequest'
+      paging:
+        $ref: '#/definitions/PagingRequest'
     type: object
   ShippingInfo:
     properties:
@@ -410,6 +509,13 @@ definitions:
         type: string
       request_status:
         $ref: '#/definitions/models.RefillRequestStatus'
+    type: object
+  domain.GasProductRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
     type: object
   domain.GetVendorProductsResponse:
     properties:
@@ -615,7 +721,7 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
-  /add:
+  /cart/add:
     post:
       consumes:
       - application/json
@@ -642,40 +748,21 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
       summary: Add items to cart
       tags:
       - Cart
-  /delete:
-    delete:
+  /cart/inactivate:
+    put:
       consumes:
       - application/json
-      description: The endpoint to delete items from cart
+      description: The endpoint to request for a cart inactivation
       parameters:
-      - description: cartID
-        in: query
-        name: cartID
+      - description: inactivate cart request body
+        in: body
+        name: domain.InactivateCart
         required: true
-        type: string
-      - description: cartItemID
-        in: query
-        name: cartItemID
-        required: true
-        type: string
-      - description: productID
-        in: query
-        name: productID
-        required: true
-        type: string
-      - description: weight
-        in: query
-        name: weight
-        type: string
-      - description: quantity
-        in: query
-        name: quantity
-        type: string
+        schema:
+          $ref: '#/definitions/InactivateCart'
       produces:
       - application/json
       responses:
@@ -691,9 +778,7 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Delete items from cart
+      summary: Request cart inactivation
       tags:
       - Cart
   /fees/:
@@ -720,7 +805,7 @@ paths:
       - BearerToken: []
       summary: Get fees
       tags:
-      - fees
+      - Fees
     post:
       consumes:
       - application/json
@@ -751,8 +836,39 @@ paths:
       - BearerToken: []
       summary: Create fees
       tags:
-      - fees
-  /gas-refill:
+      - Fees
+  /fees/product/{product_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get fees for gas refill by product ID
+      parameters:
+      - description: product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fee by product ID
+      tags:
+      - Fees
+  /gas-refill/:
     post:
       consumes:
       - application/json
@@ -783,8 +899,7 @@ paths:
       - BearerToken: []
       summary: Request gas refill
       tags:
-      - GasRefill
-  /gas-refill/:
+      - Gas Refill
     put:
       consumes:
       - application/json
@@ -816,7 +931,7 @@ paths:
       - BearerToken: []
       summary: Update Gas refill request status
       tags:
-      - GasRefill
+      - Gas Refill
   /gas-refill/{refill_id}:
     get:
       consumes:
@@ -848,7 +963,7 @@ paths:
       - BearerToken: []
       summary: Gets a single gas refill
       tags:
-      - GasRefill
+      - Gas Refill
   /gas-refill/list:
     post:
       consumes:
@@ -884,67 +999,7 @@ paths:
       - BearerToken: []
       summary: List all gas refill requests
       tags:
-      - GasRefill
-  /guest:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to allow guests to shop
-      parameters:
-      - description: receive guest request body
-        in: body
-        name: domain.ReceiveGuestRequest
-        required: true
-        schema:
-          $ref: '#/definitions/ReceiveGuestRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ReceiveGuestResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      summary: Request accept guests
-      tags:
-      - Session
-  /inactivate:
-    put:
-      consumes:
-      - application/json
-      description: The endpoint to request for a cart inactivation
-      parameters:
-      - description: inactivate cart request body
-        in: body
-        name: domain.InactivateCart
-        required: true
-        schema:
-          $ref: '#/definitions/InactivateCart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      summary: Request cart inactivation
-      tags:
-      - Cart
+      - Gas Refill
   /order/:
     get:
       consumes:
@@ -1081,6 +1136,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: The endpoint takes the vendor ID, product status, pages and limit
         and then returns the requested products
       parameters:
@@ -1110,10 +1166,43 @@ paths:
       summary: Get All Vendor Products By Status
       tags:
       - Product
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes the gas product request and creates a new gas
+        product
+      parameters:
+      - description: create gas product request body
+        in: body
+        name: domain.GasProductRequest
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GasProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Create Gas Product
+      tags:
+      - Product
   /product/create:
     post:
       consumes:
       - multipart/form-data
+      deprecated: true
       description: The endpoint takes the product request and creates a new product
       parameters:
       - description: Vendor ID
@@ -1206,6 +1295,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: The endpoint takes the product id and then returns the requested
         product
       parameters:
@@ -1232,6 +1322,63 @@ paths:
       security:
       - BearerToken: []
       summary: Get Vendor Product By id
+      tags:
+      - Product
+  /product/list:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint takes in the limit, page and product status and returns
+        the requested products
+      parameters:
+      - description: list products request body
+        in: body
+        name: filter.ResultSelector
+        required: true
+        schema:
+          $ref: '#/definitions/ResultSelector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ListProductsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: List Products
+      tags:
+      - Product
+  /product/options:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve products filter options
+      parameters:
+      - description: Authentication header
+        example: Bearer lnsjkfbnkjkdjnfjk
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/RequestOption'
+            type: array
+      summary: Get Product filter options
       tags:
       - Product
   /session/admin/signup:
@@ -1320,6 +1467,36 @@ paths:
           schema:
             $ref: '#/definitions/DefaultResponse'
       summary: Forgot Password
+      tags:
+      - Session
+  /session/guest:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allow guests to shop
+      parameters:
+      - description: receive guest request body
+        in: body
+        name: domain.ReceiveGuestRequest
+        required: true
+        schema:
+          $ref: '#/definitions/ReceiveGuestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ReceiveGuestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request accept guests
       tags:
       - Session
   /session/otp/request:
@@ -1515,7 +1692,7 @@ paths:
       - BearerToken: []
       summary: Admin adds vendor and business
       tags:
-      - user/admin/vendor
+      - Admin
   /user/vendor/verification:
     post:
       consumes:
@@ -1621,7 +1798,7 @@ paths:
       - BearerToken: []
       summary: Vendor Verification
       tags:
-      - user/vendor
+      - Vendor
 securityDefinitions:
   BearerToken:
     in: header

@@ -2,9 +2,12 @@ package adapt
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
+	"github.com/leetatech/leeta_backend/pkg/config"
+	"github.com/leetatech/leeta_backend/pkg/database"
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
@@ -17,8 +20,8 @@ import (
 	gasrefillInfrastructure "github.com/leetatech/leeta_backend/services/gasrefill/infrastructure"
 	gasrefillInterface "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
@@ -39,19 +42,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"time"
 )
 
 type Application struct {
 	Logger       *zap.Logger
-	Config       *ServerConfig
+	Config       *config.ServerConfig
 	Db           *mongo.Client
 	Ctx          context.Context
 	Router       *chi.Mux
 	EmailClient  mailer.MailerClient
-	Repositories library.Repositories
+	Repositories pkg.Repositories
 }
 
 // New instances a new application
@@ -69,15 +71,22 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	//build application clients
-	app.Db = app.buildMongoClient(ctx)
-	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
-		app.Logger.Info("msg", zap.String("msg", "failed to ping to database"))
-		log.Fatal(err)
+	// verify application config
+	if app.Config == nil {
+		return nil, errors.New("application config is empty")
 	}
 
-	app.EmailClient = mailer.NewMailerClient(library.PostMarkAPIToken, app.Logger)
+	app.Db, err = database.MongoDBClient(ctx, app.Config)
+	if err != nil {
+		return nil, fmt.Errorf("error connecting to mongo db client %w", err)
+	}
+	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
+		return nil, errors.New("error pinging database")
+	}
 
-	tokenHandler, err := library.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
+	app.EmailClient = mailer.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
+
+	tokenHandler, err := pkg.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -120,11 +129,11 @@ func (app *Application) Run() error {
 	return nil
 }
 
-func (app *Application) buildConfig(configFile string) (*ServerConfig, error) {
-	return ReadConfig(*app.Logger, configFile)
+func (app *Application) buildConfig(configFile string) (*config.ServerConfig, error) {
+	return config.ReadConfig(*app.Logger, configFile)
 }
 
-func (app *Application) buildApplicationConnection(tokenHandler library.TokenHandler) *routes.AllHTTPHandlers {
+func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) *routes.AllHTTPHandlers {
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
@@ -133,7 +142,7 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
-	allRepositories := library.Repositories{
+	allRepositories := pkg.Repositories{
 		OrderRepository:     orderPersistence,
 		AuthRepository:      authPersistence,
 		UserRepository:      userPersistence,
@@ -144,7 +153,7 @@ func (app *Application) buildApplicationConnection(tokenHandler library.TokenHan
 	}
 
 	app.Repositories = allRepositories
-	request := library.DefaultApplicationRequest{
+	request := pkg.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
 		Logger:        app.Logger,
 		AllRepository: allRepositories,

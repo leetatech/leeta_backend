@@ -1,6 +1,8 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import (
+	"github.com/leetatech/leeta_backend/services/models"
+)
 
 type GetVendorProductsRequest struct {
 	VendorID      string                 `json:"vendor_id" bson:"vendor_id"`
@@ -29,3 +31,13 @@ type ProductRequest struct {
 	DiscountPrice       float64                   `json:"discount_price"`
 	Status              models.ProductStatus      `json:"status"`
 }
+
+type GasProductRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type ListProductsResponse struct {
+	Products    []models.Product `json:"products" bson:"products"`
+	HasNextPage bool             `json:"has_next_page" bson:"has_next_page"`
+} // @name ListProductsResponse

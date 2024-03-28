@@ -2,9 +2,10 @@ package interfaces
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"net/http"
 	"strconv"
@@ -102,17 +103,17 @@ func GetImages(r *http.Request) ([]string, error) {
 		}
 		defer file.Close()
 
-		imageFormat, err := library.CheckImageFormat(fileHeader)
+		imageFormat, err := helpers.CheckImageFormat(fileHeader)
 		if err != nil {
 			return nil, err
 		}
 
-		img, err := library.CheckImageSizeAndDimension(fileHeader, file, 500, 600)
+		img, err := helpers.CheckImageSizeAndDimension(fileHeader, file, 500, 600)
 		if err != nil {
 			return nil, err
 		}
 
-		encodedImage, err := library.EncodeImageToBase64(img, imageFormat)
+		encodedImage, err := helpers.EncodeImageToBase64(img, imageFormat)
 		if err != nil {
 			return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
 		}
@@ -132,4 +133,8 @@ func stringToFloat64(strValue string) (float64, error) {
 	}
 
 	return value, nil
+}
+
+func ToFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
+	return options
 }
