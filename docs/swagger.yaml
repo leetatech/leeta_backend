@@ -563,6 +563,7 @@ definitions:
     - 1033
     - 1034
     - 1035
+    - 1036
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -600,6 +601,7 @@ definitions:
     - CartStatusesError
     - AmountPaidError
     - FeesStatusesError
+    - InvalidPageRequestError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -748,6 +750,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
       summary: Add items to cart
       tags:
       - Cart
@@ -779,6 +783,37 @@ paths:
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
       summary: Request cart inactivation
+      tags:
+      - Cart
+  /cart/item:
+    delete:
+      consumes:
+      - application/json
+      description: The endpoint to delete items from cart
+      parameters:
+      - description: cartItemID
+        in: query
+        name: cartItemID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Delete items from cart
       tags:
       - Cart
   /fees/:

@@ -24,6 +24,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 // @Tags Cart
 // @Accept json
 // @Produce json
+// @Security BearerToken
 // @Param domain.AddToCartRequest body domain.AddToCartRequest true "add to cart request body"
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
@@ -69,5 +70,29 @@ func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
+	pkg.EncodeResult(w, response, http.StatusOK)
+}
+
+// DeleteCartItemHandler is the endpoint to delete items from cart
+// @Summary Delete items from cart
+// @Description The endpoint to delete items from cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerToken
+// @Param cartItemID query string true "cartItemID"
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart/item [delete]
+func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
+	cartItemID := r.URL.Query().Get("cartItemID")
+
+	response, err := handler.CartApplication.DeleteCartItem(r.Context(), domain.DeleteCartItemRequest{CartItemID: cartItemID})
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
 	pkg.EncodeResult(w, response, http.StatusOK)
 }

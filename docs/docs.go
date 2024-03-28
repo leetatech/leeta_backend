@@ -25,6 +25,11 @@ const docTemplate = `{
     "paths": {
         "/cart/add": {
             "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
                 "description": "The endpoint to add items to cart",
                 "consumes": [
                     "application/json"
@@ -91,6 +96,55 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/InactivateCart"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to delete items from cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Delete items from cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cartItemID",
+                        "name": "cartItemID",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2511,7 +2565,8 @@ const docTemplate = `{
                 1032,
                 1033,
                 1034,
-                1035
+                1035,
+                1036
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2548,7 +2603,8 @@ const docTemplate = `{
                 "InvalidOTPError",
                 "CartStatusesError",
                 "AmountPaidError",
-                "FeesStatusesError"
+                "FeesStatusesError",
+                "InvalidPageRequestError"
             ]
         },
         "leetError.ErrorResponse": {
