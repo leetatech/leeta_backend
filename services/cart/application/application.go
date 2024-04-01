@@ -95,7 +95,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 
 	cart.CartItems = append(cart.CartItems, cartItem)
 
-	cart.Total, err = c.calculateCartItemTotal(ctx, cart.CartItems)
+	cart.Total, err = c.calculateCartItemTotalCost(ctx, cart.CartItems)
 	if err != nil {
 		return nil, fmt.Errorf("error calculating cart item total fee %w", err)
 	}
@@ -109,30 +109,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 	return &pkg.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 }
 
-func (c CartAppHandler) manageGuestCartSession(ctx context.Context, deviceID string, claims *pkg.UserClaims) error {
-	cart, terr := c.allRepository.CartRepository.GetCartByDeviceID(ctx, deviceID)
-	if terr != nil {
-		if !errors.Is(terr, mongo.ErrNoDocuments) {
-			return leetError.ErrorResponseBody(leetError.ErrorUnauthorized, terr)
-		}
-	}
-
-	if cart != nil {
-		ts := time.Unix(cart.Ts, 0)
-		expectedTime := ts.Add(24 * time.Hour)
-		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
-			err := c.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
-			if err != nil {
-				return err
-			}
-			return leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
-		}
-	}
-
-	return nil
-}
-
-func (c CartAppHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
+func (c CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []models.CartItem) (float64, error) {
 	var total float64
 
 	fees, err := c.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
