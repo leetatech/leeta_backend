@@ -39,11 +39,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "add to cart request body",
-                        "name": "domain.AddToCartRequest",
+                        "name": "domain.CartItem",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/AddToCartRequest"
+                            "$ref": "#/definitions/CartRefillDetails"
                         }
                     }
                 ],
@@ -1668,17 +1668,6 @@ const docTemplate = `{
                 "body": {}
             }
         },
-        "AddToCartRequest": {
-            "type": "object",
-            "properties": {
-                "cart_details": {
-                    "$ref": "#/definitions/CartRefillDetails"
-                },
-                "guest": {
-                    "type": "boolean"
-                }
-            }
-        },
         "Address": {
             "type": "object",
             "properties": {
@@ -2266,12 +2255,15 @@ const docTemplate = `{
         },
         "ReceiveGuestRequest": {
             "type": "object",
+            "required": [
+                "device_id"
+            ],
             "properties": {
                 "device_id": {
                     "type": "string"
                 },
-                "guest": {
-                    "type": "boolean"
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
                 }
             }
         },
@@ -2511,7 +2503,8 @@ const docTemplate = `{
                 1032,
                 1033,
                 1034,
-                1035
+                1035,
+                1036
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2548,7 +2541,8 @@ const docTemplate = `{
                 "InvalidOTPError",
                 "CartStatusesError",
                 "AmountPaidError",
-                "FeesStatusesError"
+                "FeesStatusesError",
+                "InvalidPageRequestError"
             ]
         },
         "leetError.ErrorResponse": {

@@ -4,13 +4,6 @@ definitions:
     properties:
       body: {}
     type: object
-  AddToCartRequest:
-    properties:
-      cart_details:
-        $ref: '#/definitions/CartRefillDetails'
-      guest:
-        type: boolean
-    type: object
   Address:
     properties:
       city:
@@ -396,8 +389,10 @@ definitions:
     properties:
       device_id:
         type: string
-      guest:
-        type: boolean
+      location:
+        $ref: '#/definitions/Coordinates'
+    required:
+    - device_id
     type: object
   ReceiveGuestResponse:
     properties:
@@ -563,6 +558,7 @@ definitions:
     - 1033
     - 1034
     - 1035
+    - 1036
     type: integer
     x-enum-varnames:
     - DatabaseError
@@ -600,6 +596,7 @@ definitions:
     - CartStatusesError
     - AmountPaidError
     - FeesStatusesError
+    - InvalidPageRequestError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -729,10 +726,10 @@ paths:
       parameters:
       - description: add to cart request body
         in: body
-        name: domain.AddToCartRequest
+        name: domain.CartItem
         required: true
         schema:
-          $ref: '#/definitions/AddToCartRequest'
+          $ref: '#/definitions/CartRefillDetails'
       produces:
       - application/json
       responses:

@@ -2,13 +2,13 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 )
 
 type Cart struct {
 	ID         string       `json:"id" bson:"id"`
 	CustomerID string       `json:"customer_id" bson:"customer_id"`
-	DeviceID   string       `json:"device_id" bson:"device_id"`
 	CartItems  []CartItem   `json:"cart_items" bson:"cart_items"`
 	Total      float64      `json:"total" bson:"total"`
 	Status     CartStatuses `json:"status" bson:"status"`
@@ -25,22 +25,30 @@ type CartItem struct {
 	TotalCost float64 `json:"total_cost" bson:"total_cost"`
 }
 
-func (c *CartItem) CalculateCartFee(fee *Fee) float64 {
+func (c *CartItem) CalculateCartFee(fee *Fee) (float64, error) {
 	var totalCost float64
 
-	if fee.ProductID == c.ProductID {
-		var cost float64
-		if c.Weight != 0 {
-			cost = float64(c.Weight) * fee.CostPerKg
-		} else {
-			cost = fee.CostPerQty
-		}
-		totalCost += cost * float64(c.Quantity)
-	} else {
-		return 0
+	// Check if the product IDs match
+	if fee.ProductID != c.ProductID {
+		return 0, fmt.Errorf("cart product id: %s does not match fee's product id: %s", c.ProductID, fee.ProductID)
 	}
 
-	return totalCost
+	// check for quantity
+	if c.Quantity == 0 {
+		return 0, fmt.Errorf("invalid cart item, cart quantity cannot be zero %d", c.Quantity)
+	}
+
+	// Calculate cost based on weight or quantity
+	if c.Weight != 0 {
+		totalCost = float64(c.Weight) * fee.CostPerKg
+	} else {
+		totalCost = fee.CostPerQty
+	}
+
+	// Multiply cost by quantity
+	totalCost *= float64(c.Quantity)
+
+	return totalCost, nil
 }
 
 type CartStatuses string

@@ -11,4 +11,5 @@ const (
 	RefillCollectionName        = "refills"
 	CartsCollectionName         = "carts"
 	FeesCollectionName          = "fees"
+	GuestsCollectionName        = "guests"
 )

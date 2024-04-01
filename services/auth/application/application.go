@@ -285,7 +285,20 @@ func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSig
 
 func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error) {
 	sessionID := a.idGenerator.Generate()
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", request.DeviceID, sessionID, models.GuestCatergory)
+	guestID := a.idGenerator.Generate()
+
+	// store guest information
+	guest := models.Guest{
+		ID:       guestID,
+		DeviceID: request.DeviceID,
+		Location: request.Location,
+	}
+
+	if err := a.allRepository.AuthRepository.CreateGuestRecord(context.Background(), guest); err != nil {
+		return nil, fmt.Errorf("error creating guest record %w", err)
+	}
+
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestID, sessionID, models.GuestCatergory)
 	if err != nil {
 		return nil, err
 	}
