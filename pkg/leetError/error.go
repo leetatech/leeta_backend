@@ -132,7 +132,7 @@ var (
 type ErrorResponse struct {
 	ErrorReference uuid.UUID `json:"error_reference"`
 	ErrorCode      ErrorCode `json:"error_code"`
-	code           ErrorCode `json:"code"`
+	Code           ErrorCode `json:"code"`
 	ErrorType      string    `json:"error_type"`
 	Message        string    `json:"message"`
 	Err            error     `json:"-"`
@@ -185,9 +185,4 @@ func ErrorMessage(code ErrorCode) string {
 
 func ErrorType(code ErrorCode) string {
 	return errorTypes[code]
-}
-
-// Code getter
-func (e ErrorResponse) Code() ErrorCode {
-	return e.code
 }

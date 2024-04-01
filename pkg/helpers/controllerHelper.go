@@ -12,7 +12,7 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 	var lerr *leetError.ErrorResponse
 	switch {
 	case errors.As(err, &lerr):
-		if lerr.Code() == leetError.ErrorUnauthorized {
+		if lerr.Code == leetError.ErrorUnauthorized {
 			pkg.EncodeErrorResult(w, http.StatusUnauthorized)
 			return
 		}

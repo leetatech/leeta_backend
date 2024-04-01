@@ -78,7 +78,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 	if err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNoDocuments):
-			err = c.allRepository.CartRepository.AddToCart(ctx, models.Cart{
+			addToCartErr := c.allRepository.CartRepository.AddToCart(ctx, models.Cart{
 				ID:         c.idGenerator.Generate(),
 				CustomerID: claims.SessionID,
 				CartItems:  []models.CartItem{cartItem},
@@ -87,6 +87,9 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 				StatusTs:   time.Now().Unix(),
 				Ts:         time.Now().Unix(),
 			})
+			if addToCartErr != nil {
+				return nil, fmt.Errorf("error when adding item to cart store %w", err)
+			}
 			return &pkg.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 		default:
 			return nil, fmt.Errorf("error getting cart item by customer id %w", err)

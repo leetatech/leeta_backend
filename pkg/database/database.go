@@ -12,8 +12,8 @@ import (
 
 func MongoDBClient(ctx context.Context, config *config.ServerConfig) (*mongo.Client, error) {
 	clientOpts := config.GetClientOptions()
-	mongoClient, err := mongo.NewClient(clientOpts)
-	err = mongoClient.Connect(ctx)
+	mongoClient, _ := mongo.NewClient(clientOpts)
+	err := mongoClient.Connect(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to mongo client: %w", err)
 	}

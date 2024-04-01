@@ -1,9 +1,7 @@
 package models
 
 import (
-	"errors"
 	"fmt"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
 )
 
 type Cart struct {
@@ -57,16 +55,3 @@ const (
 	CartActive   CartStatuses = "ACTIVE"   // cart has been created and active
 	CartInactive CartStatuses = "INACTIVE" // cart has been inactivated and no longer active due to check out or session expiry
 )
-
-func IsValidCartStatus(status CartStatuses) bool {
-	return status == CartActive || status == CartInactive
-}
-
-func SetCartStatus(status CartStatuses) (CartStatuses, error) {
-	switch IsValidCartStatus(status) {
-	case true:
-		return status, nil
-	default:
-		return "", leetError.ErrorResponseBody(leetError.CartStatusesError, errors.New("invalid cart status"))
-	}
-}

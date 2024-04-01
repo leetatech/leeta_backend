@@ -119,11 +119,9 @@ func GetImages(r *http.Request) ([]string, error) {
 		}
 
 		images = append(images, encodedImage)
-
-		return images, nil
 	}
 
-	return nil, nil
+	return images, nil
 }
 
 func stringToFloat64(strValue string) (float64, error) {
