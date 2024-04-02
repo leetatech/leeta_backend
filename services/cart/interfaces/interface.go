@@ -75,8 +75,8 @@ func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *
 }
 
 // UpdateCartItemQuantityHandler is the endpoint to increase cart item quantity
-// @Summary Increase cart item quantity
-// @Description The endpoint to increase cart item quantity
+// @Summary increase or reduce cart item quantity
+// @Description The endpoint to increase or reduce cart item quantity
 // @Tags Cart
 // @Accept json
 // @Produce json
