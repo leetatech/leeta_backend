@@ -69,8 +69,8 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 		Quantity:  request.Quantity,
 	}
 
-	cartItem.TotalCost, err = cartItem.CalculateCartFee(fee)
-	if cartItem.TotalCost == 0 {
+	cartItem.Cost, err = cartItem.CalculateCartFee(fee)
+	if cartItem.Cost == 0 {
 		return nil, fmt.Errorf("unable to calculate cart fee %w", err)
 	}
 
@@ -80,9 +80,9 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 		case errors.Is(err, mongo.ErrNoDocuments):
 			addToCartErr := c.allRepository.CartRepository.AddToCart(ctx, models.Cart{
 				ID:         c.idGenerator.Generate(),
-				CustomerID: claims.SessionID,
+				CustomerID: claims.UserID,
 				CartItems:  []models.CartItem{cartItem},
-				Total:      cartItem.TotalCost,
+				Total:      cartItem.Cost,
 				Status:     models.CartActive,
 				StatusTs:   time.Now().Unix(),
 				Ts:         time.Now().Unix(),

@@ -88,7 +88,7 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 	if cart != nil {
 		ts := time.Unix(cart.Ts, 0)
 		expectedTime := ts.Add(24 * time.Hour)
-		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
+		if time.Now().After(expectedTime) || cart.CustomerID != claims.UserID {
 			err := r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
 			if err != nil {
 				return domain.GasRefillRequest{}, err
@@ -97,8 +97,7 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 		}
 	}
 
-	claims.UserID = claims.SessionID
-	request.GuestBioData.SessionID = claims.SessionID
+	request.GuestBioData.SessionID = claims.UserID
 	if request.ShippingInfo.ForMe {
 		request.ShippingInfo = r.forMeCheck(request.ShippingInfo, fmt.Sprintf("%s %s", request.GuestBioData.FirstName, request.GuestBioData.LastName), request.GuestBioData.Phone, request.GuestBioData.Email)
 	}
