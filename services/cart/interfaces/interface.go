@@ -85,7 +85,7 @@ func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /cart/item [put]
+// @Router /cart/item/quantity [put]
 func (handler *CartHttpHandler) UpdateCartItemQuantityHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.UpdateCartItemQuantityRequest
 	err := json.NewDecoder(r.Body).Decode(&request)

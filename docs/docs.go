@@ -115,7 +115,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/cart/item": {
+        "/cart/item/quantity": {
             "put": {
                 "security": [
                     {

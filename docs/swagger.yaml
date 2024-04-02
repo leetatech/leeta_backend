@@ -785,7 +785,7 @@ paths:
       summary: Request cart inactivation
       tags:
       - Cart
-  /cart/item:
+  /cart/item/quantity:
     put:
       consumes:
       - application/json
