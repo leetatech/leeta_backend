@@ -120,58 +120,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/cart/item/decrease": {
-            "put": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to decrease cart item quantity",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Decrease cart item quantity",
-                "parameters": [
-                    {
-                        "description": "update cart item quantity request body",
-                        "name": "domain.UpdateCartItemQuantityRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/cart/item/increase": {
+        "/cart/item": {
             "put": {
                 "security": [
                     {
@@ -2539,9 +2488,6 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
-                },
-                "weight": {
-                    "type": "number"
                 }
             }
         },

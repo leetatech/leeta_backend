@@ -500,8 +500,6 @@ definitions:
         type: string
       quantity:
         type: integer
-      weight:
-        type: number
     type: object
   UpdateOrderStatusRequest:
     properties:
@@ -798,39 +796,7 @@ paths:
       summary: Request cart inactivation
       tags:
       - Cart
-  /cart/item/decrease:
-    put:
-      consumes:
-      - application/json
-      description: The endpoint to decrease cart item quantity
-      parameters:
-      - description: update cart item quantity request body
-        in: body
-        name: domain.UpdateCartItemQuantityRequest
-        required: true
-        schema:
-          $ref: '#/definitions/UpdateCartItemQuantityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Decrease cart item quantity
-      tags:
-      - Cart
-  /cart/item/increase:
+  /cart/item:
     put:
       consumes:
       - application/json

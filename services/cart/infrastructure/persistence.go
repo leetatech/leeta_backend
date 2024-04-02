@@ -66,15 +66,22 @@ func (c *CartStoreHandler) AddToCartItem(ctx context.Context, cartID string, car
 	return nil
 }
 
-func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartID, cartItemID string) error {
-	filter := bson.M{"id": cartID}
+func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartItemID string, itemTotalCost float64) error {
+	filter := bson.M{"cart_items.id": cartItemID}
 
-	update := bson.M{"$pull": bson.M{"cart_items": bson.M{"id": cartItemID}}}
+	update := bson.M{
+		"$pull": bson.M{
+			"cart_items": bson.M{"id": cartItemID},
+		},
+		"$inc": bson.M{"total": -itemTotalCost},
+		"$set": bson.M{"status_ts": time.Now().Unix()},
+	}
 
 	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -119,11 +126,6 @@ func (c *CartStoreHandler) UpdateCartItemQuantity(ctx context.Context, request d
 	updateFields := bson.M{}
 	if request.Quantity != 0 {
 		updateFields["cart_items.$.quantity"] = request.Quantity
-		updateFields["cart_items.$.total_cost"] = request.ItemTotalCost
-		updateFields["total"] = request.ItemTotalCost
-	}
-	if request.Weight != 0 {
-		updateFields["cart_items.$.weight"] = request.Weight
 		updateFields["cart_items.$.total_cost"] = request.ItemTotalCost
 		updateFields["total"] = request.ItemTotalCost
 	}
