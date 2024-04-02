@@ -39,6 +39,14 @@ func (a authStoreHandler) CreateIdentity(ctx context.Context, identity models.Id
 	return nil
 }
 
+func (a authStoreHandler) CreateGuestRecord(ctx context.Context, guest models.Guest) error {
+	_, err := a.col(models.GuestsCollectionName).InsertOne(ctx, guest)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a authStoreHandler) GetVendorByEmail(ctx context.Context, email string) (*models.Vendor, error) {
 	vendor := &models.Vendor{}
 	filter := bson.M{

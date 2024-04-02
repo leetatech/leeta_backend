@@ -36,7 +36,7 @@ func NewGasRefillApplication(request pkg.DefaultApplicationRequest) GasRefillApp
 	}
 }
 
-func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error) {
+func (r *GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error) {
 
 	claims, err := r.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
@@ -169,7 +169,7 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 	return nil
 }
 
-func (r GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
+func (r *GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
 	var serviceFee float64
 
 	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)

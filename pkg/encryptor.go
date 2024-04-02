@@ -19,7 +19,6 @@ type EncryptorManager interface {
 	GenerateFromPasscode(passcode string) ([]byte, error)
 	IsValidPassword(s string) error
 	IsValidEmailFormat(email string) error
-	IsValidHost(email string) error
 	IsLeetaDomain(email, leetaDomain string) error
 }
 
@@ -36,13 +35,7 @@ func (e *encryptorHandler) ComparePasscode(passcode, hashedPasscode string) erro
 }
 
 func (e *encryptorHandler) IsValidPassword(s string) error {
-	var (
-		hasMinLen  = false
-		hasUpper   = false
-		hasLower   = false
-		hasNumber  = false
-		hasSpecial = false
-	)
+	var hasMinLen, hasUpper, hasLower, hasNumber, hasSpecial bool
 	switch {
 	case len(s) >= 6:
 		hasMinLen = true
@@ -79,20 +72,6 @@ func (e *encryptorHandler) IsValidEmailFormat(email string) error {
 	return nil
 }
 
-func (e *encryptorHandler) IsValidHost(email string) error {
-	//parts := strings.Split(email, "@")
-	//if len(parts) != 2 {
-	//	return leetError.ErrorResponseBody(leetError.EmailFormatError, nil)
-	//}
-	//domain := parts[1]
-	err := checkmail.ValidateHost(email)
-	if err != nil {
-		return leetError.ErrorResponseBody(leetError.ValidEmailHostError, nil)
-	}
-
-	return nil
-}
-
 func (e *encryptorHandler) IsLeetaDomain(email, leetaDomain string) error {
 
 	parts := strings.Split(email, "@")
@@ -106,7 +85,7 @@ func (e *encryptorHandler) IsLeetaDomain(email, leetaDomain string) error {
 		return leetError.ErrorResponseBody(leetError.ValidEmailHostError, err)
 	}
 
-	if strings.ToLower(domain) != strings.ToLower(leetaDomain) {
+	if strings.EqualFold(domain, leetaDomain) {
 		return leetError.ErrorResponseBody(leetError.ValidLeetaDomainError, nil)
 	}
 

@@ -59,8 +59,8 @@ type AdminSignUpRequest struct {
 } // @name AdminSignUpRequest
 
 type ReceiveGuestRequest struct {
-	Guest    bool   `json:"guest" bson:"guest"`
-	DeviceID string `json:"device_id" bson:"device_id"`
+	Location models.Coordinates `json:"location,omitempty" bson:"location"`
+	DeviceID string             `json:"device_id" validate:"required" bson:"device_id"`
 } // @name ReceiveGuestRequest
 
 type ReceiveGuestResponse struct {

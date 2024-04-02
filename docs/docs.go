@@ -25,11 +25,6 @@ const docTemplate = `{
     "paths": {
         "/cart/add": {
             "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
                 "description": "The endpoint to add items to cart",
                 "consumes": [
                     "application/json"
@@ -44,11 +39,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "add to cart request body",
-                        "name": "domain.AddToCartRequest",
+                        "name": "domain.CartItem",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/AddToCartRequest"
+                            "$ref": "#/definitions/CartRefillDetails"
                         }
                     }
                 ],
@@ -95,57 +90,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/InactivateCart"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/cart/item": {
-            "put": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to increase cart item quantity",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Increase cart item quantity",
-                "parameters": [
-                    {
-                        "description": "update cart item quantity request body",
-                        "name": "domain.UpdateCartItemQuantityRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
                         }
                     }
                 ],
@@ -1724,17 +1668,6 @@ const docTemplate = `{
                 "body": {}
             }
         },
-        "AddToCartRequest": {
-            "type": "object",
-            "properties": {
-                "cart_details": {
-                    "$ref": "#/definitions/CartRefillDetails"
-                },
-                "guest": {
-                    "type": "boolean"
-                }
-            }
-        },
         "Address": {
             "type": "object",
             "properties": {
@@ -2322,12 +2255,15 @@ const docTemplate = `{
         },
         "ReceiveGuestRequest": {
             "type": "object",
+            "required": [
+                "device_id"
+            ],
             "properties": {
                 "device_id": {
                     "type": "string"
                 },
-                "guest": {
-                    "type": "boolean"
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
                 }
             }
         },
@@ -2480,17 +2416,6 @@ const docTemplate = `{
                 }
             }
         },
-        "UpdateCartItemQuantityRequest": {
-            "type": "object",
-            "properties": {
-                "cart_item_id": {
-                    "type": "string"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2579,9 +2504,7 @@ const docTemplate = `{
                 1033,
                 1034,
                 1035,
-                1036,
-                1037,
-                1038
+                1036
             ],
             "x-enum-varnames": [
                 "DatabaseError",
@@ -2619,9 +2542,7 @@ const docTemplate = `{
                 "CartStatusesError",
                 "AmountPaidError",
                 "FeesStatusesError",
-                "InvalidPageRequestError",
-                "CartItemQuantityError",
-                "CartItemRequestQuantityError"
+                "InvalidPageRequestError"
             ]
         },
         "leetError.ErrorResponse": {
