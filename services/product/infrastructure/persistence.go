@@ -7,6 +7,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -29,17 +30,6 @@ func NewProductPersistence(client *mongo.Client, databaseName string, logger *za
 }
 
 func (p productStoreHandler) CreateProduct(ctx context.Context, request models.Product) error {
-	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	_, err := p.col(models.ProductCollectionName).InsertOne(updatedCtx, request)
-	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
-	}
-	return nil
-}
-
-func (p productStoreHandler) CreateGasProduct(ctx context.Context, request models.Product) error {
 	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -113,7 +103,12 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request filter.Re
 		p.logger.Error("error getting extra document", zap.Error(err))
 		return nil, err
 	}
-	defer extraDocumentCursor.Close(ctx)
+	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
+		err := extraDocumentCursor.Close(ctx)
+		if err != nil {
+			log.Debug().Msgf("error closing mongo cursor %v", err)
+		}
+	}(extraDocumentCursor, ctx)
 	hasNextPage := extraDocumentCursor.Next(ctx)
 
 	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, opts)

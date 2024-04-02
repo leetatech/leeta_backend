@@ -19,7 +19,7 @@ type UpdateRefillRequest struct {
 type ListRefillFilter struct {
 	Status     []models.RefillRequestStatus `json:"status" bson:"status"`
 	GasType    []models.ProductCategory     `json:"gas_type" bson:"gas_type"`
-	CustomerID string                       `json:"customer_id" json:"customer_id"`
+	CustomerID string                       `json:"customer_id" bson:"customer_id"`
 	GuestEmail string                       `json:"guest_email" bson:"guest_email"`
 	Limit      int64                        `json:"limit" bson:"limit"`
 	Page       int64                        `json:"page" bson:"page"`

@@ -20,6 +20,7 @@ type UserClaims struct {
 	jwt.StandardClaims
 	SessionID string              `json:"session_id"`
 	UserID    string              `json:"user_id"`
+	DeviceID  string              `json:"device_id"`
 	Email     string              `json:"email"`
 	Role      models.UserCategory `json:"role"`
 }
