@@ -20,7 +20,7 @@ type CartItem struct {
 	VendorID  string  `json:"vendor_id" bson:"vendor_id"`
 	Weight    float32 `json:"weight,omitempty" bson:"weight"`
 	Quantity  int     `json:"quantity,omitempty" bson:"quantity"`
-	TotalCost float64 `json:"total_cost" bson:"total_cost"`
+	Cost      float64 `json:"cost" bson:"cost"`
 }
 
 func (c *CartItem) CalculateCartFee(fee *Fee) (float64, error) {
