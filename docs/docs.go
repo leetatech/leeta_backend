@@ -82,6 +82,7 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Request cart inactivation",
+                "deprecated": true,
                 "parameters": [
                     {
                         "description": "inactivate cart request body",
@@ -142,6 +143,55 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/UpdateCartItemQuantityRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/{cart_item_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to delete items from cart. This endpoint also deletes an entire cart if there is no item left in the cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Delete items from cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cart_item_id",
+                        "name": "cart_item_id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2571,7 +2621,9 @@ const docTemplate = `{
                 1036,
                 1037,
                 1038,
-                1039
+                1039,
+                1040,
+                1041
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2615,15 +2667,14 @@ const docTemplate = `{
                 "InvalidPageRequestError",
                 "CartItemQuantityError",
                 "CartItemRequestQuantityError",
-                "InvalidRequestError"
+                "InvalidRequestError",
+                "InternalError",
+                "InvalidProductIdError"
             ]
         },
         "leetError.ErrorResponse": {
             "type": "object",
             "properties": {
-                "code": {
-                    "$ref": "#/definitions/leetError.ErrorCode"
-                },
                 "error_code": {
                     "$ref": "#/definitions/leetError.ErrorCode"
                 },
@@ -2633,10 +2684,8 @@ const docTemplate = `{
                 "error_type": {
                     "type": "string"
                 },
+                "internal_error_message": {},
                 "message": {
-                    "type": "string"
-                },
-                "timestamp": {
                     "type": "string"
                 }
             }

@@ -196,7 +196,7 @@ func EncodeErrorResult(w http.ResponseWriter, code int, err error) {
 	data := struct {
 		Data any `json:"data"`
 	}{
-		Data: err.Error(),
+		Data: err,
 	}
 
 	newErr := json.NewEncoder(w).Encode(&data)
