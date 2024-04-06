@@ -24,8 +24,7 @@ type CartAppHandler struct {
 }
 
 type CartApplication interface {
-	InactivateCart(ctx context.Context, request domain.InactivateCart) (*library.DefaultResponse, error)
-	DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*library.DefaultResponse, error)
+	DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*pkg.DefaultResponse, error)
 	InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error)
 	AddToCart(ctx context.Context, request domain.CartItem) (*pkg.DefaultResponse, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error)
@@ -228,38 +227,30 @@ func (c CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item
 	return item, nil
 }
 
-
-
-func (c CartAppHandler) DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*library.DefaultResponse, error) {
-	successMsg := "Successfully deleted item from cart"
-
-	if request.ReducedQuantityCount > 0 || request.ReducedWeightCount > 0 {
-		fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, request.ProductID, models.FeesActive)
-		if err != nil {
-			c.logger.Error("error getting fee by product id", zap.Error(err))
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
-		}
-		if request.ReducedQuantityCount != 0 {
-			request.TotalReducedItemCost = float64(request.ReducedQuantityCount) * fee.CostPerQty
-		}
-		if request.ReducedWeightCount != 0 {
-			request.TotalReducedItemCost = request.ReducedWeightCount * fee.CostPerKg
-		}
-
-		err = c.allRepository.CartRepository.UpdateCartItemQuantityOrWeight(ctx, request)
-		if err != nil {
-			c.logger.Error("error updating cart item weight or quantity", zap.Error(err))
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
-		}
-
-		return &library.DefaultResponse{Success: "success", Message: successMsg}, nil
+func (c CartAppHandler) DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*pkg.DefaultResponse, error) {
+	_, err := c.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	err = c.allRepository.CartRepository.DeleteCartItem(ctx, request.CartID, request.CartItemID)
+	cart, err := c.allRepository.CartRepository.GetCartByCartItemID(ctx, request.CartItemID)
+	if err != nil {
+		c.logger.Error("error getting cart by cart item id", zap.Error(err))
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	var itemTotalCost float64
+	for _, item := range cart.CartItems {
+		if item.ID == request.CartItemID {
+			itemTotalCost = item.Cost
+		}
+	}
+
+	err = c.allRepository.CartRepository.DeleteCartItem(ctx, request.CartItemID, itemTotalCost)
 	if err != nil {
 		c.logger.Error("error deleting cart item", zap.Error(err))
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: successMsg}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Successfully deleted item from cart"}, nil
 }

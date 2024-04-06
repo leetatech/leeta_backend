@@ -25,11 +25,6 @@ const docTemplate = `{
     "paths": {
         "/cart/add": {
             "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
                 "description": "The endpoint to add items to cart",
                 "consumes": [
                     "application/json"
@@ -87,6 +82,7 @@ const docTemplate = `{
                     "Cart"
                 ],
                 "summary": "Request cart inactivation",
+                "deprecated": true,
                 "parameters": [
                     {
                         "description": "inactivate cart request body",
@@ -96,6 +92,55 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/InactivateCart"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to delete items from cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Delete items from cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cartItemID",
+                        "name": "cartItemID",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -147,81 +192,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/UpdateCartItemQuantityRequest"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/delete": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to delete items from cart",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Delete items from cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "cartID",
-                        "name": "cartID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "cartItemID",
-                        "name": "cartItemID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "productID",
-                        "name": "productID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "weight",
-                        "name": "weight",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "quantity",
-                        "name": "quantity",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2651,7 +2621,9 @@ const docTemplate = `{
                 1036,
                 1037,
                 1038,
-                1039
+                1039,
+                1040,
+                1041
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2695,15 +2667,14 @@ const docTemplate = `{
                 "InvalidPageRequestError",
                 "CartItemQuantityError",
                 "CartItemRequestQuantityError",
-                "InvalidRequestError"
+                "InvalidRequestError",
+                "InternalError",
+                "InvalidProductIdError"
             ]
         },
         "leetError.ErrorResponse": {
             "type": "object",
             "properties": {
-                "code": {
-                    "$ref": "#/definitions/leetError.ErrorCode"
-                },
                 "error_code": {
                     "$ref": "#/definitions/leetError.ErrorCode"
                 },
@@ -2713,10 +2684,8 @@ const docTemplate = `{
                 "error_type": {
                     "type": "string"
                 },
+                "internal_error_message": {},
                 "message": {
-                    "type": "string"
-                },
-                "timestamp": {
                     "type": "string"
                 }
             }

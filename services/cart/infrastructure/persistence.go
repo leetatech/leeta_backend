@@ -77,7 +77,7 @@ func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartItemID string
 		"$set": bson.M{"status_ts": time.Now().Unix()},
 	}
 
-	result, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
+	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}

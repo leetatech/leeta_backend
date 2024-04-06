@@ -14,13 +14,9 @@ type CartItem struct {
 } // @name CartRefillDetails
 
 type DeleteCartItemRequest struct {
-	CartID               string  `json:"cart_id"`
-	CartItemID           string  `json:"cart_item_id"`
-	ProductID            string  `json:"product_id"`
-	ReducedQuantityCount int     `json:"reduced_quantity_count"`
-	ReducedWeightCount   float64 `json:"reduced_weight_count"`
-	TotalReducedItemCost float64 `json:"total_reduced_item_cost"`
+	CartItemID string `json:"cart_item_id"`
 } // @name DeleteCartItemRequest
+
 type UpdateCartItemQuantityRequest struct {
 	CartItemID string `json:"cart_item_id"`
 	Quantity   int    `json:"quantity"`
