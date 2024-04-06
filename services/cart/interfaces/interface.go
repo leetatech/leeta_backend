@@ -2,10 +2,10 @@ package interfaces
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
-	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -40,7 +40,6 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 
 	response, err := handler.CartApplication.AddToCart(r.Context(), request)
 	if err != nil {
-		log.Debug().Msgf("error adding item to cart %v", err)
 		pkg.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -93,9 +92,15 @@ func (handler *CartHttpHandler) UpdateCartItemQuantityHandler(w http.ResponseWri
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
+
+	if isValid, err := request.IsValid(); !isValid {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, fmt.Errorf("requst is not valid: %w", err))
+		return
+	}
+
 	response, err := handler.CartApplication.UpdateCartItemQuantity(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
 

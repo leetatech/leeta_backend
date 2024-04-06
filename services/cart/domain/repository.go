@@ -14,5 +14,4 @@ type CartRepository interface {
 	DeleteCartItem(ctx context.Context, cartItemID string, itemTotalCost float64) error
 	InactivateCart(ctx context.Context, id string) error
 	GetCartByCartItemID(ctx context.Context, cartItemID string) (*models.Cart, error)
-	UpdateCartItemQuantity(ctx context.Context, request UpdateCartItemQuantity) error
 }

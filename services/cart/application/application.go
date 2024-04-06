@@ -11,7 +11,6 @@ import (
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"math"
 	"time"
 )
 
@@ -67,18 +66,19 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 
 	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, product.ID, models.FeesActive)
 	if err != nil {
-		return nil, fmt.Errorf("error getting fee from product with id %s: %w", product.ID, err)
+		return nil, leetError.ErrorResponseBody(leetError.InvalidProductIdError, fmt.Errorf("error getting fee %w", err))
 	}
 
 	cartItem := models.CartItem{
-		ID:        c.idGenerator.Generate(),
-		ProductID: request.ProductID,
-		VendorID:  product.VendorID,
-		Weight:    request.Weight,
-		Quantity:  request.Quantity,
+		ID:              c.idGenerator.Generate(),
+		ProductID:       request.ProductID,
+		ProductCategory: product.ParentCategory,
+		VendorID:        product.VendorID,
+		Weight:          request.Weight,
+		Quantity:        request.Quantity,
 	}
 
-	cartItem.Cost, err = cartItem.CalculateCartFee(fee)
+	cartItem.Cost, err = cartItem.CalculateCartItemFee(fee)
 	if cartItem.Cost == 0 {
 		return nil, fmt.Errorf("unable to calculate cart fee %w", err)
 	}
@@ -132,7 +132,7 @@ func (c CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []
 	for _, item := range items {
 		for _, fee := range fees {
 			if fee.ProductID == item.ProductID {
-				cartTotalFee, err := item.CalculateCartFee(&fee)
+				cartTotalFee, err := item.CalculateCartItemFee(&fee)
 				if err != nil {
 					return 0, fmt.Errorf("error calculating cart fee %w", err)
 				}
@@ -150,113 +150,79 @@ func (c CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request doma
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	resp, updateRequest, err := c.gasProductCategoryAdjustment(ctx, request)
+	cart, err := c.allRepository.CartRepository.GetCartByCartItemID(ctx, request.CartItemID)
 	if err != nil {
-		return nil, err
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error getting cart item with cart item id '%s': %w", request.CartItemID, err))
 	}
-	if resp != nil {
-		return resp, nil
+	cartItem, index, err := c.retrieveCartItemFromUpdateRequest(ctx, request, cart)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error retrieving cartItem: %w", err))
 	}
+	adjustedCartItem, err := c.adjustCartItemAndCalculateCost(ctx, cartItem)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error adjust cart item and calculating cost: %w", err))
+	}
+	// update item in cart and calculate total cart new cost
+	cart.CartItems[index] = adjustedCartItem
+	totalCost := cart.CalculateCartTotalFee()
+	cart.Total = totalCost
 
-	err = c.allRepository.CartRepository.UpdateCartItemQuantity(ctx, *updateRequest)
+	err = c.allRepository.CartRepository.UpdateCart(ctx, *cart)
 	if err != nil {
-		c.logger.Error("error updating cart item quantity", zap.Error(err))
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, fmt.Errorf("error updating cart with adjusted cart item: %w", err))
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "Successfully updated cart item quantity"}, nil
 }
 
-func (c CartAppHandler) compareStoredAndRequestQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, *domain.StoredCartItemDetails, error) {
-	var (
-		quantityErrorMsg = "invalid quantity"
-	)
-
-	cart, err := c.allRepository.CartRepository.GetCartByCartItemID(ctx, request.CartItemID)
-	if err != nil {
-		return nil, nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
-	}
-
-	if request.Quantity == 0 {
-		return nil, nil, leetError.ErrorResponseBody(leetError.CartItemRequestQuantityError, errors.New(quantityErrorMsg))
-	}
-
-	// TODO itemsInCart := len(cart.CartItems)
-
-	var storedItemDetails domain.StoredCartItemDetails
-
-	for _, item := range cart.CartItems {
+func (c CartAppHandler) retrieveCartItemFromUpdateRequest(ctx context.Context, request domain.UpdateCartItemQuantityRequest, cart *models.Cart) (cartItem models.CartItem, index int, err error) {
+	for i, item := range cart.CartItems {
 		if item.ID == request.CartItemID {
-			storedItemDetails = domain.StoredCartItemDetails{
-				ProductID: item.ProductID,
-				Weight:    item.Weight,
-				Quantity:  item.Quantity,
-			}
-			if request.Quantity < 0 {
-				if item.Quantity == 1 && request.Quantity < 0 || item.Quantity == int(math.Abs(float64(request.Quantity))) {
-					err = c.allRepository.CartRepository.DeleteCartItem(ctx, request.CartItemID, item.Cost)
-					if err != nil {
-						return nil, nil, err
-					}
-
-					// TODO when others are merged if itemsInCart == 1 {}
-
-					return &pkg.DefaultResponse{Success: "success", Message: "Successfully deleted cart item"}, nil, nil
-				}
-			}
+			index = i
+			cartItem = item
+			cartItem.Quantity = request.Quantity
+			break
 		}
 	}
 
-	var product *models.Product
-	if storedItemDetails.ProductID != "" {
-		product, err = c.allRepository.ProductRepository.GetProductByID(ctx, storedItemDetails.ProductID)
-		if err != nil {
-			return nil, nil, err
+	if cartItem.ProductID != "" {
+		product, getProductErr := c.allRepository.ProductRepository.GetProductByID(ctx, cartItem.ProductID)
+		if getProductErr != nil {
+			return cartItem, index, fmt.Errorf("error retrieving product %w", getProductErr)
 		}
+
+		cartItem.ProductCategory = product.ParentCategory
 	}
 
-	storedItemDetails.ProductCategory = product.ParentCategory
-
-	return nil, &storedItemDetails, nil
+	return
 }
 
 func (c CartAppHandler) retrieveProductFee(ctx context.Context, productID string) (*models.Fee, error) {
-
 	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, productID, models.FeesActive)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, fmt.Errorf("error retrieving fee for product with id '%s': %w", productID, err)
 	}
 
 	return fee, nil
 }
 
-func (c CartAppHandler) gasProductCategoryAdjustment(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, *domain.UpdateCartItemQuantity, error) {
-	resp, storedCartItemDetails, err := c.compareStoredAndRequestQuantity(ctx, request)
+func (c CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item models.CartItem) (cartItem models.CartItem, err error) {
+	fee, err := c.retrieveProductFee(ctx, item.ProductID)
 	if err != nil {
-		return nil, nil, err
-	}
-	if resp != nil {
-		return resp, nil, nil
+		err = fmt.Errorf("error retriving cart item product fee %w", err)
+		return
 	}
 
-	fee, err := c.retrieveProductFee(ctx, storedCartItemDetails.ProductID)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var updateRequest domain.UpdateCartItemQuantity
-
-	switch storedCartItemDetails.ProductCategory {
+	switch item.ProductCategory {
 	case models.LNGProductCategory, models.LPGProductCategory:
-		newQuantity := storedCartItemDetails.Quantity + request.Quantity
-		oldItemCost := storedCartItemDetails.Weight * float32(storedCartItemDetails.Quantity) * float32(fee.CostPerKg)
-		newItemCost := storedCartItemDetails.Weight * float32(newQuantity) * float32(fee.CostPerKg)
-
-		updateRequest.CartItemID = request.CartItemID
-		updateRequest.Quantity = request.Quantity
-		updateRequest.ItemTotalCost = float64(newItemCost)
-		updateRequest.CartTotalCost = float64(newItemCost - oldItemCost)
+		itemWeightCost := item.Weight * float32(fee.CostPerKg)
+		itemCost := itemWeightCost * float32(item.Quantity)
+		item.Cost = float64(itemCost)
+	default:
+		// TODO: refactor this when we know more product categories
+		err = errors.New("invalid product category, when updating product quantity")
+		return
 	}
 
-	return resp, &updateRequest, nil
+	return item, nil
 }

@@ -15,15 +15,16 @@ type Cart struct {
 }
 
 type CartItem struct {
-	ID        string  `json:"id" bson:"id"`
-	ProductID string  `json:"product_id" bson:"product_id"`
-	VendorID  string  `json:"vendor_id" bson:"vendor_id"`
-	Weight    float32 `json:"weight,omitempty" bson:"weight"`
-	Quantity  int     `json:"quantity,omitempty" bson:"quantity"`
-	Cost      float64 `json:"cost" bson:"cost"`
+	ID              string          `json:"id" bson:"id"`
+	ProductID       string          `json:"product_id" bson:"product_id"`
+	ProductCategory ProductCategory `json:"product_category" bson:"product_category"`
+	VendorID        string          `json:"vendor_id" bson:"vendor_id"`
+	Weight          float32         `json:"weight,omitempty" bson:"weight"`
+	Quantity        int             `json:"quantity,omitempty" bson:"quantity"`
+	Cost            float64         `json:"cost" bson:"cost"`
 }
 
-func (c *CartItem) CalculateCartFee(fee *Fee) (float64, error) {
+func (c *CartItem) CalculateCartItemFee(fee *Fee) (float64, error) {
 	var totalCost float64
 
 	// Check if the product IDs match
@@ -47,6 +48,16 @@ func (c *CartItem) CalculateCartFee(fee *Fee) (float64, error) {
 	totalCost *= float64(c.Quantity)
 
 	return totalCost, nil
+}
+
+func (c *Cart) CalculateCartTotalFee() float64 {
+	var totalCost float64
+
+	for _, cartItem := range c.CartItems {
+		totalCost += cartItem.Cost
+	}
+
+	return totalCost
 }
 
 type CartStatuses string

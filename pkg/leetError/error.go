@@ -50,6 +50,8 @@ const (
 	CartItemQuantityError        ErrorCode = 1037
 	CartItemRequestQuantityError ErrorCode = 1038
 	InvalidRequestError          ErrorCode = 1039 // generic
+	InternalError                ErrorCode = 1040
+	InvalidProductIdError        ErrorCode = 1041
 )
 
 var (
@@ -93,6 +95,8 @@ var (
 		CartItemQuantityError:        "CartItemQuantityError",
 		CartItemRequestQuantityError: "CartItemRequestQuantityError",
 		InvalidRequestError:          "InvalidRequestError",
+		InternalError:                "InternalError",
+		InvalidProductIdError:        "InvalidProductIdError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -135,35 +139,29 @@ var (
 		CartItemQuantityError:        "An error occurred because the stored cart item quantity/weight is already 0. Please delete the item or increase the quantity to continue",
 		CartItemRequestQuantityError: "An error occurred because the request quantity/weight field is 0. Please increase the quantity/weight to continue",
 		InvalidRequestError:          "An error occurred because the request is invalid",
+		InternalError:                "An error has occurred in the server",
+		InvalidProductIdError:        "An error occurred because the product id is invalid",
 	}
 )
 
 type ErrorResponse struct {
 	ErrorReference uuid.UUID `json:"error_reference"`
 	ErrorCode      ErrorCode `json:"error_code"`
-	Code           ErrorCode `json:"code"`
+	Code           ErrorCode `json:"-"`
 	ErrorType      string    `json:"error_type"`
 	Message        string    `json:"message"`
-	Err            error     `json:"-"`
+	Err            any       `json:"internal_error_message"`
 	StackTrace     string    `json:"-"`
 	File           string    `json:"-"`
 	Line           int       `json:"-"`
-	TimeStamp      string    `json:"timestamp"`
+	TimeStamp      string    `json:"-"`
 }
 
 func (e ErrorResponse) Error() string {
 	return e.Format()
 }
 
-func (e ErrorResponse) Unwrap() error {
-	return e.Err
-}
-
-func (e ErrorResponse) Wrap(message string) error {
-	return errors.Wrap(e.Err, message)
-}
-
-func (e *ErrorResponse) Format() string {
+func (e ErrorResponse) Format() string {
 	return fmt.Sprintf("%s:%s | %s:%s | %s:%d | stackTrace:%s", e.ErrorReference, e.Err, e.ErrorType, e.Message, e.File, e.Line, e.StackTrace)
 }
 
@@ -174,16 +172,14 @@ func ErrorResponseBody(code ErrorCode, err error) error {
 		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
 		Message:        errorMessages[code],
-		Err:            err,
+		Err:            err.Error(),
 		File:           file,
 		Line:           line,
 		TimeStamp:      time.Now().Format(time.RFC3339),
 	}
 
 	// Capture stack trace if available
-	if err != nil {
-		errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err).Error())
-	}
+	errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err).Error())
 
 	return errorResponse
 }

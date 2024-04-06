@@ -120,24 +120,3 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 
 	return &cart, nil
 }
-
-func (c *CartStoreHandler) UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantity) error {
-	filter := bson.M{"cart_items.id": request.CartItemID}
-	updateFields := bson.M{}
-	if request.Quantity != 0 {
-		updateFields["cart_items.$.quantity"] = request.Quantity
-		updateFields["total"] = request.CartTotalCost
-	}
-
-	update := bson.M{
-		"$inc": updateFields,
-		"$set": bson.M{"status_ts": time.Now().Unix(), "cart_items.$.cost": request.ItemTotalCost},
-	}
-
-	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}

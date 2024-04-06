@@ -178,7 +178,7 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 	w.WriteHeader(code)
 
 	data := struct {
-		Data interface{} `json:"data"`
+		Data any `json:"data"`
 	}{
 		Data: result,
 	}
@@ -194,9 +194,9 @@ func EncodeErrorResult(w http.ResponseWriter, code int, err error) {
 	w.WriteHeader(code)
 
 	data := struct {
-		Data error `json:"data"`
+		Data any `json:"data"`
 	}{
-		Data: err,
+		Data: err.Error(),
 	}
 
 	newErr := json.NewEncoder(w).Encode(&data)
