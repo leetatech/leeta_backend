@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
@@ -26,6 +27,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 // @Tags Cart
 // @Accept json
 // @Produce json
+// @Security BearerToken
 // @Param domain.CartItem body domain.CartItem true "add to cart request body"
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
@@ -47,29 +49,28 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// InactivateCartHandler is the endpoint to inactivate carts
-// @Summary Request cart inactivation
-// @Description The endpoint to request for a cart inactivation
+// DeleteCartHandler is the endpoint to delete carts
+// @Summary Request cart deletion
+// @Description The endpoint to request for a cart deletion
 // @Tags Cart
 // @Accept json
 // @Produce json
-// @Param domain.InactivateCart body domain.InactivateCart true "inactivate cart request body"
+// @Param cartID query string true "cartID"
+// @Security BearerToken
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /cart/inactivate [put]
-// @deprecated
-func (handler *CartHttpHandler) InactivateCartHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.InactivateCart
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+// @Router /cart/{cart_id} [delete]
+func (handler *CartHttpHandler) DeleteCartHandler(w http.ResponseWriter, r *http.Request) {
+	cartID := chi.URLParam(r, "cart_id")
+	if cartID == "" {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, errors.New("cart_id is required"))
 		return
 	}
 
-	response, err := handler.CartApplication.InactivateCart(r.Context(), request)
+	response, err := handler.CartApplication.DeleteCart(r.Context(), cartID)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, fmt.Errorf("error deleting cart: %w", err))
 		return
 	}
 	pkg.EncodeResult(w, response, http.StatusOK)

@@ -2,10 +2,6 @@ package domain
 
 import "errors"
 
-type InactivateCart struct {
-	ID string `json:"id"`
-} // @name InactivateCart
-
 type CartItem struct {
 	ProductID string  `json:"product_id" bson:"product_id"`
 	Weight    float32 `json:"weight,omitempty" bson:"weight"`

@@ -90,9 +90,9 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 		ts := time.Unix(cart.Ts, 0)
 		expectedTime := ts.Add(24 * time.Hour)
 		if time.Now().After(expectedTime) || cart.CustomerID != claims.UserID {
-			err := r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
+			err := r.allRepository.CartRepository.DeleteCart(ctx, cart.ID)
 			if err != nil {
-				r.logger.Error("error inactivating cart", zap.Error(err))
+				r.logger.Error("error deleting cart", zap.Error(err))
 				return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 			}
 			return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
@@ -161,7 +161,7 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	err = r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
+	err = r.allRepository.CartRepository.DeleteCart(ctx, cart.ID)
 	if err != nil {
 		r.logger.Error("error inactivating cart", zap.Error(err))
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)

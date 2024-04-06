@@ -24,8 +24,8 @@ type CartAppHandler struct {
 }
 
 type CartApplication interface {
+	DeleteCart(ctx context.Context, cartId string) (*pkg.DefaultResponse, error)
 	DeleteCartItem(ctx context.Context, cartItemId string) (*pkg.DefaultResponse, error)
-	InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error)
 	AddToCart(ctx context.Context, request domain.CartItem) (*pkg.DefaultResponse, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error)
 }
@@ -40,12 +40,12 @@ func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
 	}
 }
 
-func (c CartAppHandler) InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error) {
-	err := c.allRepository.CartRepository.InactivateCart(ctx, request.ID)
+func (c CartAppHandler) DeleteCart(ctx context.Context, cartId string) (*pkg.DefaultResponse, error) {
+	err := c.allRepository.CartRepository.DeleteCart(ctx, cartId)
 	if err != nil {
-		return nil, err
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error deleting cart: %w", err))
 	}
-	return &pkg.DefaultResponse{Success: "success", Message: "Cart inactivated successfully"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Cart deleted successfully"}, nil
 }
 
 func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) (*pkg.DefaultResponse, error) {
@@ -82,7 +82,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 
 	cartItem.Cost, err = cartItem.CalculateCartItemFee(fee)
 	if cartItem.Cost == 0 {
-		return nil, fmt.Errorf("unable to calculate cart fee %w", err)
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("unable to calculate cart fee %w", err))
 	}
 
 	cart, err := c.allRepository.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
@@ -99,11 +99,11 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 				Ts:         time.Now().Unix(),
 			})
 			if addToCartErr != nil {
-				return nil, fmt.Errorf("error when adding item to cart store %w", err)
+				return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error when adding item to cart store %w", addToCartErr))
 			}
 			return &pkg.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
 		default:
-			return nil, fmt.Errorf("error getting cart item by customer id %w", err)
+			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error getting cart item by customer id %w", err))
 		}
 	}
 
@@ -111,13 +111,13 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 
 	cart.Total, err = c.calculateCartItemTotalCost(ctx, cart.CartItems)
 	if err != nil {
-		return nil, fmt.Errorf("error calculating cart item total fee %w", err)
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error calculating cart item total fee %w", err))
 	}
 
 	cart.StatusTs = time.Now().Unix()
 	err = c.allRepository.CartRepository.AddToCartItem(ctx, cart.ID, cartItem, cart.Total, cart.StatusTs)
 	if err != nil {
-		return nil, fmt.Errorf("error adding item to cart %w", err)
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error adding item to cart %w", err))
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "Successfully added item to cart"}, nil
