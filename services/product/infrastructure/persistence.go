@@ -37,6 +37,7 @@ func (p productStoreHandler) CreateProduct(ctx context.Context, request models.P
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
+
 	return nil
 }
 

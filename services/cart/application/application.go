@@ -58,6 +58,13 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 		return nil, fmt.Errorf("error getting product id %s: %w", request.ProductID, err)
 	}
 
+	switch product.ParentCategory {
+	case models.LNGProductCategory, models.LPGProductCategory:
+		if request.Weight == 0 {
+			return nil, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("invalid cart item, cart weight cannot be zero"))
+		}
+	}
+
 	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, product.ID, models.FeesActive)
 	if err != nil {
 		return nil, fmt.Errorf("error getting fee from product with id %s: %w", product.ID, err)
@@ -143,9 +150,7 @@ func (c CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request doma
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	var updateRequest domain.UpdateCartItemQuantity
-
-	resp, productID, err := c.compareStoredAndRequestQuantity(ctx, request)
+	resp, updateRequest, err := c.gasProductCategoryAdjustment(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -153,18 +158,7 @@ func (c CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request doma
 		return resp, nil
 	}
 
-	fee, err := c.retrieveProductFee(ctx, *productID)
-	if err != nil {
-		return nil, err
-	}
-
-	if request.Quantity != 0 {
-		updateRequest.CartItemID = request.CartItemID
-		updateRequest.Quantity = request.Quantity
-		updateRequest.ItemTotalCost = float64(request.Quantity) * fee.CostPerQty
-	}
-
-	err = c.allRepository.CartRepository.UpdateCartItemQuantity(ctx, updateRequest)
+	err = c.allRepository.CartRepository.UpdateCartItemQuantity(ctx, *updateRequest)
 	if err != nil {
 		c.logger.Error("error updating cart item quantity", zap.Error(err))
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
@@ -173,9 +167,8 @@ func (c CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request doma
 	return &pkg.DefaultResponse{Success: "success", Message: "Successfully updated cart item quantity"}, nil
 }
 
-func (c CartAppHandler) compareStoredAndRequestQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, *string, error) {
+func (c CartAppHandler) compareStoredAndRequestQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, *domain.StoredCartItemDetails, error) {
 	var (
-		productID        string
 		quantityErrorMsg = "invalid quantity"
 	)
 
@@ -190,13 +183,18 @@ func (c CartAppHandler) compareStoredAndRequestQuantity(ctx context.Context, req
 
 	// TODO itemsInCart := len(cart.CartItems)
 
+	var storedItemDetails domain.StoredCartItemDetails
+
 	for _, item := range cart.CartItems {
 		if item.ID == request.CartItemID {
-			productID = item.ProductID
-
+			storedItemDetails = domain.StoredCartItemDetails{
+				ProductID: item.ProductID,
+				Weight:    item.Weight,
+				Quantity:  item.Quantity,
+			}
 			if request.Quantity < 0 {
 				if item.Quantity == 1 && request.Quantity < 0 || item.Quantity == int(math.Abs(float64(request.Quantity))) {
-					err = c.allRepository.CartRepository.DeleteCartItem(ctx, request.CartItemID, item.TotalCost)
+					err = c.allRepository.CartRepository.DeleteCartItem(ctx, request.CartItemID, item.Cost)
 					if err != nil {
 						return nil, nil, err
 					}
@@ -209,7 +207,17 @@ func (c CartAppHandler) compareStoredAndRequestQuantity(ctx context.Context, req
 		}
 	}
 
-	return nil, &productID, nil
+	var product *models.Product
+	if storedItemDetails.ProductID != "" {
+		product, err = c.allRepository.ProductRepository.GetProductByID(ctx, storedItemDetails.ProductID)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	storedItemDetails.ProductCategory = product.ParentCategory
+
+	return nil, &storedItemDetails, nil
 }
 
 func (c CartAppHandler) retrieveProductFee(ctx context.Context, productID string) (*models.Fee, error) {
@@ -220,4 +228,35 @@ func (c CartAppHandler) retrieveProductFee(ctx context.Context, productID string
 	}
 
 	return fee, nil
+}
+
+func (c CartAppHandler) gasProductCategoryAdjustment(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, *domain.UpdateCartItemQuantity, error) {
+	resp, storedCartItemDetails, err := c.compareStoredAndRequestQuantity(ctx, request)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		return resp, nil, nil
+	}
+
+	fee, err := c.retrieveProductFee(ctx, storedCartItemDetails.ProductID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var updateRequest domain.UpdateCartItemQuantity
+
+	switch storedCartItemDetails.ProductCategory {
+	case models.LNGProductCategory, models.LPGProductCategory:
+		newQuantity := storedCartItemDetails.Quantity + request.Quantity
+		oldItemCost := storedCartItemDetails.Weight * float32(storedCartItemDetails.Quantity) * float32(fee.CostPerKg)
+		newItemCost := storedCartItemDetails.Weight * float32(newQuantity) * float32(fee.CostPerKg)
+
+		updateRequest.CartItemID = request.CartItemID
+		updateRequest.Quantity = request.Quantity
+		updateRequest.ItemTotalCost = float64(newItemCost)
+		updateRequest.CartTotalCost = float64(newItemCost - oldItemCost)
+	}
+
+	return resp, &updateRequest, nil
 }

@@ -518,6 +518,8 @@ definitions:
         type: string
       name:
         type: string
+      product_category:
+        $ref: '#/definitions/models.ProductCategory'
     type: object
   domain.GetVendorProductsResponse:
     properties:
@@ -568,7 +570,10 @@ definitions:
     - 1036
     - 1037
     - 1038
+    - 1039
     type: integer
+    x-enum-comments:
+      InvalidRequestError: generic
     x-enum-varnames:
     - DatabaseError
     - DatabaseNoRecordError
@@ -608,6 +613,7 @@ definitions:
     - InvalidPageRequestError
     - CartItemQuantityError
     - CartItemRequestQuantityError
+    - InvalidRequestError
   leetError.ErrorResponse:
     properties:
       code:
@@ -1249,7 +1255,6 @@ paths:
       - description: Product parent category
         in: formData
         name: parent_category
-        required: true
         type: string
       - description: Product subcategory
         in: formData

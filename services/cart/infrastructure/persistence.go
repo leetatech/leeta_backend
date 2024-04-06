@@ -126,13 +126,12 @@ func (c *CartStoreHandler) UpdateCartItemQuantity(ctx context.Context, request d
 	updateFields := bson.M{}
 	if request.Quantity != 0 {
 		updateFields["cart_items.$.quantity"] = request.Quantity
-		updateFields["cart_items.$.total_cost"] = request.ItemTotalCost
-		updateFields["total"] = request.ItemTotalCost
+		updateFields["total"] = request.CartTotalCost
 	}
 
 	update := bson.M{
 		"$inc": updateFields,
-		"$set": bson.M{"status_ts": time.Now().Unix()},
+		"$set": bson.M{"status_ts": time.Now().Unix(), "cart_items.$.cost": request.ItemTotalCost},
 	}
 
 	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)

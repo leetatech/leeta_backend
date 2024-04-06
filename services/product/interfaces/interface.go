@@ -32,7 +32,7 @@ func NewProductHTTPHandler(productApplication application.ProductApplication) *P
 // @Accept multipart/form-data
 // @Produce json
 // @Param vendor_id formData string true "Vendor ID"
-// @Param parent_category formData string true "Product parent category"
+// @Param parent_category formData string false "Product parent category"
 // @Param sub_category formData string true "Product subcategory"
 // @Param name formData string true "Product name"
 // @Param weight formData string true "Product weight"
@@ -53,6 +53,7 @@ func NewProductHTTPHandler(productApplication application.ProductApplication) *P
 func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileAndAddProducts(r)
 	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 

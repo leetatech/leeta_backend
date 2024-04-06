@@ -49,6 +49,7 @@ const (
 	InvalidPageRequestError      ErrorCode = 1036
 	CartItemQuantityError        ErrorCode = 1037
 	CartItemRequestQuantityError ErrorCode = 1038
+	InvalidRequestError          ErrorCode = 1039 // generic
 )
 
 var (
@@ -91,6 +92,7 @@ var (
 		InvalidPageRequestError:      "InvalidPageRequestError",
 		CartItemQuantityError:        "CartItemQuantityError",
 		CartItemRequestQuantityError: "CartItemRequestQuantityError",
+		InvalidRequestError:          "InvalidRequestError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -132,6 +134,7 @@ var (
 		InvalidPageRequestError:      "An error occurred because the page request field is required",
 		CartItemQuantityError:        "An error occurred because the stored cart item quantity/weight is already 0. Please delete the item or increase the quantity to continue",
 		CartItemRequestQuantityError: "An error occurred because the request quantity/weight field is 0. Please increase the quantity/weight to continue",
+		InvalidRequestError:          "An error occurred because the request is invalid",
 	}
 )
 

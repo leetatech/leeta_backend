@@ -844,8 +844,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Product parent category",
                         "name": "parent_category",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -2511,6 +2510,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "product_category": {
+                    "$ref": "#/definitions/models.ProductCategory"
                 }
             }
         },
@@ -2568,8 +2570,12 @@ const docTemplate = `{
                 1035,
                 1036,
                 1037,
-                1038
+                1038,
+                1039
             ],
+            "x-enum-comments": {
+                "InvalidRequestError": "generic"
+            },
             "x-enum-varnames": [
                 "DatabaseError",
                 "DatabaseNoRecordError",
@@ -2608,7 +2614,8 @@ const docTemplate = `{
                 "FeesStatusesError",
                 "InvalidPageRequestError",
                 "CartItemQuantityError",
-                "CartItemRequestQuantityError"
+                "CartItemRequestQuantityError",
+                "InvalidRequestError"
             ]
         },
         "leetError.ErrorResponse": {
