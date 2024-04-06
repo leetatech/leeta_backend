@@ -5,11 +5,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	_ "github.com/leetatech/leeta_backend/docs"
+	"github.com/leetatech/leeta_backend/pkg"
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	cartInterfaces "github.com/leetatech/leeta_backend/services/cart/interfaces"
 	feesInterfaces "github.com/leetatech/leeta_backend/services/fees/interfaces"
 	gasRefillInterfaces "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
-	"github.com/leetatech/leeta_backend/services/library"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
 	productInterfaces "github.com/leetatech/leeta_backend/services/product/interfaces"
 	userInterfaces "github.com/leetatech/leeta_backend/services/user/interfaces"
@@ -31,7 +31,7 @@ func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
 	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product, GasRefill: interfaces.GasRefill, Cart: interfaces.Cart, Fees: interfaces.Fees}
 }
 
-func SetupRouter(tokenHandler *library.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *library.TokenHandler, error) {
+func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *pkg.TokenHandler, error) {
 	router := chi.NewRouter()
 
 	router.Use(cors.Handler(cors.Options{
@@ -89,7 +89,7 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	return router
 }
 
-func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/make_order", order.CreateOrderHandler)
@@ -99,7 +99,7 @@ func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *l
 	return router
 }
 
-func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Mount("/vendor", buildVendorEndpoints(user, tokenHandler))
@@ -107,7 +107,7 @@ func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *libra
 	return router
 }
 
-func buildVendorEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildVendorEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	// authentication group here
@@ -122,16 +122,19 @@ func buildVendorEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *lib
 	return router
 }
 
-func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/create", product.CreateProductHandler)
+	router.Post("/", product.CreateGasProductHandler)
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
+	router.Post("/list", product.ListProductsHandler)
+	router.Get("/options", product.ListProductOptions)
 	return router
 }
 
-func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/", handler.RequestRefill)
@@ -142,13 +145,14 @@ func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, t
 	return router
 }
 
-func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
 		r.Post("/add", handler.AddToCartHandler)
 		r.Put("/delete", handler.DeleteCartItemHandler)
+		r.Put("/item/quantity", handler.UpdateCartItemQuantityHandler)
 	})
 
 	router.Group(func(r chi.Router) {
@@ -158,12 +162,13 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *li
 	return router
 }
 
-func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *library.TokenHandler) http.Handler {
+func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", handler.CreateFees)
-	router.Get("/", handler.GetFees)
+	router.Post("/", handler.CreateFeeHandler)
+	router.Get("/", handler.GetFeesHandler)
+	router.Get("/product/{product_id}", handler.GetFeeByProductIDHandler)
 
 	return router
 }

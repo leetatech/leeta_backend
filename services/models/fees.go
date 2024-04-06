@@ -1,10 +1,5 @@
 package models
 
-import (
-	"errors"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-)
-
 type Fee struct {
 	ID         string       `json:"id" bson:"id"`
 	ProductID  string       `json:"product_id" bson:"product_id"`
@@ -22,16 +17,3 @@ const (
 	FeesActive   FeesStatuses = "ACTIVE"   // fees has been created and active
 	FeesInactive FeesStatuses = "INACTIVE" // fees has been inactivated
 )
-
-func IsValidFeesStatus(status FeesStatuses) bool {
-	return status == FeesActive || status == FeesInactive
-}
-
-func SetFeesStatus(status FeesStatuses) (FeesStatuses, error) {
-	switch IsValidFeesStatus(status) {
-	case true:
-		return status, nil
-	default:
-		return "", leetError.ErrorResponseBody(leetError.FeesStatusesError, errors.New("invalid fees status"))
-	}
-}

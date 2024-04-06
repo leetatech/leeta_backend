@@ -2,10 +2,10 @@ package interfaces
 
 import (
 	"encoding/json"
+	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/services/auth/application"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/rs/zerolog/log"
 	"net/http"
 )
@@ -33,17 +33,17 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 	var signUpRequest domain.SignupRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.SignUp(r.Context(), signUpRequest)
 	if err != nil {
 		log.Debug().Err(err).Msg("error completing user registration")
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 }
 
 // RequestOTPHandler godoc
@@ -53,23 +53,23 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 // @Accept json
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request otp body"
-// @Success 200 {object} library.DefaultResponse
+// @Success 200 {object} pkg.DefaultResponse
 // @Router /session/otp/request [post]
 func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.RequestOTP(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 	token.Message = "OTP sent successfully"
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 }
 
 // EarlyAccessHandler godoc
@@ -79,22 +79,22 @@ func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http
 // @Accept json
 // @Produce json
 // @Param models.EarlyAccess body models.EarlyAccess true "request early access body"
-// @Success 200 {object} library.DefaultResponse
+// @Success 200 {object} pkg.DefaultResponse
 // @Router /session/early_access [post]
 func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *http.Request) {
 	var request models.EarlyAccess
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.EarlyAccess(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
-	library.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // SignInHandler godoc
@@ -110,16 +110,16 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 	var signInRequest domain.SigningRequest
 	err := json.NewDecoder(r.Body).Decode(&signInRequest)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.SignIn(r.Context(), signInRequest)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusInternalServerError)
+		pkg.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 }
 
 // ForgotPasswordHandler godoc
@@ -129,23 +129,23 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // @Accept json
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request forgot password body"
-// @Success 200 {object} library.DefaultResponse
+// @Success 200 {object} pkg.DefaultResponse
 // @Router /session/forgot_password [post]
 func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.ForgotPassword(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusInternalServerError)
+		pkg.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	library.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // ValidateOTPHandler godoc
@@ -155,23 +155,23 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 // @Accept json
 // @Produce json
 // @Param domain.OTPValidationRequest body domain.OTPValidationRequest true "request otp validation body"
-// @Success 200 {object} library.DefaultResponse
+// @Success 200 {object} pkg.DefaultResponse
 // @Router /session/otp/validate [post]
 func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.OTPValidationRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.ValidateOTP(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	library.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // CreateNewPasswordHandler godoc
@@ -187,17 +187,17 @@ func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, 
 	var request domain.CreateNewPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.CreateNewPassword(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	library.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // AdminSignUpHandler godoc
@@ -213,15 +213,15 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 	var request domain.AdminSignUpRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 	token, err := handler.AuthApplication.AdminSignUp(r.Context(), request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 
 }
 
@@ -233,21 +233,21 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 // @Produce json
 // @Param domain.ReceiveGuestRequest body domain.ReceiveGuestRequest true "receive guest request body"
 // @Success 200 {object} domain.ReceiveGuestResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
-// @Router /guest [post]
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /session/guest [post]
 func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.ReceiveGuestRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.ReceiveGuestToken(request)
 	if err != nil {
-		library.EncodeResult(w, err, http.StatusInternalServerError)
+		pkg.EncodeResult(w, err, http.StatusInternalServerError)
 		return
 	}
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 }

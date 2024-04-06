@@ -23,7 +23,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/add": {
+        "/cart/add": {
             "post": {
                 "security": [
                     {
@@ -44,11 +44,108 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "add to cart request body",
-                        "name": "domain.AddToCartRequest",
+                        "name": "domain.CartItem",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/AddToCartRequest"
+                            "$ref": "#/definitions/CartRefillDetails"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/inactivate": {
+            "put": {
+                "description": "The endpoint to request for a cart inactivation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart inactivation",
+                "parameters": [
+                    {
+                        "description": "inactivate cart request body",
+                        "name": "domain.InactivateCart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InactivateCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/quantity": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to increase or reduce cart item quantity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "increase or reduce cart item quantity",
+                "parameters": [
+                    {
+                        "description": "update cart item quantity request body",
+                        "name": "domain.UpdateCartItemQuantityRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
                         }
                     }
                 ],
@@ -164,7 +261,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "fees"
+                    "Fees"
                 ],
                 "summary": "Get fees",
                 "responses": {
@@ -202,7 +299,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "fees"
+                    "Fees"
                 ],
                 "summary": "Create fees",
                 "parameters": [
@@ -238,14 +335,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/gas-refill": {
-            "post": {
+        "/fees/product/{product_id}": {
+            "get": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to request for a gas refill",
+                "description": "The endpoint to get fees for gas refill by product ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -253,18 +350,16 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Fees"
                 ],
-                "summary": "Request gas refill",
+                "summary": "Get fee by product ID",
                 "parameters": [
                     {
-                        "description": "Gas refill request body",
-                        "name": "domain.GasRefillRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/GasRefillRequest"
-                        }
+                        "type": "string",
+                        "description": "product ID",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -304,7 +399,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
                 "summary": "Update Gas refill request status",
                 "parameters": [
@@ -315,6 +410,55 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateRefillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to request for a gas refill",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gas Refill"
+                ],
+                "summary": "Request gas refill",
+                "parameters": [
+                    {
+                        "description": "Gas refill request body",
+                        "name": "domain.GasRefillRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GasRefillRequest"
                         }
                     }
                 ],
@@ -355,7 +499,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
                 "summary": "List all gas refill requests",
                 "parameters": [
@@ -409,7 +553,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "GasRefill"
+                    "Gas Refill"
                 ],
                 "summary": "Gets a single gas refill",
                 "parameters": [
@@ -419,98 +563,6 @@ const docTemplate = `{
                         "name": "refill-id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/guest": {
-            "post": {
-                "description": "The endpoint to allow guests to shop",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Request accept guests",
-                "parameters": [
-                    {
-                        "description": "receive guest request body",
-                        "name": "domain.ReceiveGuestRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ReceiveGuestRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ReceiveGuestResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/inactivate": {
-            "put": {
-                "description": "The endpoint to request for a cart inactivation",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Request cart inactivation",
-                "parameters": [
-                    {
-                        "description": "inactivate cart request body",
-                        "name": "domain.InactivateCart",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/InactivateCart"
-                        }
                     }
                 ],
                 "responses": {
@@ -758,6 +810,7 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Get All Vendor Products By Status",
+                "deprecated": true,
                 "parameters": [
                     {
                         "description": "get all vendor products request body",
@@ -774,6 +827,55 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.GetVendorProductsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes the gas product request and creates a new gas product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Create Gas Product",
+                "parameters": [
+                    {
+                        "description": "create gas product request body",
+                        "name": "domain.GasProductRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.GasProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -809,6 +911,7 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Create Product",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -821,8 +924,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Product parent category",
                         "name": "parent_category",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -943,6 +1045,7 @@ const docTemplate = `{
                     "Product"
                 ],
                 "summary": "Get Vendor Product By id",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -969,6 +1072,93 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes in the limit, page and product status and returns the requested products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "List Products",
+                "parameters": [
+                    {
+                        "description": "list products request body",
+                        "name": "filter.ResultSelector",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ResultSelector"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ListProductsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/options": {
+            "get": {
+                "description": "Retrieve products filter options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Get Product filter options",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "Bearer lnsjkfbnkjkdjnfjk",
+                        "description": "Authentication header",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/RequestOption"
+                            }
                         }
                     }
                 }
@@ -1105,6 +1295,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/guest": {
+            "post": {
+                "description": "The endpoint to allow guests to shop",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session"
+                ],
+                "summary": "Request accept guests",
+                "parameters": [
+                    {
+                        "description": "receive guest request body",
+                        "name": "domain.ReceiveGuestRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ReceiveGuestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
                         }
                     }
                 }
@@ -1261,7 +1497,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user/admin/vendor"
+                    "Admin"
                 ],
                 "summary": "Admin adds vendor and business",
                 "parameters": [
@@ -1415,7 +1651,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user/vendor"
+                    "Vendor"
                 ],
                 "summary": "Vendor Verification",
                 "parameters": [
@@ -1562,17 +1798,6 @@ const docTemplate = `{
                 "body": {}
             }
         },
-        "AddToCartRequest": {
-            "type": "object",
-            "properties": {
-                "cart_details": {
-                    "$ref": "#/definitions/CartRefillDetails"
-                },
-                "guest": {
-                    "type": "boolean"
-                }
-            }
-        },
         "Address": {
             "type": "object",
             "properties": {
@@ -1701,6 +1926,24 @@ const docTemplate = `{
                 }
             }
         },
+        "CompareOperator": {
+            "type": "string",
+            "enum": [
+                "isEqualTo"
+            ],
+            "x-enum-varnames": [
+                "CompareOperatorIsEqualTo"
+            ]
+        },
+        "ControlType": {
+            "type": "string",
+            "enum": [
+                "string"
+            ],
+            "x-enum-varnames": [
+                "ControlTypeString"
+            ]
+        },
         "Coordinates": {
             "type": "object",
             "properties": {
@@ -1795,9 +2038,23 @@ const docTemplate = `{
                 },
                 "product_id": {
                     "type": "string"
+                }
+            }
+        },
+        "FilterRequest": {
+            "type": "object",
+            "required": [
+                "operator"
+            ],
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/RequestField"
+                    }
                 },
-                "service_fee": {
-                    "type": "number"
+                "operator": {
+                    "type": "string"
                 }
             }
         },
@@ -1888,6 +2145,20 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "string"
+                }
+            }
+        },
+        "ListProductsResponse": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
                 }
             }
         },
@@ -2015,6 +2286,17 @@ const docTemplate = `{
                 }
             }
         },
+        "PagingRequest": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
         "Phone": {
             "type": "object",
             "properties": {
@@ -2088,14 +2370,30 @@ const docTemplate = `{
                 }
             }
         },
+        "ReadableValue-string": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "description": "Label is the human-readable form of the value",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the value for the backend",
+                    "type": "string"
+                }
+            }
+        },
         "ReceiveGuestRequest": {
             "type": "object",
+            "required": [
+                "device_id"
+            ],
             "properties": {
                 "device_id": {
                     "type": "string"
                 },
-                "guest": {
-                    "type": "boolean"
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
                 }
             }
         },
@@ -2110,6 +2408,90 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "RequestField": {
+            "type": "object",
+            "required": [
+                "name",
+                "value"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value can be a list of values or a value"
+                }
+            }
+        },
+        "RequestOption": {
+            "type": "object",
+            "properties": {
+                "control": {
+                    "$ref": "#/definitions/RequestOptionType"
+                },
+                "multiSelect": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "$ref": "#/definitions/ReadableValue-string"
+                },
+                "operators": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "description": "Label is the human-readable form of the value",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Value is the value for the backend",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/CompareOperator"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "RequestOptionType": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "string",
+                        "float",
+                        "integer",
+                        "enum"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ControlType"
+                        }
+                    ]
+                }
+            }
+        },
+        "ResultSelector": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/FilterRequest"
+                },
+                "paging": {
+                    "$ref": "#/definitions/PagingRequest"
                 }
             }
         },
@@ -2164,6 +2546,17 @@ const docTemplate = `{
                 }
             }
         },
+        "UpdateCartItemQuantityRequest": {
+            "type": "object",
+            "properties": {
+                "cart_item_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2186,6 +2579,20 @@ const docTemplate = `{
                 },
                 "request_status": {
                     "$ref": "#/definitions/models.RefillRequestStatus"
+                }
+            }
+        },
+        "domain.GasProductRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "product_category": {
+                    "$ref": "#/definitions/models.ProductCategory"
                 }
             }
         },
@@ -2240,8 +2647,15 @@ const docTemplate = `{
                 1032,
                 1033,
                 1034,
-                1035
+                1035,
+                1036,
+                1037,
+                1038,
+                1039
             ],
+            "x-enum-comments": {
+                "InvalidRequestError": "generic"
+            },
             "x-enum-varnames": [
                 "DatabaseError",
                 "DatabaseNoRecordError",
@@ -2277,12 +2691,19 @@ const docTemplate = `{
                 "InvalidOTPError",
                 "CartStatusesError",
                 "AmountPaidError",
-                "FeesStatusesError"
+                "FeesStatusesError",
+                "InvalidPageRequestError",
+                "CartItemQuantityError",
+                "CartItemRequestQuantityError",
+                "InvalidRequestError"
             ]
         },
         "leetError.ErrorResponse": {
             "type": "object",
             "properties": {
+                "code": {
+                    "$ref": "#/definitions/leetError.ErrorCode"
+                },
                 "error_code": {
                     "$ref": "#/definitions/leetError.ErrorCode"
                 },
@@ -2378,26 +2799,20 @@ const docTemplate = `{
             "enum": [
                 "SIGNEDUP",
                 "REGISTERED",
-                "VERIFIED",
-                "ONBOARDED",
                 "REJECTED",
                 "EXITED",
                 "LOCKED"
             ],
             "x-enum-comments": {
                 "Exited": "no longer exists",
-                "Locked": "currently locked for some reasons",
-                "Onboarded": "now fully onboarded",
+                "Locked": "currently locked for some reason",
                 "Registered": "filled the required information",
                 "Rejected": "rejected",
-                "SignedUp": "just signed up",
-                "Verified": "all details verified"
+                "SignedUp": "just signed up"
             },
             "x-enum-varnames": [
                 "SignedUp",
                 "Registered",
-                "Verified",
-                "Onboarded",
                 "Rejected",
                 "Exited",
                 "Locked"

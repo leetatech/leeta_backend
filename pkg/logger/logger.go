@@ -86,26 +86,5 @@ func New(config ...Config) *zap.Logger {
 		logger = logger.Named(conf.Name)
 	}
 
-	//if conf.Debug {
-	//	logger = logger.WithOptions(DebugCore())
-	//}
-
 	return logger
 }
-
-//// DebugCore returns a debug configuration to use
-//func DebugCore() zap.Option {
-//	return zap.WrapCore(
-//		func(zapcore.Core) zapcore.Core {
-//			encoder := zap.NewDevelopmentEncoderConfig()
-//			encoder.EncodeLevel = customCapitalLevelEncoder()
-//			return zapcore.NewCore(zapcore.NewConsoleEncoder(encoder), zapcore.AddSync(os.Stderr), zapcore.DebugLevel)
-//		})
-//}
-//
-//// customCapitalLevelEncoder serializes a Level to an all-caps string.
-//func customCapitalLevelEncoder() func(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-//	return func(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-//		enc.AppendString(fmt.Sprintf("[%s]", l.CapitalString()))
-//	}
-//}

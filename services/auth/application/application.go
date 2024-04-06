@@ -4,45 +4,45 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.uber.org/zap"
 	"time"
 )
 
 type authAppHandler struct {
-	tokenHandler  library.TokenHandler
-	encryptor     library.EncryptorManager
-	idGenerator   library.IDGenerator
-	otpGenerator  library.OtpGenerator
+	tokenHandler  pkg.TokenHandler
+	encryptor     pkg.EncryptorManager
+	idGenerator   pkg.IDGenerator
+	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
 	Domain        string
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type AuthApplication interface {
 	SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error)
-	RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error)
-	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error)
+	RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
+	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*pkg.DefaultResponse, error)
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
-	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error)
-	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error)
+	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
+	ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*pkg.DefaultResponse, error)
 	CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
 	ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error)
 }
 
-func NewAuthApplication(request library.DefaultApplicationRequest) AuthApplication {
+func NewAuthApplication(request pkg.DefaultApplicationRequest) AuthApplication {
 	return &authAppHandler{
 		tokenHandler:  request.TokenHandler,
-		encryptor:     library.NewEncryptor(),
-		idGenerator:   library.NewIDGenerator(),
-		otpGenerator:  library.NewOTPGenerator(),
+		encryptor:     pkg.NewEncryptor(),
+		idGenerator:   pkg.NewIDGenerator(),
+		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
 		Domain:        request.Domain,
@@ -74,7 +74,7 @@ func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest
 	return nil, nil
 }
 
-func (a authAppHandler) createOTP(ctx context.Context, request domain.OTPRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) createOTP(ctx context.Context, request domain.OTPRequest) (*pkg.DefaultResponse, error) {
 	expirationDuration := time.Duration(5) * time.Minute
 
 	otpResponse := models.Verification{
@@ -92,10 +92,10 @@ func (a authAppHandler) createOTP(ctx context.Context, request domain.OTPRequest
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: otpResponse.Code}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: otpResponse.Code}, nil
 }
 
-func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAccess) (*library.DefaultResponse, error) {
+func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAccess) (*pkg.DefaultResponse, error) {
 	request.Timestamp = time.Now().Unix()
 	err := a.allRepository.AuthRepository.EarlyAccess(ctx, request)
 	if err != nil {
@@ -106,7 +106,7 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 	message := models.Message{
 		ID:         a.idGenerator.Generate(),
 		Target:     request.Email,
-		TemplateID: library.EarlyAccessEmailTemplateID,
+		TemplateID: pkg.EarlyAccessEmailTemplateID,
 		DataMap: map[string]string{
 			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/",
 		},
@@ -117,7 +117,7 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Early Access created"}, nil
 }
 
 func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
@@ -137,18 +137,18 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 	return nil, nil
 }
 
-func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
+func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
 		return nil, err
 	}
-	return &library.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
 }
 
-func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*library.DefaultResponse, error) {
+func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ForgotPasswordError, err)
 	}
-	return &library.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
 }
 
 func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequestBody) error {
@@ -184,7 +184,7 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 	message := models.Message{
 		ID:         a.idGenerator.Generate(),
 		Target:     request.Email,
-		TemplateID: library.ForgotPasswordEmailTemplateID,
+		TemplateID: pkg.ForgotPasswordEmailTemplateID,
 		DataMap: map[string]string{
 			"FirstName": user.FirstName,
 			"LastName":  user.LastName,
@@ -200,7 +200,7 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 	return nil
 }
 
-func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*library.DefaultResponse, error) {
+func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*pkg.DefaultResponse, error) {
 	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Target)
 	if err != nil {
 		a.logger.Error("ValidateOTP", zap.String("target", request.Target), zap.Error(err))
@@ -239,7 +239,7 @@ func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValid
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
 }
 
 func (a authAppHandler) CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error) {
@@ -284,14 +284,26 @@ func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSig
 }
 
 func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error) {
-	sessionID := a.idGenerator.Generate()
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", request.DeviceID, sessionID, models.GuestCatergory)
+	guestID := a.idGenerator.Generate()
+
+	// store guest information
+	guest := models.Guest{
+		ID:       guestID,
+		DeviceID: request.DeviceID,
+		Location: request.Location,
+	}
+
+	if err := a.allRepository.AuthRepository.CreateGuestRecord(context.Background(), guest); err != nil {
+		return nil, fmt.Errorf("error creating guest record %w", err)
+	}
+
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestID, models.GuestCatergory)
 	if err != nil {
 		return nil, err
 	}
 
 	return &domain.ReceiveGuestResponse{
-		SessionID: sessionID,
+		SessionID: guestID,
 		DeviceID:  request.DeviceID,
 		Token:     tokenString,
 	}, nil

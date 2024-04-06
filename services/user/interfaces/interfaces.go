@@ -1,7 +1,8 @@
 package interfaces
 
 import (
-	"github.com/leetatech/leeta_backend/services/library"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/services/user/application"
 	"net/http"
 )
@@ -19,7 +20,7 @@ func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHa
 // VendorVerificationHandler godoc
 // @Summary Vendor Verification
 // @Description The endpoint allows the verification process of vendor
-// @Tags user/vendor
+// @Tags Vendor
 // @Accept multipart/form-data
 // @Produce json
 // @Param first_name formData string true "First name of the vendor"
@@ -39,9 +40,9 @@ func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHa
 // @Param longitude formData string true "Longitude of the vendor's location"
 // @Param image formData file true "Image of the vendor"
 // @Security BearerToken
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /user/vendor/verification [post]
 func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileSpecification(r)
@@ -51,16 +52,16 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 
 	token, err := handler.UserApplication.VendorVerification(r.Context(), *request)
 	if err != nil {
-		library.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 }
 
 // AddVendorByAdminHandler godoc
 // @Summary Admin adds vendor and business
 // @Description The endpoint allows the admin to add a vendor and their business
-// @Tags user/admin/vendor
+// @Tags Admin
 // @Accept multipart/form-data
 // @Produce json
 // @Param first_name formData string true "First name of the vendor"
@@ -80,9 +81,9 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 // @Param longitude formData string true "Longitude of the vendor's location"
 // @Param image formData file true "Image of the vendor"
 // @Security BearerToken
-// @Success 200 {object} library.DefaultResponse
-// @Failure 401 {object} library.DefaultErrorResponse
-// @Failure 400 {object} library.DefaultErrorResponse
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /user/admin/vendor [post]
 func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileSpecification(r)
@@ -92,8 +93,8 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 
 	token, err := handler.UserApplication.AddVendorByAdmin(r.Context(), *request)
 	if err != nil {
-		library.CheckErrorType(err, w)
+		helpers.CheckErrorType(err, w)
 		return
 	}
-	library.EncodeResult(w, token, http.StatusOK)
+	pkg.EncodeResult(w, token, http.StatusOK)
 }

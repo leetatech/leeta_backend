@@ -1,6 +1,8 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/library/models"
+import (
+	"github.com/leetatech/leeta_backend/services/models"
+)
 
 type GetVendorProductsRequest struct {
 	VendorID      string                 `json:"vendor_id" bson:"vendor_id"`
@@ -16,8 +18,8 @@ type GetVendorProductsResponse struct {
 
 type ProductRequest struct {
 	VendorID            string                    `json:"vendor_id"`
-	ParentCategory      models.ProductCategory    `json:"parent_category"`
-	SubCategory         models.ProductSubCategory `json:"sub_category"`
+	ParentCategory      models.ProductCategory    `json:"parent_category,omitempty"`
+	SubCategory         models.ProductSubCategory `json:"sub_category,omitempty"`
 	Images              []string                  `json:"images"`
 	Name                string                    `json:"name"`
 	Weight              string                    `json:"weight"`
@@ -29,3 +31,14 @@ type ProductRequest struct {
 	DiscountPrice       float64                   `json:"discount_price"`
 	Status              models.ProductStatus      `json:"status"`
 }
+
+type GasProductRequest struct {
+	Name            string                 `json:"name"`
+	Description     string                 `json:"description"`
+	ProductCategory models.ProductCategory `json:"product_category"`
+}
+
+type ListProductsResponse struct {
+	Products    []models.Product `json:"products" bson:"products"`
+	HasNextPage bool             `json:"has_next_page" bson:"has_next_page"`
+} // @name ListProductsResponse

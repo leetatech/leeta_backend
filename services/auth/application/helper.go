@@ -3,10 +3,10 @@ package application
 import (
 	"context"
 	"errors"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"sync"
@@ -76,13 +76,13 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, err
 			}
 
-			response, err := a.tokenHandler.BuildAuthResponse(request.Email, vendor.ID, a.idGenerator.Generate(), request.UserType)
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, vendor.ID, request.UserType)
 			if err != nil {
 				a.logger.Error("SignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, vendor.ID, vendor.Email.Address, library.SignUpEmailTemplateID, models.VendorCategory)
+			err = a.accountVerification(ctx, vendor.ID, vendor.Email.Address, pkg.SignUpEmailTemplateID, models.VendorCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -141,13 +141,13 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, err
 			}
 
-			response, err := a.tokenHandler.BuildAuthResponse(request.Email, customer.ID, a.idGenerator.Generate(), request.UserType)
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, customer.ID, request.UserType)
 			if err != nil {
 				a.logger.Error("SignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, library.SignUpEmailTemplateID, models.BuyerCategory)
+			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.BuyerCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -211,7 +211,7 @@ func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, statu
 		return nil, leetError.ErrorResponseBody(leetError.UserLockedError, err)
 	}
 
-	response, err := a.tokenHandler.BuildAuthResponse(request.Email, user.ID, identity.ID, request.UserType)
+	response, err := a.tokenHandler.BuildAuthResponse(request.Email, user.ID, request.UserType)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
@@ -305,7 +305,7 @@ func (a authAppHandler) createNewPassword(ctx context.Context, userID, email, pa
 	//message := models.Message{
 	//	ID:         a.idGenerator.Generate(),
 	//	Target:     email,
-	//	TemplateID: library.ResetPasswordEmailTemplateID,
+	//	TemplateID: pkg.ResetPasswordEmailTemplateID,
 	//	DataMap: map[string]string{
 	//		"FirstName": firstName,
 	//		"LastName":  lastName,
@@ -379,13 +379,13 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, err
 			}
 
-			response, err := a.tokenHandler.BuildAuthResponse(request.Email, admin.ID, a.idGenerator.Generate(), models.AdminCategory)
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, admin.ID, models.AdminCategory)
 			if err != nil {
 				a.logger.Error("AdminSignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, admin.ID, admin.User.Email.Address, library.AdminSignUpEmailTemplateID, models.AdminCategory)
+			err = a.accountVerification(ctx, admin.ID, admin.User.Email.Address, pkg.AdminSignUpEmailTemplateID, models.AdminCategory)
 			if err != nil {
 				return nil, err
 			}

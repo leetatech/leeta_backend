@@ -2,11 +2,12 @@ package domain
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 )
 
 type AuthRepository interface {
 	CreateIdentity(ctx context.Context, identity models.Identity) error
+	CreateGuestRecord(ctx context.Context, guest models.Guest) error
 	GetVendorByEmail(ctx context.Context, email string) (*models.Vendor, error)
 	CreateOTP(ctx context.Context, verifications models.Verification) error
 	EarlyAccess(ctx context.Context, earlyAccess models.EarlyAccess) error

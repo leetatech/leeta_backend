@@ -2,7 +2,7 @@ package domain
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 )
 
 type OrderRepository interface {

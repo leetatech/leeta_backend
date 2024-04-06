@@ -4,31 +4,31 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"time"
 )
 
 type GasRefillHandler struct {
-	idGenerator   library.IDGenerator
-	tokenHandler  library.TokenHandler
+	idGenerator   pkg.IDGenerator
+	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type GasRefillApplication interface {
-	RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*library.DefaultResponse, error)
+	RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error)
 }
 
-func NewGasRefillApplication(request library.DefaultApplicationRequest) GasRefillApplication {
+func NewGasRefillApplication(request pkg.DefaultApplicationRequest) GasRefillApplication {
 	return &GasRefillHandler{
-		idGenerator:   library.NewIDGenerator(),
+		idGenerator:   pkg.NewIDGenerator(),
 		logger:        request.Logger,
 		tokenHandler:  request.TokenHandler,
 		EmailClient:   request.EmailClient,
@@ -36,7 +36,7 @@ func NewGasRefillApplication(request library.DefaultApplicationRequest) GasRefil
 	}
 }
 
-func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*library.DefaultResponse, error) {
+func (r *GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error) {
 
 	claims, err := r.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
@@ -73,10 +73,10 @@ func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasR
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
 }
 
-func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request domain.GasRefillRequest, claims *library.UserClaims) (domain.GasRefillRequest, error) {
+func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request domain.GasRefillRequest, claims *pkg.UserClaims) (domain.GasRefillRequest, error) {
 	request.GuestBioData.DeviceID = claims.UserID
 
 	cart, terr := r.allRepository.CartRepository.GetCartByDeviceID(ctx, claims.UserID)
@@ -89,7 +89,7 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 	if cart != nil {
 		ts := time.Unix(cart.Ts, 0)
 		expectedTime := ts.Add(24 * time.Hour)
-		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
+		if time.Now().After(expectedTime) || cart.CustomerID != claims.UserID {
 			err := r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
 			if err != nil {
 				r.logger.Error("error inactivating cart", zap.Error(err))
@@ -99,8 +99,7 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 		}
 	}
 
-	claims.UserID = claims.SessionID
-	request.GuestBioData.SessionID = claims.SessionID
+	request.GuestBioData.SessionID = claims.UserID
 	if request.ShippingInfo.ForMe {
 		request.ShippingInfo = r.forMeCheck(request.ShippingInfo, fmt.Sprintf("%s %s", request.GuestBioData.FirstName, request.GuestBioData.LastName), request.GuestBioData.Phone, request.GuestBioData.Email)
 	}
@@ -171,7 +170,7 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 	return nil
 }
 
-func (r GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
+func (r *GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
 	var serviceFee float64
 
 	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)

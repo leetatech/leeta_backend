@@ -2,44 +2,47 @@ package application
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"go.uber.org/zap"
 	"time"
 )
 
 type productAppHandler struct {
-	tokenHandler  library.TokenHandler
-	encryptor     library.EncryptorManager
-	idGenerator   library.IDGenerator
-	otpGenerator  library.OtpGenerator
+	tokenHandler  pkg.TokenHandler
+	encryptor     pkg.EncryptorManager
+	idGenerator   pkg.IDGenerator
+	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   mailer.MailerClient
-	allRepository library.Repositories
+	allRepository pkg.Repositories
 }
 
 type ProductApplication interface {
-	CreateProduct(ctx context.Context, request domain.ProductRequest) (*library.DefaultResponse, error)
+	CreateProduct(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error)
 	GetProductByID(ctx context.Context, id string) (*models.Product, error)
 	GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) (*domain.GetVendorProductsResponse, error)
+	ListProducts(ctx context.Context, request filter.ResultSelector) (*domain.ListProductsResponse, error)
+	CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error)
 }
 
-func NewProductApplication(request library.DefaultApplicationRequest) ProductApplication {
+func NewProductApplication(request pkg.DefaultApplicationRequest) ProductApplication {
 	return &productAppHandler{
 		tokenHandler:  request.TokenHandler,
-		encryptor:     library.NewEncryptor(),
-		idGenerator:   library.NewIDGenerator(),
-		otpGenerator:  library.NewOTPGenerator(),
+		encryptor:     pkg.NewEncryptor(),
+		idGenerator:   pkg.NewIDGenerator(),
+		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
 		allRepository: request.AllRepository,
 	}
 }
 
-func (p productAppHandler) CreateProduct(ctx context.Context, request domain.ProductRequest) (*library.DefaultResponse, error) {
+func (p productAppHandler) CreateProduct(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error) {
 	claims, err := p.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -71,7 +74,6 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 	product := models.Product{
 		ID:                  p.idGenerator.Generate(),
 		VendorID:            request.VendorID,
-		ParentCategory:      request.ParentCategory,
 		SubCategory:         request.SubCategory,
 		Images:              request.Images,
 		Name:                request.Name,
@@ -93,7 +95,36 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 		return nil, err
 	}
 
-	return &library.DefaultResponse{Success: "success", Message: "Product successfully created"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Product successfully created"}, nil
+}
+
+func (p productAppHandler) CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error) {
+	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	productCategory, err := models.SetProductCategory(request.ProductCategory)
+	if err != nil {
+		return nil, err
+	}
+
+	product := models.Product{
+		ID:             p.idGenerator.Generate(),
+		Name:           request.Name,
+		ParentCategory: productCategory,
+		Description:    request.Description,
+		Status:         models.InStock,
+		StatusTs:       time.Now().Unix(),
+		Ts:             time.Now().Unix(),
+	}
+
+	err = p.allRepository.ProductRepository.CreateProduct(ctx, product)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pkg.DefaultResponse{Success: "success", Message: "Gas Product successfully created"}, nil
 }
 
 func (p productAppHandler) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
@@ -103,7 +134,7 @@ func (p productAppHandler) GetProductByID(ctx context.Context, id string) (*mode
 	}
 	product, err := p.allRepository.ProductRepository.GetProductByID(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
 	return product, nil
@@ -116,6 +147,20 @@ func (p productAppHandler) GetAllVendorProducts(ctx context.Context, request dom
 	}
 
 	products, err := p.allRepository.ProductRepository.GetAllVendorProducts(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (p productAppHandler) ListProducts(ctx context.Context, request filter.ResultSelector) (*domain.ListProductsResponse, error) {
+	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	products, err := p.allRepository.ProductRepository.ListProducts(ctx, request)
 	if err != nil {
 		return nil, err
 	}

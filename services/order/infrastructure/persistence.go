@@ -2,9 +2,10 @@ package infrastructure
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -90,7 +91,12 @@ func (o orderStoreHandler) GetCustomerOrdersByStatus(ctx context.Context, reques
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			log.Debug().Msgf("error closing mongo cursor %v", err)
+		}
+	}(cursor, ctx)
 
 	nodes := make([]domain.OrderResponse, cursor.RemainingBatchLength())
 

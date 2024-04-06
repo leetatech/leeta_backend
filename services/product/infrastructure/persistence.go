@@ -2,12 +2,15 @@ package infrastructure
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg/database"
+	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"time"
 )
@@ -34,6 +37,7 @@ func (p productStoreHandler) CreateProduct(ctx context.Context, request models.P
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
+
 	return nil
 }
 
@@ -48,7 +52,7 @@ func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*mo
 
 	err := p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(product)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, err
 	}
 
 	return product, nil
@@ -61,7 +65,7 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 		filter["status"] = bson.M{"$in": request.ProductStatus}
 	}
 
-	opts := library.GetPaginatedOpts(request.Limit, request.Page)
+	opts := database.GetPaginatedOpts(request.Limit, request.Page)
 
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -82,6 +86,44 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 	//}
 
 	return &domain.GetVendorProductsResponse{
+		Products:    products,
+		HasNextPage: hasNextPage,
+	}, nil
+}
+
+func (p productStoreHandler) ListProducts(ctx context.Context, request filter.ResultSelector) (*domain.ListProductsResponse, error) {
+	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	filter := database.BuildMongoFilterQuery(request.Filter)
+
+	opts := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+
+	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*opts.Skip+*opts.Limit).SetLimit(1))
+	if err != nil {
+		p.logger.Error("error getting extra document", zap.Error(err))
+		return nil, err
+	}
+	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
+		err := extraDocumentCursor.Close(ctx)
+		if err != nil {
+			log.Debug().Msgf("error closing mongo cursor %v", err)
+		}
+	}(extraDocumentCursor, ctx)
+	hasNextPage := extraDocumentCursor.Next(ctx)
+
+	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, opts)
+	if err != nil {
+		p.logger.Error("error getting products", zap.Error(err))
+		return nil, err
+	}
+	products := make([]models.Product, cursor.RemainingBatchLength())
+	if err = cursor.All(ctx, &products); err != nil {
+		p.logger.Error("error getting products", zap.Error(err))
+		return nil, err
+	}
+
+	return &domain.ListProductsResponse{
 		Products:    products,
 		HasNextPage: hasNextPage,
 	}, nil

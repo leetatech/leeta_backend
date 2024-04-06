@@ -2,9 +2,10 @@ package interfaces
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"net/http"
 	"strconv"
@@ -18,7 +19,6 @@ func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error
 
 	var (
 		vendorId            = r.FormValue("vendor_id")
-		parentCategory      = r.FormValue("parent_category")
 		subCategory         = r.FormValue("sub_category")
 		name                = r.FormValue("name")
 		weight              = r.FormValue("weight")
@@ -36,10 +36,6 @@ func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error
 		return nil, err
 	}
 
-	setParentCategory, err := models.SetProductCategory(models.ProductCategory(parentCategory))
-	if err != nil {
-		return nil, err
-	}
 	setSubCategory, err := models.SetProductSubCategory(models.ProductSubCategory(subCategory))
 	if err != nil {
 		return nil, err
@@ -72,7 +68,6 @@ func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error
 
 	return &domain.ProductRequest{
 		VendorID:            vendorId,
-		ParentCategory:      setParentCategory,
 		SubCategory:         setSubCategory,
 		Images:              images,
 		Name:                name,
@@ -102,27 +97,25 @@ func GetImages(r *http.Request) ([]string, error) {
 		}
 		defer file.Close()
 
-		imageFormat, err := library.CheckImageFormat(fileHeader)
+		imageFormat, err := helpers.CheckImageFormat(fileHeader)
 		if err != nil {
 			return nil, err
 		}
 
-		img, err := library.CheckImageSizeAndDimension(fileHeader, file, 500, 600)
+		img, err := helpers.CheckImageSizeAndDimension(fileHeader, file, 500, 600)
 		if err != nil {
 			return nil, err
 		}
 
-		encodedImage, err := library.EncodeImageToBase64(img, imageFormat)
+		encodedImage, err := helpers.EncodeImageToBase64(img, imageFormat)
 		if err != nil {
 			return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
 		}
 
 		images = append(images, encodedImage)
-
-		return images, nil
 	}
 
-	return nil, nil
+	return images, nil
 }
 
 func stringToFloat64(strValue string) (float64, error) {
@@ -132,4 +125,8 @@ func stringToFloat64(strValue string) (float64, error) {
 	}
 
 	return value, nil
+}
+
+func ToFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
+	return options
 }

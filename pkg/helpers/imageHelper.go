@@ -1,40 +1,16 @@
-package library
+package helpers
 
 import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"mime/multipart"
-	"net/http"
 	"strings"
 )
-
-func CheckErrorType(err error, w http.ResponseWriter) {
-	switch err := err.(type) {
-	case *leetError.ErrorResponse:
-		if err.Code() == leetError.ErrorUnauthorized {
-			EncodeErrorResult(w, http.StatusUnauthorized)
-			return
-		}
-	default:
-		EncodeErrorResult(w, http.StatusInternalServerError)
-		return
-	}
-
-}
-
-func GetPaginatedOpts(limit, page int64) *options.FindOptions {
-	l := limit
-	skip := page*limit - limit
-	fOpt := options.FindOptions{Limit: &l, Skip: &skip}
-
-	return &fOpt
-}
 
 func EncodeImageToBase64(img image.Image, format string) (string, error) {
 	var buf bytes.Buffer

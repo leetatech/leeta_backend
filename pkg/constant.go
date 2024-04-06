@@ -1,4 +1,4 @@
-package library
+package pkg
 
 // email template IDs
 const (

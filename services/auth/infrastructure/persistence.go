@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/dtos"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -33,6 +33,14 @@ func NewAuthPersistence(client *mongo.Client, databaseName string, logger *zap.L
 
 func (a authStoreHandler) CreateIdentity(ctx context.Context, identity models.Identity) error {
 	_, err := a.col(models.IdentityCollectionName).InsertOne(ctx, identity)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a authStoreHandler) CreateGuestRecord(ctx context.Context, guest models.Guest) error {
+	_, err := a.col(models.GuestsCollectionName).InsertOne(ctx, guest)
 	if err != nil {
 		return err
 	}

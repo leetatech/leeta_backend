@@ -2,9 +2,9 @@ package interfaces
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/services/library"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/models"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
 	"net/http"
 	"strconv"
@@ -40,17 +40,17 @@ func checkFormFileSpecification(r *http.Request) (*domain.VendorVerificationRequ
 	}
 	defer file.Close()
 
-	imageFormat, err := library.CheckImageFormat(header)
+	imageFormat, err := helpers.CheckImageFormat(header)
 	if err != nil {
 		return nil, err
 	}
 
-	img, err := library.CheckImageSizeAndDimension(header, file, 800, 800)
+	img, err := helpers.CheckImageSizeAndDimension(header, file, 800, 800)
 	if err != nil {
 		return nil, err
 	}
 
-	encodedImage, err := library.EncodeImageToBase64(img, imageFormat)
+	encodedImage, err := helpers.EncodeImageToBase64(img, imageFormat)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
 	}

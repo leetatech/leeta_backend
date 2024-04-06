@@ -35,7 +35,7 @@ stop-mongo:
 
 run_app:
 	@echo "Running the application..."
-	@cd $(CMD_DIR) && go run main.go
+	@cd $(CMD_DIR) && go run main.go -c ../local.env
 
 stop_app:
 	@echo "Stopping the application..."

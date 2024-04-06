@@ -1,12 +1,12 @@
-package library
+package pkg
 
 import (
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
 	gasrefillDomain "github.com/leetatech/leeta_backend/services/gasrefill/domain"
-	"github.com/leetatech/leeta_backend/services/library/leetError"
-	"github.com/leetatech/leeta_backend/services/library/mailer"
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
 	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"

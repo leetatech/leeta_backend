@@ -1,13 +1,10 @@
 package domain
 
+import "errors"
+
 type InactivateCart struct {
 	ID string `json:"id"`
 } // @name InactivateCart
-
-type AddToCartRequest struct {
-	Guest       bool     `json:"guest" bson:"guest"`
-	CartDetails CartItem `json:"cart_details" bson:"cart_details"`
-} // @name AddToCartRequest
 
 type CartItem struct {
 	ProductID string  `json:"product_id" bson:"product_id"`
@@ -24,3 +21,17 @@ type DeleteCartItemRequest struct {
 	ReducedWeightCount   float64 `json:"reduced_weight_count"`
 	TotalReducedItemCost float64 `json:"total_reduced_item_cost"`
 } // @name DeleteCartItemRequest
+type UpdateCartItemQuantityRequest struct {
+	CartItemID string `json:"cart_item_id"`
+	Quantity   int    `json:"quantity"`
+} // @name UpdateCartItemQuantityRequest
+
+func (u *UpdateCartItemQuantityRequest) IsValid() (bool, error) {
+	if u.CartItemID == "" {
+		return false, errors.New("cart_item_id is empty")
+	}
+	if u.Quantity <= 0 {
+		return false, errors.New("quantity is invalid")
+	}
+	return true, nil
+}
