@@ -18,10 +18,10 @@ import (
 
 type UserClaims struct {
 	jwt.StandardClaims
-	SessionID string              `json:"session_id"`
-	UserID    string              `json:"user_id"`
-	Email     string              `json:"email"`
-	Role      models.UserCategory `json:"role"`
+	UserID   string              `json:"user_id"`
+	DeviceID string              `json:"device_id"`
+	Email    string              `json:"email"`
+	Role     models.UserCategory `json:"role"`
 }
 
 type TokenHandler struct {
@@ -68,12 +68,11 @@ func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (st
 }
 
 // BuildAuthResponse Set user details and generate token
-func (handler *TokenHandler) BuildAuthResponse(email, userID, sessionID string, role models.UserCategory) (string, error) {
+func (handler *TokenHandler) BuildAuthResponse(email, userID string, role models.UserCategory) (string, error) {
 	claims := UserClaims{
-		SessionID: sessionID,
-		Email:     email,
-		UserID:    userID,
-		Role:      role,
+		Email:  email,
+		UserID: userID,
+		Role:   role,
 	}
 	return handler.GenerateTokenWithExpiration(&claims)
 }
@@ -179,7 +178,7 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 	w.WriteHeader(code)
 
 	data := struct {
-		Data interface{} `json:"data"`
+		Data any `json:"data"`
 	}{
 		Data: result,
 	}
@@ -190,7 +189,18 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 	}
 }
 
-func EncodeErrorResult(w http.ResponseWriter, code int) {
+func EncodeErrorResult(w http.ResponseWriter, code int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
+
+	data := struct {
+		Data any `json:"data"`
+	}{
+		Data: err,
+	}
+
+	newErr := json.NewEncoder(w).Encode(&data)
+	if newErr != nil {
+		return
+	}
 }

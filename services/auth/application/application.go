@@ -284,14 +284,37 @@ func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSig
 }
 
 func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error) {
-	sessionID := a.idGenerator.Generate()
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", request.DeviceID, sessionID, models.GuestCatergory)
+	ctx := context.Background()
+
+	// check if guest device id already exist. if it does then there is already an assigned guest id
+	guestRecord, err := a.allRepository.AuthRepository.GetGuestRecord(ctx, request.DeviceID)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, infrastructure.ErrItemNotFound) {
+			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error when searching for guest record %w", err))
+		}
+	}
+
+	if guestRecord.ID == "" {
+		guestID := a.idGenerator.Generate()
+		// store guest information
+		guestRecord = models.Guest{
+			ID:       guestID,
+			DeviceID: request.DeviceID,
+			Location: request.Location,
+		}
+
+		if err := a.allRepository.AuthRepository.CreateGuestRecord(context.Background(), guestRecord); err != nil {
+			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error creating guest record %w", err))
+		}
+	}
+
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestRecord.ID, models.GuestCatergory)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error building token response %w", err))
 	}
 
 	return &domain.ReceiveGuestResponse{
-		SessionID: sessionID,
+		SessionID: guestRecord.ID,
 		DeviceID:  request.DeviceID,
 		Token:     tokenString,
 	}, nil

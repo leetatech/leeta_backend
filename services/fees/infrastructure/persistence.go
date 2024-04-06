@@ -5,6 +5,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -47,7 +48,12 @@ func (f feeStoreHandler) GetFees(ctx context.Context, status models.FeesStatuses
 		return nil, err
 	}
 
-	defer cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err := cursor.Close(ctx)
+		if err != nil {
+			log.Debug().Msgf("error closing mongo cursur %v", err)
+		}
+	}(cursor, ctx)
 
 	return fees, nil
 }
@@ -67,10 +73,10 @@ func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string
 	filter := bson.M{"product_id": productID, "status": status}
 	fee := &models.Fee{}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	err := f.col(models.FeesCollectionName).FindOne(ctx, filter).Decode(fee)
+	err := f.col(models.FeesCollectionName).FindOne(newCtx, filter).Decode(fee)
 	if err != nil {
 		return nil, err
 	}

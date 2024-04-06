@@ -66,18 +66,6 @@ func (c *CartStoreHandler) AddToCartItem(ctx context.Context, cartID string, car
 	return nil
 }
 
-func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID string) (*models.Cart, error) {
-	var cart models.Cart
-	filter := bson.M{"cart_items.id": cartItemID}
-
-	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
-	if err != nil {
-		return nil, err
-	}
-
-	return &cart, nil
-}
-
 func (c *CartStoreHandler) DeleteCartItem(ctx context.Context, cartItemID string, itemTotalCost float64) error {
 	filter := bson.M{"cart_items.id": cartItemID}
 
@@ -110,6 +98,18 @@ func (c *CartStoreHandler) DeleteCart(ctx context.Context, id string) error {
 func (c *CartStoreHandler) GetCartByDeviceID(ctx context.Context, deviceID string) (*models.Cart, error) {
 	var cart models.Cart
 	filter := bson.M{"device_id": deviceID, "status": models.CartActive}
+
+	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cart, nil
+}
+
+func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID string) (*models.Cart, error) {
+	var cart models.Cart
+	filter := bson.M{"cart_items.id": cartItemID}
 
 	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
 	if err != nil {

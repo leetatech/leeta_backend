@@ -17,7 +17,6 @@ type otpGenerator struct {
 func NewOTPGenerator() OtpGenerator {
 	source := rand.NewSource(time.Now().UnixNano())
 	randSource := rand.New(source)
-	//rand.Seed(time.Now().UnixNano())
 	return &otpGenerator{randSource: randSource}
 }
 

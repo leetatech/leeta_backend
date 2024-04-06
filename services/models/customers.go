@@ -119,11 +119,9 @@ type Statuses string
 const (
 	SignedUp   Statuses = "SIGNEDUP"   // just signed up
 	Registered Statuses = "REGISTERED" // filled the required information
-	Verified   Statuses = "VERIFIED"   // all details verified
-	Onboarded  Statuses = "ONBOARDED"  // now fully onboarded
 	Rejected   Statuses = "REJECTED"   // rejected
 	Exited     Statuses = "EXITED"     // no longer exists
-	Locked     Statuses = "LOCKED"     // currently locked for some reasons
+	Locked     Statuses = "LOCKED"     // currently locked for some reason
 )
 
 // BusinessCategory type
@@ -133,19 +131,6 @@ const (
 	LPG BusinessCategory = "LPG"
 	LNG BusinessCategory = "LPG"
 )
-
-func IsValidStatuses(status Statuses) bool {
-	return status == SignedUp || status == Registered || status == Verified || status == Onboarded || status == Rejected || status == Exited || status == Locked
-}
-
-func SetIsValidStatuses(status Statuses) (Statuses, error) {
-	switch IsValidStatuses(status) {
-	case true:
-		return status, nil
-	default:
-		return "", leetError.ErrorResponseBody(leetError.BusinessCategoryError, errors.New("invalid business category"))
-	}
-}
 
 func IsValidBusinessCategory(category BusinessCategory) bool {
 	return category == LPG || category == LNG

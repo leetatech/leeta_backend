@@ -4,13 +4,6 @@ definitions:
     properties:
       body: {}
     type: object
-  AddToCartRequest:
-    properties:
-      cart_details:
-        $ref: '#/definitions/CartRefillDetails'
-      guest:
-        type: boolean
-    type: object
   Address:
     properties:
       city:
@@ -233,6 +226,11 @@ definitions:
       session_id:
         type: string
     type: object
+  InactivateCart:
+    properties:
+      id:
+        type: string
+    type: object
   ListProductsResponse:
     properties:
       has_next_page:
@@ -391,8 +389,10 @@ definitions:
     properties:
       device_id:
         type: string
-      guest:
-        type: boolean
+      location:
+        $ref: '#/definitions/Coordinates'
+    required:
+    - device_id
     type: object
   ReceiveGuestResponse:
     properties:
@@ -489,6 +489,13 @@ definitions:
       user_type:
         $ref: '#/definitions/models.UserCategory'
     type: object
+  UpdateCartItemQuantityRequest:
+    properties:
+      cart_item_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
   UpdateOrderStatusRequest:
     properties:
       order_id:
@@ -511,6 +518,8 @@ definitions:
         type: string
       name:
         type: string
+      product_category:
+        $ref: '#/definitions/models.ProductCategory'
     type: object
   domain.GetVendorProductsResponse:
     properties:
@@ -559,7 +568,14 @@ definitions:
     - 1034
     - 1035
     - 1036
+    - 1037
+    - 1038
+    - 1039
+    - 1040
+    - 1041
     type: integer
+    x-enum-comments:
+      InvalidRequestError: generic
     x-enum-varnames:
     - DatabaseError
     - DatabaseNoRecordError
@@ -597,6 +613,11 @@ definitions:
     - AmountPaidError
     - FeesStatusesError
     - InvalidPageRequestError
+    - CartItemQuantityError
+    - CartItemRequestQuantityError
+    - InvalidRequestError
+    - InternalError
+    - InvalidProductIdError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -605,9 +626,8 @@ definitions:
         type: string
       error_type:
         type: string
+      internal_error_message: {}
       message:
-        type: string
-      timestamp:
         type: string
     type: object
   models.OrderStatuses:
@@ -672,25 +692,19 @@ definitions:
     enum:
     - SIGNEDUP
     - REGISTERED
-    - VERIFIED
-    - ONBOARDED
     - REJECTED
     - EXITED
     - LOCKED
     type: string
     x-enum-comments:
       Exited: no longer exists
-      Locked: currently locked for some reasons
-      Onboarded: now fully onboarded
+      Locked: currently locked for some reason
       Registered: filled the required information
       Rejected: rejected
       SignedUp: just signed up
-      Verified: all details verified
     x-enum-varnames:
     - SignedUp
     - Registered
-    - Verified
-    - Onboarded
     - Rejected
     - Exited
     - Locked
@@ -718,37 +732,6 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
-  /cart/:
-    delete:
-      consumes:
-      - application/json
-      description: The endpoint to request for a cart deletion
-      parameters:
-      - description: cartID
-        in: query
-        name: cartID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Request cart deletion
-      tags:
-      - Cart
   /cart/add:
     post:
       consumes:
@@ -757,10 +740,10 @@ paths:
       parameters:
       - description: add to cart request body
         in: body
-        name: domain.AddToCartRequest
+        name: domain.CartItem
         required: true
         schema:
-          $ref: '#/definitions/AddToCartRequest'
+          $ref: '#/definitions/CartRefillDetails'
       produces:
       - application/json
       responses:
@@ -776,20 +759,50 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
       summary: Add items to cart
       tags:
       - Cart
-  /cart/item:
+  /cart/inactivate:
+    put:
+      consumes:
+      - application/json
+      deprecated: true
+      description: The endpoint to request for a cart inactivation
+      parameters:
+      - description: inactivate cart request body
+        in: body
+        name: domain.InactivateCart
+        required: true
+        schema:
+          $ref: '#/definitions/InactivateCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      summary: Request cart inactivation
+      tags:
+      - Cart
+  /cart/item/{cart_item_id}:
     delete:
       consumes:
       - application/json
-      description: The endpoint to delete items from cart
+      description: The endpoint to delete items from cart. This endpoint also deletes
+        an entire cart if there is no item left in the cart
       parameters:
-      - description: cartItemID
+      - description: cart_item_id
         in: query
-        name: cartItemID
+        name: cart_item_id
         required: true
         type: string
       produces:
@@ -810,6 +823,38 @@ paths:
       security:
       - BearerToken: []
       summary: Delete items from cart
+      tags:
+      - Cart
+  /cart/item/quantity:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to increase or reduce cart item quantity
+      parameters:
+      - description: update cart item quantity request body
+        in: body
+        name: domain.UpdateCartItemQuantityRequest
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCartItemQuantityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: increase or reduce cart item quantity
       tags:
       - Cart
   /fees/:
@@ -1244,7 +1289,6 @@ paths:
       - description: Product parent category
         in: formData
         name: parent_category
-        required: true
         type: string
       - description: Product subcategory
         in: formData

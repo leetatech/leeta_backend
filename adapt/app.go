@@ -11,6 +11,7 @@ import (
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
+	"github.com/rs/zerolog/log"
 
 	cartApplication "github.com/leetatech/leeta_backend/services/cart/application"
 	cartInfrastructure "github.com/leetatech/leeta_backend/services/cart/infrastructure"
@@ -93,7 +94,7 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 
 	allInterfaces := app.buildApplicationConnection(*tokenHandler)
 
-	router, tokenHandler, err := routes.SetupRouter(tokenHandler, allInterfaces)
+	router, _, err := routes.SetupRouter(tokenHandler, allInterfaces)
 	if err != nil {
 		return nil, err
 	}
@@ -106,14 +107,21 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 
 // Run executes the application
 func (app *Application) Run() error {
-	defer app.Db.Disconnect(app.Ctx)
+	defer func() {
+		if err := app.Db.Disconnect(app.Ctx); err != nil {
+			log.Debug().Msgf("error disconnecting from database: %v", err)
+		}
+	}()
 
 	app.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/api/swagger/", http.StatusFound)
 	})
 
 	app.Router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
-		w.Write([]byte("Welcome to the leeta Server.."))
+		_, err := w.Write([]byte("Leeta Backend Server is running..."))
+		if err != nil {
+			log.Debug().Msgf("Error writing response: %v", err)
+		}
 	})
 
 	svr := http.Server{

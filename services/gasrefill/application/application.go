@@ -36,7 +36,7 @@ func NewGasRefillApplication(request pkg.DefaultApplicationRequest) GasRefillApp
 	}
 }
 
-func (r GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error) {
+func (r *GasRefillHandler) RequestRefill(ctx context.Context, request domain.GasRefillRequest) (*pkg.DefaultResponse, error) {
 
 	claims, err := r.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
@@ -89,8 +89,8 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 	if cart != nil {
 		ts := time.Unix(cart.Ts, 0)
 		expectedTime := ts.Add(24 * time.Hour)
-		if time.Now().After(expectedTime) || cart.CustomerID != claims.SessionID {
-			err := r.allRepository.CartRepository.DeleteCart(ctx, cart.ID)
+		if time.Now().After(expectedTime) || cart.CustomerID != claims.UserID {
+			err := r.allRepository.CartRepository.InactivateCart(ctx, cart.ID)
 			if err != nil {
 				r.logger.Error("error inactivating cart", zap.Error(err))
 				return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
@@ -99,8 +99,7 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 		}
 	}
 
-	claims.UserID = claims.SessionID
-	request.GuestBioData.SessionID = claims.SessionID
+	request.GuestBioData.SessionID = claims.UserID
 	if request.ShippingInfo.ForMe {
 		request.ShippingInfo = r.forMeCheck(request.ShippingInfo, fmt.Sprintf("%s %s", request.GuestBioData.FirstName, request.GuestBioData.LastName), request.GuestBioData.Phone, request.GuestBioData.Email)
 	}
@@ -171,7 +170,7 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 	return nil
 }
 
-func (r GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
+func (r *GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
 	var serviceFee float64
 
 	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)

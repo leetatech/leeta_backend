@@ -23,62 +23,8 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/cart/": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to request for a cart deletion",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Request cart deletion",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "cartID",
-                        "name": "cartID",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/cart/add": {
             "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
                 "description": "The endpoint to add items to cart",
                 "consumes": [
                     "application/json"
@@ -93,11 +39,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "add to cart request body",
-                        "name": "domain.AddToCartRequest",
+                        "name": "domain.CartItem",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/AddToCartRequest"
+                            "$ref": "#/definitions/CartRefillDetails"
                         }
                     }
                 ],
@@ -123,14 +69,112 @@ const docTemplate = `{
                 }
             }
         },
-        "/cart/item": {
+        "/cart/inactivate": {
+            "put": {
+                "description": "The endpoint to request for a cart inactivation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart inactivation",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "description": "inactivate cart request body",
+                        "name": "domain.InactivateCart",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/InactivateCart"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/quantity": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to increase or reduce cart item quantity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "increase or reduce cart item quantity",
+                "parameters": [
+                    {
+                        "description": "update cart item quantity request body",
+                        "name": "domain.UpdateCartItemQuantityRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/{cart_item_id}": {
             "delete": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to delete items from cart",
+                "description": "The endpoint to delete items from cart. This endpoint also deletes an entire cart if there is no item left in the cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -144,8 +188,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "cartItemID",
-                        "name": "cartItemID",
+                        "description": "cart_item_id",
+                        "name": "cart_item_id",
                         "in": "query",
                         "required": true
                     }
@@ -850,8 +894,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Product parent category",
                         "name": "parent_category",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -1725,17 +1768,6 @@ const docTemplate = `{
                 "body": {}
             }
         },
-        "AddToCartRequest": {
-            "type": "object",
-            "properties": {
-                "cart_details": {
-                    "$ref": "#/definitions/CartRefillDetails"
-                },
-                "guest": {
-                    "type": "boolean"
-                }
-            }
-        },
         "Address": {
             "type": "object",
             "properties": {
@@ -2078,6 +2110,14 @@ const docTemplate = `{
                 }
             }
         },
+        "InactivateCart": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "ListProductsResponse": {
             "type": "object",
             "properties": {
@@ -2315,12 +2355,15 @@ const docTemplate = `{
         },
         "ReceiveGuestRequest": {
             "type": "object",
+            "required": [
+                "device_id"
+            ],
             "properties": {
                 "device_id": {
                     "type": "string"
                 },
-                "guest": {
-                    "type": "boolean"
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
                 }
             }
         },
@@ -2473,6 +2516,17 @@ const docTemplate = `{
                 }
             }
         },
+        "UpdateCartItemQuantityRequest": {
+            "type": "object",
+            "properties": {
+                "cart_item_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2506,6 +2560,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "product_category": {
+                    "$ref": "#/definitions/models.ProductCategory"
                 }
             }
         },
@@ -2561,8 +2618,16 @@ const docTemplate = `{
                 1033,
                 1034,
                 1035,
-                1036
+                1036,
+                1037,
+                1038,
+                1039,
+                1040,
+                1041
             ],
+            "x-enum-comments": {
+                "InvalidRequestError": "generic"
+            },
             "x-enum-varnames": [
                 "DatabaseError",
                 "DatabaseNoRecordError",
@@ -2599,7 +2664,12 @@ const docTemplate = `{
                 "CartStatusesError",
                 "AmountPaidError",
                 "FeesStatusesError",
-                "InvalidPageRequestError"
+                "InvalidPageRequestError",
+                "CartItemQuantityError",
+                "CartItemRequestQuantityError",
+                "InvalidRequestError",
+                "InternalError",
+                "InvalidProductIdError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -2614,10 +2684,8 @@ const docTemplate = `{
                 "error_type": {
                     "type": "string"
                 },
+                "internal_error_message": {},
                 "message": {
-                    "type": "string"
-                },
-                "timestamp": {
                     "type": "string"
                 }
             }
@@ -2700,26 +2768,20 @@ const docTemplate = `{
             "enum": [
                 "SIGNEDUP",
                 "REGISTERED",
-                "VERIFIED",
-                "ONBOARDED",
                 "REJECTED",
                 "EXITED",
                 "LOCKED"
             ],
             "x-enum-comments": {
                 "Exited": "no longer exists",
-                "Locked": "currently locked for some reasons",
-                "Onboarded": "now fully onboarded",
+                "Locked": "currently locked for some reason",
                 "Registered": "filled the required information",
                 "Rejected": "rejected",
-                "SignedUp": "just signed up",
-                "Verified": "all details verified"
+                "SignedUp": "just signed up"
             },
             "x-enum-varnames": [
                 "SignedUp",
                 "Registered",
-                "Verified",
-                "Onboarded",
                 "Rejected",
                 "Exited",
                 "Locked"
