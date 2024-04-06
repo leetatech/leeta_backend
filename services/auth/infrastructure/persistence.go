@@ -177,3 +177,20 @@ func (a authStoreHandler) UpdateEmailVerify(ctx context.Context, email string, s
 	}
 	return nil
 }
+
+func (a authStoreHandler) GetGuestRecord(ctx context.Context, deviceId string) (guest models.Guest, err error) {
+	filter := bson.M{
+		dtos.DeviceId: deviceId,
+	}
+
+	err = a.col(models.GuestsCollectionName).FindOne(ctx, filter).Decode(&guest)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			err = ErrItemNotFound
+		}
+		return
+	}
+
+	return
+}

@@ -240,13 +240,13 @@ func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, 
 	var request domain.ReceiveGuestRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
 		return
 	}
 
 	token, err := handler.AuthApplication.ReceiveGuestToken(request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusInternalServerError)
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 		return
 	}
 	pkg.EncodeResult(w, token, http.StatusOK)

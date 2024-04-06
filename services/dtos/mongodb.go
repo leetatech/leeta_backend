@@ -6,4 +6,5 @@ const (
 	EmailVerifiedStatus = "user.email.verified"
 	UserID              = "user_id"
 	CredentialsType     = "credentials.type"
+	DeviceId            = "device_id"
 )
