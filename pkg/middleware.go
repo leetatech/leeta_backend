@@ -178,7 +178,7 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 	w.WriteHeader(code)
 
 	data := struct {
-		Data interface{} `json:"data"`
+		Data any `json:"data"`
 	}{
 		Data: result,
 	}
@@ -189,7 +189,18 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 	}
 }
 
-func EncodeErrorResult(w http.ResponseWriter, code int) {
+func EncodeErrorResult(w http.ResponseWriter, code int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
+
+	data := struct {
+		Data any `json:"data"`
+	}{
+		Data: err.Error(),
+	}
+
+	newErr := json.NewEncoder(w).Encode(&data)
+	if newErr != nil {
+		return
+	}
 }

@@ -68,7 +68,7 @@ func (handler *OrderHttpHandler) UpdateOrderStatusHandler(w http.ResponseWriter,
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
 		return
 	}
 

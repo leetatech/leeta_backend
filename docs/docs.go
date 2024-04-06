@@ -115,6 +115,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/cart/item/quantity": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to increase or reduce cart item quantity",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "increase or reduce cart item quantity",
+                "parameters": [
+                    {
+                        "description": "update cart item quantity request body",
+                        "name": "domain.UpdateCartItemQuantityRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCartItemQuantityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/fees/": {
             "get": {
                 "security": [
@@ -793,8 +844,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Product parent category",
                         "name": "parent_category",
-                        "in": "formData",
-                        "required": true
+                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -2416,6 +2466,17 @@ const docTemplate = `{
                 }
             }
         },
+        "UpdateCartItemQuantityRequest": {
+            "type": "object",
+            "properties": {
+                "cart_item_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2449,6 +2510,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "product_category": {
+                    "$ref": "#/definitions/models.ProductCategory"
                 }
             }
         },
@@ -2504,8 +2568,14 @@ const docTemplate = `{
                 1033,
                 1034,
                 1035,
-                1036
+                1036,
+                1037,
+                1038,
+                1039
             ],
+            "x-enum-comments": {
+                "InvalidRequestError": "generic"
+            },
             "x-enum-varnames": [
                 "DatabaseError",
                 "DatabaseNoRecordError",
@@ -2542,12 +2612,18 @@ const docTemplate = `{
                 "CartStatusesError",
                 "AmountPaidError",
                 "FeesStatusesError",
-                "InvalidPageRequestError"
+                "InvalidPageRequestError",
+                "CartItemQuantityError",
+                "CartItemRequestQuantityError",
+                "InvalidRequestError"
             ]
         },
         "leetError.ErrorResponse": {
             "type": "object",
             "properties": {
+                "code": {
+                    "$ref": "#/definitions/leetError.ErrorCode"
+                },
                 "error_code": {
                     "$ref": "#/definitions/leetError.ErrorCode"
                 },
@@ -2643,26 +2719,20 @@ const docTemplate = `{
             "enum": [
                 "SIGNEDUP",
                 "REGISTERED",
-                "VERIFIED",
-                "ONBOARDED",
                 "REJECTED",
                 "EXITED",
                 "LOCKED"
             ],
             "x-enum-comments": {
                 "Exited": "no longer exists",
-                "Locked": "currently locked for some reasons",
-                "Onboarded": "now fully onboarded",
+                "Locked": "currently locked for some reason",
                 "Registered": "filled the required information",
                 "Rejected": "rejected",
-                "SignedUp": "just signed up",
-                "Verified": "all details verified"
+                "SignedUp": "just signed up"
             },
             "x-enum-varnames": [
                 "SignedUp",
                 "Registered",
-                "Verified",
-                "Onboarded",
                 "Rejected",
                 "Exited",
                 "Locked"

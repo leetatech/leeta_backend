@@ -74,7 +74,6 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 	product := models.Product{
 		ID:                  p.idGenerator.Generate(),
 		VendorID:            request.VendorID,
-		ParentCategory:      request.ParentCategory,
 		SubCategory:         request.SubCategory,
 		Images:              request.Images,
 		Name:                request.Name,
@@ -105,13 +104,19 @@ func (p productAppHandler) CreateGasProduct(ctx context.Context, request domain.
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
+	productCategory, err := models.SetProductCategory(request.ProductCategory)
+	if err != nil {
+		return nil, err
+	}
+
 	product := models.Product{
-		ID:          p.idGenerator.Generate(),
-		Name:        request.Name,
-		Description: request.Description,
-		Status:      models.InStock,
-		StatusTs:    time.Now().Unix(),
-		Ts:          time.Now().Unix(),
+		ID:             p.idGenerator.Generate(),
+		Name:           request.Name,
+		ParentCategory: productCategory,
+		Description:    request.Description,
+		Status:         models.InStock,
+		StatusTs:       time.Now().Unix(),
+		Ts:             time.Now().Unix(),
 	}
 
 	err = p.allRepository.ProductRepository.CreateProduct(ctx, product)

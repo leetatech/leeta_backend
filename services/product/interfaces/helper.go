@@ -19,7 +19,6 @@ func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error
 
 	var (
 		vendorId            = r.FormValue("vendor_id")
-		parentCategory      = r.FormValue("parent_category")
 		subCategory         = r.FormValue("sub_category")
 		name                = r.FormValue("name")
 		weight              = r.FormValue("weight")
@@ -37,10 +36,6 @@ func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error
 		return nil, err
 	}
 
-	setParentCategory, err := models.SetProductCategory(models.ProductCategory(parentCategory))
-	if err != nil {
-		return nil, err
-	}
 	setSubCategory, err := models.SetProductSubCategory(models.ProductSubCategory(subCategory))
 	if err != nil {
 		return nil, err
@@ -73,7 +68,6 @@ func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error
 
 	return &domain.ProductRequest{
 		VendorID:            vendorId,
-		ParentCategory:      setParentCategory,
 		SubCategory:         setSubCategory,
 		Images:              images,
 		Name:                name,

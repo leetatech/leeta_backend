@@ -18,8 +18,8 @@ type GetVendorProductsResponse struct {
 
 type ProductRequest struct {
 	VendorID            string                    `json:"vendor_id"`
-	ParentCategory      models.ProductCategory    `json:"parent_category"`
-	SubCategory         models.ProductSubCategory `json:"sub_category"`
+	ParentCategory      models.ProductCategory    `json:"parent_category,omitempty"`
+	SubCategory         models.ProductSubCategory `json:"sub_category,omitempty"`
 	Images              []string                  `json:"images"`
 	Name                string                    `json:"name"`
 	Weight              string                    `json:"weight"`
@@ -33,8 +33,9 @@ type ProductRequest struct {
 }
 
 type GasProductRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	Name            string                 `json:"name"`
+	Description     string                 `json:"description"`
+	ProductCategory models.ProductCategory `json:"product_category"`
 }
 
 type ListProductsResponse struct {
