@@ -226,11 +226,6 @@ definitions:
       session_id:
         type: string
     type: object
-  InactivateCart:
-    properties:
-      id:
-        type: string
-    type: object
   ListProductsResponse:
     properties:
       has_next_page:
@@ -732,6 +727,37 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
+  /cart/{cart_id}:
+    delete:
+      consumes:
+      - application/json
+      description: The endpoint to request for a cart deletion
+      parameters:
+      - description: cartID
+        in: query
+        name: cartID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Request cart deletion
+      tags:
+      - Cart
   /cart/add:
     post:
       consumes:
@@ -759,38 +785,9 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
       summary: Add items to cart
-      tags:
-      - Cart
-  /cart/inactivate:
-    put:
-      consumes:
-      - application/json
-      deprecated: true
-      description: The endpoint to request for a cart inactivation
-      parameters:
-      - description: inactivate cart request body
-        in: body
-        name: domain.InactivateCart
-        required: true
-        schema:
-          $ref: '#/definitions/InactivateCart'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      summary: Request cart inactivation
       tags:
       - Cart
   /cart/item/{cart_item_id}:

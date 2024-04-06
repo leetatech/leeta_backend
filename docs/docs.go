@@ -25,6 +25,11 @@ const docTemplate = `{
     "paths": {
         "/cart/add": {
             "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
                 "description": "The endpoint to add items to cart",
                 "consumes": [
                     "application/json"
@@ -44,53 +49,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/CartRefillDetails"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/cart/inactivate": {
-            "put": {
-                "description": "The endpoint to request for a cart inactivation",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Request cart inactivation",
-                "deprecated": true,
-                "parameters": [
-                    {
-                        "description": "inactivate cart request body",
-                        "name": "domain.InactivateCart",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/InactivateCart"
                         }
                     }
                 ],
@@ -190,6 +148,55 @@ const docTemplate = `{
                         "type": "string",
                         "description": "cart_item_id",
                         "name": "cart_item_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/{cart_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to request for a cart deletion",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Request cart deletion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cartID",
+                        "name": "cartID",
                         "in": "query",
                         "required": true
                     }
@@ -2106,14 +2113,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "session_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "InactivateCart": {
-            "type": "object",
-            "properties": {
-                "id": {
                     "type": "string"
                 }
             }

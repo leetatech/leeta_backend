@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
@@ -59,15 +60,17 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /cart/ [delete]
+// @Router /cart/{cart_id} [delete]
 func (handler *CartHttpHandler) DeleteCartHandler(w http.ResponseWriter, r *http.Request) {
-	cartID := r.URL.Query().Get("cartID")
+	cartID := chi.URLParam(r, "cart_id")
+	if cartID == "" {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, errors.New("cart_id is required"))
+		return
+	}
 
-	response, err := handler.CartApplication.DeleteCart(r.Context(), domain.DeleteCartRequest{
-		ID: cartID,
-	})
+	response, err := handler.CartApplication.DeleteCart(r.Context(), cartID)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, fmt.Errorf("error deleting cart: %w", err))
 		return
 	}
 	pkg.EncodeResult(w, response, http.StatusOK)
