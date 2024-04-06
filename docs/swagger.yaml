@@ -793,15 +793,16 @@ paths:
       summary: Request cart inactivation
       tags:
       - Cart
-  /cart/item:
+  /cart/item/{cart_item_id}:
     delete:
       consumes:
       - application/json
-      description: The endpoint to delete items from cart
+      description: The endpoint to delete items from cart. This endpoint also deletes
+        an entire cart if there is no item left in the cart
       parameters:
-      - description: cartItemID
+      - description: cart_item_id
         in: query
-        name: cartItemID
+        name: cart_item_id
         required: true
         type: string
       produces:

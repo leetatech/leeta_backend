@@ -24,7 +24,7 @@ type CartAppHandler struct {
 }
 
 type CartApplication interface {
-	DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*pkg.DefaultResponse, error)
+	DeleteCartItem(ctx context.Context, cartItemId string) (*pkg.DefaultResponse, error)
 	InactivateCart(ctx context.Context, request domain.InactivateCart) (*pkg.DefaultResponse, error)
 	AddToCart(ctx context.Context, request domain.CartItem) (*pkg.DefaultResponse, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error)
@@ -56,7 +56,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 
 	product, err := c.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
 	if err != nil {
-		return nil, fmt.Errorf("error getting product id %s: %w", request.ProductID, err)
+		return nil, leetError.ErrorResponseBody(leetError.InvalidProductIdError, fmt.Errorf("error getting product id %s: %w", request.ProductID, err))
 	}
 
 	switch product.ParentCategory {
@@ -227,29 +227,27 @@ func (c CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item
 	return item, nil
 }
 
-func (c CartAppHandler) DeleteCartItem(ctx context.Context, request domain.DeleteCartItemRequest) (*pkg.DefaultResponse, error) {
+func (c CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) (*pkg.DefaultResponse, error) {
 	_, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	cart, err := c.allRepository.CartRepository.GetCartByCartItemID(ctx, request.CartItemID)
+	cart, err := c.allRepository.CartRepository.GetCartByCartItemID(ctx, itemId)
 	if err != nil {
-		c.logger.Error("error getting cart by cart item id", zap.Error(err))
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, fmt.Errorf("error getting cart item with cart item id '%s': %w", itemId, err))
 	}
 
-	var itemTotalCost float64
+	var itemCost float64
 	for _, item := range cart.CartItems {
-		if item.ID == request.CartItemID {
-			itemTotalCost = item.Cost
+		if item.ID == itemId {
+			itemCost = item.Cost
 		}
 	}
 
-	err = c.allRepository.CartRepository.DeleteCartItem(ctx, request.CartItemID, itemTotalCost)
+	err = c.allRepository.CartRepository.DeleteCartItem(ctx, itemId, itemCost)
 	if err != nil {
-		c.logger.Error("error deleting cart item", zap.Error(err))
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, fmt.Errorf("error deleting cart item with cart item id '%s': %w", itemId, err))
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "Successfully deleted item from cart"}, nil

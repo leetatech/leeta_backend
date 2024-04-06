@@ -116,55 +116,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/cart/item": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to delete items from cart",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Cart"
-                ],
-                "summary": "Delete items from cart",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "cartItemID",
-                        "name": "cartItemID",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/cart/item/quantity": {
             "put": {
                 "security": [
@@ -192,6 +143,55 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/UpdateCartItemQuantityRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/item/{cart_item_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to delete items from cart. This endpoint also deletes an entire cart if there is no item left in the cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Delete items from cart",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cart_item_id",
+                        "name": "cart_item_id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

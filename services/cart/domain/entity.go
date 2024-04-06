@@ -13,10 +13,6 @@ type CartItem struct {
 	Cost      float64 `json:"cost" bson:"cost"`
 } // @name CartRefillDetails
 
-type DeleteCartItemRequest struct {
-	CartItemID string `json:"cart_item_id"`
-} // @name DeleteCartItemRequest
-
 type UpdateCartItemQuantityRequest struct {
 	CartItemID string `json:"cart_item_id"`
 	Quantity   int    `json:"quantity"`
