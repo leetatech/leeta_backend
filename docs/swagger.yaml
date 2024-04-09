@@ -88,6 +88,19 @@ definitions:
       weight:
         type: number
     type: object
+  CartResponse:
+    properties:
+      cart_items:
+        items:
+          $ref: '#/definitions/models.CartItem'
+        type: array
+      id:
+        type: string
+      total:
+        type: number
+      total_records:
+        type: integer
+    type: object
   CompareOperator:
     enum:
     - isEqualTo
@@ -225,6 +238,13 @@ definitions:
         type: string
       session_id:
         type: string
+    type: object
+  ListCartResponse:
+    properties:
+      cart:
+        $ref: '#/definitions/CartResponse'
+      has_next_page:
+        type: boolean
     type: object
   ListProductsResponse:
     properties:
@@ -516,6 +536,13 @@ definitions:
       product_category:
         $ref: '#/definitions/models.ProductCategory'
     type: object
+  domain.GetCartRequest:
+    properties:
+      id:
+        type: string
+      paging:
+        $ref: '#/definitions/PagingRequest'
+    type: object
   domain.GetVendorProductsResponse:
     properties:
       has_next_page:
@@ -625,6 +652,23 @@ definitions:
       message:
         type: string
     type: object
+  models.CartItem:
+    properties:
+      cost:
+        type: number
+      id:
+        type: string
+      product_category:
+        $ref: '#/definitions/models.ProductCategory'
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      vendor_id:
+        type: string
+      weight:
+        type: number
+    type: object
   models.OrderStatuses:
     enum:
     - PENDING
@@ -727,6 +771,38 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
+  /cart:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get cart
+      parameters:
+      - description: get cart request body
+        in: body
+        name: domain.GetCartRequest
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GetCartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ListCartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get cart
+      tags:
+      - Cart
   /cart/{cart_id}:
     delete:
       consumes:

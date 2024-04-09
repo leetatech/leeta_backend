@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -117,4 +118,47 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	}
 
 	return &cart, nil
+}
+
+func (c *CartStoreHandler) GetPaginatedCart(ctx context.Context, request domain.GetCartRequest, userID string) (*domain.ListCartResponse, error) {
+	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+
+	pipeline := mongo.Pipeline{
+		bson.D{
+			{"$match", bson.M{"id": request.ID, "customer_id": userID}},
+		},
+		bson.D{
+			{"$project", bson.M{
+				"id":    1,
+				"total": 1,
+				"total_records": bson.M{
+					"$cond": bson.M{
+						"if":   bson.M{"$isArray": "$cart_items"},
+						"then": bson.M{"$size": "$cart_items"},
+						"else": 0,
+					},
+				},
+				"cart_items": bson.M{"$slice": []interface{}{"$cart_items", opt.Skip, opt.Limit}},
+			}},
+		},
+	}
+
+	cursor, err := c.col(models.CartsCollectionName).Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+
+	var cartResponse domain.CartResponse
+	if cursor.Next(ctx) {
+		if err = cursor.Decode(&cartResponse); err != nil {
+			return nil, err
+		}
+	}
+
+	return &domain.ListCartResponse{
+		Cart:        cartResponse,
+		HasNextPage: (request.Paging.PageIndex * request.Paging.PageSize) < cartResponse.TotalRecords,
+	}, nil
 }

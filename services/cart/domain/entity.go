@@ -1,6 +1,10 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/services/models"
+)
 
 type CartItem struct {
 	ProductID string  `json:"product_id" bson:"product_id"`
@@ -23,3 +27,20 @@ func (u *UpdateCartItemQuantityRequest) IsValid() (bool, error) {
 	}
 	return true, nil
 }
+
+type GetCartRequest struct {
+	ID     string                `json:"id"`
+	Paging *filter.PagingRequest `json:"paging"`
+}
+
+type ListCartResponse struct {
+	Cart        CartResponse `json:"cart"`
+	HasNextPage bool         `json:"has_next_page"`
+} // @name ListCartResponse
+
+type CartResponse struct {
+	ID           string            `json:"id" bson:"id"`
+	CartItems    []models.CartItem `json:"cart_items" bson:"cart_items"`
+	Total        float64           `json:"total" bson:"total"`
+	TotalRecords int               `json:"total_records" bson:"total_records"`
+} // @name CartResponse

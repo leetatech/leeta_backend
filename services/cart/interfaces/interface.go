@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"net/http"
@@ -136,4 +138,41 @@ func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *
 	}
 
 	pkg.EncodeResult(w, response, http.StatusOK)
+}
+
+// GetPaginatedCartHandler is the endpoint to get cart
+// @Summary Get cart
+// @Description The endpoint to get cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerToken
+// @Param domain.GetCartRequest body domain.GetCartRequest true "get cart request body"
+// @Success 200 {object} domain.ListCartResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart [get]
+func (handler *CartHttpHandler) GetPaginatedCartHandler(w http.ResponseWriter, r *http.Request) {
+	var request domain.GetCartRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.UnmarshalError, err))
+		return
+	}
+
+	request.Paging, err = helpers.ValidateQueryFilter(request.Paging)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.CartApplication.ListCartItems(r.Context(), request)
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	pkg.EncodeResult(w, response, http.StatusOK)
+
 }

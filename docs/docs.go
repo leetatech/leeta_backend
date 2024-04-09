@@ -23,6 +23,57 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/cart": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get cart",
+                "parameters": [
+                    {
+                        "description": "get cart request body",
+                        "name": "domain.GetCartRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetCartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ListCartResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cart/add": {
             "post": {
                 "security": [
@@ -1903,6 +1954,26 @@ const docTemplate = `{
                 }
             }
         },
+        "CartResponse": {
+            "type": "object",
+            "properties": {
+                "cart_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CartItem"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "total_records": {
+                    "type": "integer"
+                }
+            }
+        },
         "CompareOperator": {
             "type": "string",
             "enum": [
@@ -2114,6 +2185,17 @@ const docTemplate = `{
                 },
                 "session_id": {
                     "type": "string"
+                }
+            }
+        },
+        "ListCartResponse": {
+            "type": "object",
+            "properties": {
+                "cart": {
+                    "$ref": "#/definitions/CartResponse"
+                },
+                "has_next_page": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2565,6 +2647,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetCartRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "paging": {
+                    "$ref": "#/definitions/PagingRequest"
+                }
+            }
+        },
         "domain.GetVendorProductsResponse": {
             "type": "object",
             "properties": {
@@ -2686,6 +2779,32 @@ const docTemplate = `{
                 "internal_error_message": {},
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "models.CartItem": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "product_category": {
+                    "$ref": "#/definitions/models.ProductCategory"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "vendor_id": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "number"
                 }
             }
         },

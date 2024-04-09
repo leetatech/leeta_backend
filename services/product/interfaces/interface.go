@@ -171,7 +171,7 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	request.Paging, err = helpers.ValidateQueryFilter(request)
+	request.Paging, err = helpers.ValidateQueryFilter(request.Paging)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
