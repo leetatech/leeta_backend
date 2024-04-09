@@ -1,0 +1,33 @@
+package interfaces
+
+import (
+	"github.com/leetatech/leeta_backend/pkg/filter"
+)
+
+var cartIDRequestName = filter.ReadableValue[string]{
+	Label: "cart id",
+	Value: "id",
+}
+
+// Filter request options operator labels
+const (
+	LabelIsEqualTo = "is equal to"
+)
+
+var operatorEqual = filter.ReadableValue[filter.CompareOperator]{
+	Label: LabelIsEqualTo,
+	Value: filter.CompareOperatorIsEqualTo,
+}
+
+var listCartOptions = []filter.RequestOption{
+	{
+		Name: cartIDRequestName,
+		Control: filter.RequestOptionType{
+			Type: filter.ControlTypeString,
+		},
+		Operators: []filter.ReadableValue[filter.CompareOperator]{
+			operatorEqual,
+		},
+		MultiSelect: true,
+	},
+}

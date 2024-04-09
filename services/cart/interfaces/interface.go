@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
+	"github.com/samber/lo"
 	"net/http"
 )
 
@@ -147,13 +149,13 @@ func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *
 // @Accept json
 // @Produce json
 // @Security BearerToken
-// @Param domain.GetCartRequest body domain.GetCartRequest true "get cart request body"
+// @Param filter.ResultSelector body filter.ResultSelector true "list cart request body"
 // @Success 200 {object} domain.ListCartResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /cart [get]
+// @Router /cart [post]
 func (handler *CartHttpHandler) GetPaginatedCartHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.GetCartRequest
+	var request filter.ResultSelector
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -175,4 +177,24 @@ func (handler *CartHttpHandler) GetPaginatedCartHandler(w http.ResponseWriter, r
 
 	pkg.EncodeResult(w, response, http.StatusOK)
 
+}
+
+// ListCartOptions is the endpoint to get cart filter options
+// @Summary Get cart filter options
+// @Description Retrieve cart filter options
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Security BearerToken
+// @Success 200 {object} filter.RequestOption
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart/options [get]
+func (handler *CartHttpHandler) ListCartOptions(w http.ResponseWriter, r *http.Request) {
+	requestOptions := lo.Map(listCartOptions, ToFilterOption)
+	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+}
+
+func ToFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
+	return options
 }

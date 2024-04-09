@@ -24,7 +24,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/cart": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "BearerToken": []
@@ -43,12 +43,12 @@ const docTemplate = `{
                 "summary": "Get cart",
                 "parameters": [
                     {
-                        "description": "get cart request body",
-                        "name": "domain.GetCartRequest",
+                        "description": "list cart request body",
+                        "name": "filter.ResultSelector",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCartRequest"
+                            "$ref": "#/definitions/ResultSelector"
                         }
                     }
                 ],
@@ -208,6 +208,46 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cart/options": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Retrieve cart filter options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get cart filter options",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/RequestOption"
                         }
                     },
                     "400": {
@@ -2644,17 +2684,6 @@ const docTemplate = `{
                 },
                 "product_category": {
                     "$ref": "#/definitions/models.ProductCategory"
-                }
-            }
-        },
-        "domain.GetCartRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "paging": {
-                    "$ref": "#/definitions/PagingRequest"
                 }
             }
         },

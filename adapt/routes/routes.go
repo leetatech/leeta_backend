@@ -154,7 +154,8 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pk
 		r.Delete("/{cart_id}", handler.DeleteCartHandler)
 		r.Delete("/item/{cart_item_id}", handler.DeleteCartItemHandler)
 		r.Put("/item/quantity", handler.UpdateCartItemQuantityHandler)
-		r.Get("/", handler.GetPaginatedCartHandler)
+		r.Post("/", handler.GetPaginatedCartHandler)
+		r.Get("/options", handler.ListCartOptions)
 	})
 
 	return router
