@@ -129,10 +129,10 @@ func (c *CartStoreHandler) GetPaginatedCart(ctx context.Context, request filter.
 
 	pipeline := mongo.Pipeline{
 		{
-			{"$match", query},
+			{Key: "$match", Value: query},
 		},
 		{
-			{"$project", bson.M{
+			{Key: "$project", Value: bson.M{
 				"id":    1,
 				"total": 1,
 				"total_records": bson.M{

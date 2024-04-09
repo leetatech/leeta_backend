@@ -105,3 +105,10 @@ generate_keys:
 	echo >> local.env; \
 	echo "APP_ENV=staging" >> local.env; \
 	rm private.key public.key
+
+lint:
+	@hash golangci-lint > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		export BINARY="golangci-lint"; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/1.57.2/install.sh | sh -s -- -b $(GOPATH)/bin 1.57.2; \
+	fi
+	golangci-lint run --timeout 5m
