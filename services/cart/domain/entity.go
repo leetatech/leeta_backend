@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/services/models"
 )
 
@@ -26,11 +25,6 @@ func (u *UpdateCartItemQuantityRequest) IsValid() (bool, error) {
 		return false, errors.New("quantity is invalid")
 	}
 	return true, nil
-}
-
-type GetCartRequest struct {
-	ID     string                `json:"id"`
-	Paging *filter.PagingRequest `json:"paging"`
 }
 
 type ListCartResponse struct {
