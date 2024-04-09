@@ -124,10 +124,10 @@ func (c *CartStoreHandler) GetPaginatedCart(ctx context.Context, request domain.
 	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	pipeline := mongo.Pipeline{
-		bson.D{
+		{
 			{"$match", bson.M{"id": request.ID, "customer_id": userID}},
 		},
-		bson.D{
+		{
 			{"$project", bson.M{
 				"id":    1,
 				"total": 1,
