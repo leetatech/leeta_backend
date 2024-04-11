@@ -732,8 +732,6 @@ definitions:
     type: object
   paging.Response:
     properties:
-      has_next_page:
-        type: boolean
       index:
         type: integer
       size:
@@ -793,7 +791,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: The endpoint to get cart
+      description: The endpoint to get a user cart, and the items in the cart
       parameters:
       - description: list cart request body
         in: body
@@ -818,14 +816,15 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Get cart
+      summary: Get a user cart and list the cart items. Use result selector to filter
+        results and manage pagination
       tags:
       - Cart
   /cart/{cart_id}:
     delete:
       consumes:
       - application/json
-      description: The endpoint to request for a cart deletion
+      description: The endpoint is used to delete an item from a cart
       parameters:
       - description: cartID
         in: query
@@ -835,8 +834,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "202":
+          description: Accepted
           schema:
             $ref: '#/definitions/DefaultResponse'
         "400":
@@ -849,7 +848,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Request cart deletion
+      summary: Delete item from a cart
       tags:
       - Cart
   /cart/add:
@@ -867,8 +866,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/DefaultResponse'
         "400":
@@ -899,8 +898,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "202":
+          description: Accepted
           schema:
             $ref: '#/definitions/DefaultResponse'
         "400":
@@ -931,8 +930,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "202":
+          description: Accepted
           schema:
             $ref: '#/definitions/DefaultResponse'
         "400":

@@ -7,10 +7,9 @@ type Response struct {
 	PageIndex     int    `json:"index"`
 	PageSize      int    `json:"size"`
 	TotalRowCount uint64 `json:"total"`
-	HasNextPage   bool   `json:"has_next_page"`
 }
 
-func NewResponse(request *Request, totalRowCount uint64, hasNextPage bool) *Response {
+func NewResponse(request *Request, totalRowCount uint64) *Response {
 	if request == nil {
 		return nil
 	}
@@ -19,6 +18,5 @@ func NewResponse(request *Request, totalRowCount uint64, hasNextPage bool) *Resp
 		PageIndex:     request.PageIndex,
 		PageSize:      request.PageSize,
 		TotalRowCount: totalRowCount,
-		HasNextPage:   hasNextPage,
 	}
 }

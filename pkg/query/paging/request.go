@@ -22,6 +22,6 @@ func (req *Request) ApplyDefaults() {
 		req.PageIndex = 1
 	}
 	if req.PageSize == 0 {
-		req.PageSize = 10
+		req.PageSize = 50 // set arbitrary high limit for a single page
 	}
 }

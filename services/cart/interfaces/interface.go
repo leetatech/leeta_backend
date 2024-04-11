@@ -12,6 +12,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/samber/lo"
 	"net/http"
 )
@@ -34,7 +35,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 // @Produce json
 // @Security BearerToken
 // @Param domain.CartItem body domain.CartItem true "add to cart request body"
-// @Success 200 {object} pkg.DefaultResponse
+// @Success 201 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/add [post]
@@ -51,18 +52,18 @@ func (handler *CartHttpHandler) AddToCart(w http.ResponseWriter, r *http.Request
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 		return
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusCreated)
 }
 
 // DeleteCart is the endpoint to delete carts
-// @Summary Request cart deletion
-// @Description The endpoint to request for a cart deletion
+// @Summary Delete item from a cart
+// @Description The endpoint is used to delete an item from a cart
 // @Tags Cart
 // @Accept json
 // @Produce json
 // @Param cartID query string true "cartID"
 // @Security BearerToken
-// @Success 200 {object} pkg.DefaultResponse
+// @Success 202 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/{cart_id} [delete]
@@ -73,12 +74,12 @@ func (handler *CartHttpHandler) DeleteCart(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	response, err := handler.CartApplication.DeleteCart(r.Context(), cartID)
+	err := handler.CartApplication.DeleteCart(r.Context(), cartID)
 	if err != nil {
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, fmt.Errorf("error deleting cart: %w", err))
 		return
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, nil, http.StatusAccepted)
 }
 
 // UpdateCartItemQuantity is the endpoint to increase cart item quantity
@@ -89,7 +90,7 @@ func (handler *CartHttpHandler) DeleteCart(w http.ResponseWriter, r *http.Reques
 // @Produce json
 // @Param domain.UpdateCartItemQuantityRequest body domain.UpdateCartItemQuantityRequest true "update cart item quantity request body"
 // @Security BearerToken
-// @Success 200 {object} pkg.DefaultResponse
+// @Success 202 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/item/quantity [put]
@@ -112,7 +113,7 @@ func (handler *CartHttpHandler) UpdateCartItemQuantity(w http.ResponseWriter, r 
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, response, http.StatusAccepted)
 }
 
 // DeleteCartItem is the endpoint to delete items from cart
@@ -123,7 +124,7 @@ func (handler *CartHttpHandler) UpdateCartItemQuantity(w http.ResponseWriter, r 
 // @Produce json
 // @Security BearerToken
 // @Param cart_item_id query string true "cart_item_id"
-// @Success 200 {object} pkg.DefaultResponse
+// @Success 202 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/item/{cart_item_id} [delete]
@@ -134,18 +135,18 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	response, err := handler.CartApplication.DeleteCartItem(r.Context(), cartItemID)
+	err := handler.CartApplication.DeleteCartItem(r.Context(), cartItemID)
 	if err != nil {
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	pkg.EncodeResult(w, nil, http.StatusAccepted)
 }
 
-// ListCart is the endpoint to get cart
-// @Summary Get cart
-// @Description The endpoint to get cart
+// ListCart is the endpoint to list cart.
+// @Summary Get a user cart and list the cart items. Use result selector to filter results and manage pagination
+// @Description The endpoint to get a user cart, and the items in the cart
 // @Tags Cart
 // @Accept json
 // @Produce json
@@ -170,10 +171,15 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response, err := handler.CartApplication.ListCartItems(r.Context(), request)
+	carts, err := handler.CartApplication.ListCart(r.Context(), request)
 	if err != nil {
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 		return
+	}
+
+	response := query.ResponseListWithMetadata[models.Cart]{
+		Metadata: query.NewMetadata(*request, uint64(len(carts))),
+		Data:     carts,
 	}
 
 	pkg.EncodeResult(w, response, http.StatusOK)

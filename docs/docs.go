@@ -30,7 +30,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to get cart",
+                "description": "The endpoint to get a user cart, and the items in the cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -40,7 +40,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Get cart",
+                "summary": "Get a user cart and list the cart items. Use result selector to filter results and manage pagination",
                 "parameters": [
                     {
                         "description": "list cart request body",
@@ -104,8 +104,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
                         }
@@ -155,8 +155,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "202": {
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
                         }
@@ -204,8 +204,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "202": {
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
                         }
@@ -272,7 +272,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to request for a cart deletion",
+                "description": "The endpoint is used to delete an item from a cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -282,7 +282,7 @@ const docTemplate = `{
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Request cart deletion",
+                "summary": "Delete item from a cart",
                 "parameters": [
                     {
                         "type": "string",
@@ -293,8 +293,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "202": {
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
                         }
@@ -2917,9 +2917,6 @@ const docTemplate = `{
         "paging.Response": {
             "type": "object",
             "properties": {
-                "has_next_page": {
-                    "type": "boolean"
-                },
                 "index": {
                     "type": "integer"
                 },

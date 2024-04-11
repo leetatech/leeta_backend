@@ -37,16 +37,16 @@ func (c *CartStoreHandler) AddToCart(ctx context.Context, request models.Cart) e
 	return nil
 }
 
-func (c *CartStoreHandler) GetCartByCustomerID(ctx context.Context, customerID string) (*models.Cart, error) {
+func (c *CartStoreHandler) GetCartByCustomerID(ctx context.Context, customerID string) (models.Cart, error) {
 	var cart models.Cart
 	filter := bson.M{"customer_id": customerID, "status": models.CartActive}
 
 	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
 	if err != nil {
-		return nil, err
+		return cart, err
 	}
 
-	return &cart, nil
+	return cart, nil
 }
 
 func (c *CartStoreHandler) UpdateCart(ctx context.Context, request models.Cart) error {
@@ -98,31 +98,31 @@ func (c *CartStoreHandler) DeleteCart(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *CartStoreHandler) GetCartByDeviceID(ctx context.Context, deviceID string) (*models.Cart, error) {
+func (c *CartStoreHandler) GetCartByDeviceID(ctx context.Context, deviceID string) (models.Cart, error) {
 	var cart models.Cart
 	filter := bson.M{"device_id": deviceID, "status": models.CartActive}
 
 	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
 	if err != nil {
-		return nil, err
+		return cart, err
 	}
 
-	return &cart, nil
+	return cart, nil
 }
 
-func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID string) (*models.Cart, error) {
+func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID string) (models.Cart, error) {
 	var cart models.Cart
 	filter := bson.M{"cart_items.id": cartItemID}
 
 	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
 	if err != nil {
-		return nil, err
+		return cart, err
 	}
 
-	return &cart, nil
+	return cart, nil
 }
 
-func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSelector, userID string) (*query.ResponseWithMetadata[domain.CartResponseData], error) {
+func (c *CartStoreHandler) ListCartItems(ctx context.Context, request *query.ResultSelector, userID string) ([]models.Cart, error) {
 	if request == nil {
 		return nil, errors.New("result selector is required when listing cart")
 	}
@@ -158,19 +158,13 @@ func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSe
 
 	defer cursor.Close(ctx)
 
-	var cartResponse domain.CartResponse
-	if cursor.Next(ctx) {
-		if err = cursor.Decode(&cartResponse); err != nil {
+	var carts []models.Cart
+	for cursor.Next(ctx) {
+		var cart models.Cart
+		if err := cursor.Decode(&cart); err != nil {
 			return nil, err
 		}
+		carts = append(carts, cart)
 	}
-
-	return &query.ResponseWithMetadata[domain.CartResponseData]{
-		Metadata: query.NewMetadata(*request, uint64(cartResponse.TotalRecords), (request.Paging.PageIndex*request.Paging.PageSize) < cartResponse.TotalRecords),
-		Data: domain.CartResponseData{
-			ID:        cartResponse.ID,
-			CartItems: cartResponse.CartItems,
-			Total:     cartResponse.Total,
-		},
-	}, nil
+	return carts, nil
 }

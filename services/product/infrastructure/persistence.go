@@ -123,7 +123,6 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 			log.Debug().Msgf("error closing mongo cursor %v", err)
 		}
 	}(extraDocumentCursor, ctx)
-	hasNextPage := extraDocumentCursor.Next(ctx)
 
 	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
@@ -137,7 +136,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 	}
 
 	return &query.ResponseListWithMetadata[models.Product]{
-		Metadata: query.NewMetadata(*request, uint64(totalRecord), hasNextPage),
+		Metadata: query.NewMetadata(*request, uint64(totalRecord)),
 		Data:     products,
 	}, nil
 }

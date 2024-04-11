@@ -28,9 +28,9 @@ type Metadata struct {
 	Paging *paging.Response `json:"paging,omitempty"`
 }
 
-func NewMetadata(resultSelector ResultSelector, totalRowCount uint64, hasNextPage bool) Metadata {
+func NewMetadata(resultSelector ResultSelector, totalRowCount uint64) Metadata {
 	return Metadata{
 		Filter: resultSelector.Filter,
-		Paging: paging.NewResponse(resultSelector.Paging, totalRowCount, hasNextPage),
+		Paging: paging.NewResponse(resultSelector.Paging, totalRowCount),
 	}
 }

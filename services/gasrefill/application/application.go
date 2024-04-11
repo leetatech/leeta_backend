@@ -86,17 +86,15 @@ func (r *GasRefillHandler) manageGuestRefillSession(ctx context.Context, request
 		}
 	}
 
-	if cart != nil {
-		ts := time.Unix(cart.Ts, 0)
-		expectedTime := ts.Add(24 * time.Hour)
-		if time.Now().After(expectedTime) || cart.CustomerID != claims.UserID {
-			err := r.allRepository.CartRepository.DeleteCart(ctx, cart.ID)
-			if err != nil {
-				r.logger.Error("error deleting cart", zap.Error(err))
-				return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
-			}
-			return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
+	ts := time.Unix(cart.Ts, 0)
+	expectedTime := ts.Add(24 * time.Hour)
+	if time.Now().After(expectedTime) || cart.CustomerID != claims.UserID {
+		err := r.allRepository.CartRepository.DeleteCart(ctx, cart.ID)
+		if err != nil {
+			r.logger.Error("error deleting cart", zap.Error(err))
+			return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 		}
+		return domain.GasRefillRequest{}, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("guest session expired"))
 	}
 
 	request.GuestBioData.SessionID = claims.UserID
@@ -121,7 +119,7 @@ func (r *GasRefillHandler) forMeCheck(shippingInfo models.ShippingInfo, name, ph
 	return shippingInfo
 }
 
-func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, request domain.GasRefillRequest, cart *models.Cart) error {
+func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, request domain.GasRefillRequest, cart models.Cart) error {
 	serviceFee, err := r.calculateCartItemTotal(ctx, cart.CartItems)
 	if err != nil {
 		return err
