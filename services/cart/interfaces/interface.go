@@ -150,8 +150,8 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Security BearerToken
-// @Param filter.ResultSelector body filter.ResultSelector true "list cart request body"
-// @Success 200 {object} domain.ListCartResponse
+// @Param query.ResultSelector body query.ResultSelector true "list cart request body"
+// @Success 200 {object} query.ResponseListWithMetadata[domain.CartResponseData]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart [post]
@@ -177,7 +177,6 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 	}
 
 	pkg.EncodeResult(w, response, http.StatusOK)
-
 }
 
 // ListCartOptions is the endpoint to get cart filter options
@@ -192,10 +191,10 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/options [get]
 func (handler *CartHttpHandler) ListCartOptions(w http.ResponseWriter, r *http.Request) {
-	requestOptions := lo.Map(listCartOptions, ToFilterOption)
+	requestOptions := lo.Map(listCartOptions, toFilterOption)
 	pkg.EncodeResult(w, requestOptions, http.StatusOK)
 }
 
-func ToFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
+func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
 	return options
 }

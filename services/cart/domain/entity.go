@@ -37,4 +37,10 @@ type CartResponse struct {
 	CartItems    []models.CartItem `json:"cart_items" bson:"cart_items"`
 	Total        float64           `json:"total" bson:"total"`
 	TotalRecords int               `json:"total_records" bson:"total_records"`
-} // @name CartResponse
+}
+
+type CartResponseData struct {
+	ID        string            `json:"id" bson:"id"`
+	CartItems []models.CartItem `json:"cart_items" bson:"cart_items"`
+	Total     float64           `json:"total" bson:"total"`
+} // @name CartResponseData

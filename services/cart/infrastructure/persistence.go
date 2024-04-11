@@ -10,7 +10,6 @@ import (
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"time"
 )
@@ -123,12 +122,11 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return &cart, nil
 }
 
-func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSelector, userID string) (*domain.ListCartResponse, error) {
+func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSelector, userID string) (*query.ResponseListWithMetadata[domain.CartResponseData], error) {
 	if request == nil {
 		return nil, errors.New("result selector is required when listing cart")
 	}
-	var opt *options.FindOptions
-	opt = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	queryString := database.BuildMongoFilterQuery(request.Filter)
 	queryString["customer_id"] = userID
@@ -167,8 +165,14 @@ func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSe
 		}
 	}
 
-	return &domain.ListCartResponse{
-		Cart:        cartResponse,
-		HasNextPage: (request.Paging.PageIndex * request.Paging.PageSize) < cartResponse.TotalRecords,
+	return &query.ResponseListWithMetadata[domain.CartResponseData]{
+		Metadata: query.NewMetadata(*request, uint64(cartResponse.TotalRecords), (request.Paging.PageIndex*request.Paging.PageSize) < cartResponse.TotalRecords),
+		Data: []domain.CartResponseData{
+			{
+				ID:        cartResponse.ID,
+				CartItems: cartResponse.CartItems,
+				Total:     cartResponse.Total,
+			},
+		},
 	}, nil
 }

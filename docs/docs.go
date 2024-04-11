@@ -44,11 +44,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "list cart request body",
-                        "name": "filter.ResultSelector",
+                        "name": "query.ResultSelector",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ResultSelector"
+                            "$ref": "#/definitions/query.ResultSelector"
                         }
                     }
                 ],
@@ -56,7 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ListCartResponse"
+                            "$ref": "#/definitions/query.ResponseListWithMetadata-CartResponseData"
                         }
                     },
                     "400": {
@@ -247,7 +247,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/RequestOption"
+                            "$ref": "#/definitions/filter.RequestOption"
                         }
                     },
                     "400": {
@@ -1166,11 +1166,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "list products request body",
-                        "name": "filter.ResultSelector",
+                        "name": "query.ResultSelector",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ResultSelector"
+                            "$ref": "#/definitions/query.ResultSelector"
                         }
                     }
                 ],
@@ -1178,7 +1178,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ListProductsResponse"
+                            "$ref": "#/definitions/query.ResponseListWithMetadata-Product"
                         }
                     },
                     "400": {
@@ -1225,7 +1225,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/RequestOption"
+                                "$ref": "#/definitions/filter.RequestOption"
                             }
                         }
                     }
@@ -1994,7 +1994,7 @@ const docTemplate = `{
                 }
             }
         },
-        "CartResponse": {
+        "CartResponseData": {
             "type": "object",
             "properties": {
                 "cart_items": {
@@ -2008,9 +2008,6 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "number"
-                },
-                "total_records": {
-                    "type": "integer"
                 }
             }
         },
@@ -2129,23 +2126,6 @@ const docTemplate = `{
                 }
             }
         },
-        "FilterRequest": {
-            "type": "object",
-            "required": [
-                "operator"
-            ],
-            "properties": {
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/RequestField"
-                    }
-                },
-                "operator": {
-                    "type": "string"
-                }
-            }
-        },
         "GasRefillRequest": {
             "type": "object",
             "properties": {
@@ -2225,31 +2205,6 @@ const docTemplate = `{
                 },
                 "session_id": {
                     "type": "string"
-                }
-            }
-        },
-        "ListCartResponse": {
-            "type": "object",
-            "properties": {
-                "cart": {
-                    "$ref": "#/definitions/CartResponse"
-                },
-                "has_next_page": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "ListProductsResponse": {
-            "type": "object",
-            "properties": {
-                "has_next_page": {
-                    "type": "boolean"
-                },
-                "products": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Product"
-                    }
                 }
             }
         },
@@ -2377,17 +2332,6 @@ const docTemplate = `{
                 }
             }
         },
-        "PagingRequest": {
-            "type": "object",
-            "properties": {
-                "index": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
         "Phone": {
             "type": "object",
             "properties": {
@@ -2461,19 +2405,6 @@ const docTemplate = `{
                 }
             }
         },
-        "ReadableValue-string": {
-            "type": "object",
-            "properties": {
-                "label": {
-                    "description": "Label is the human-readable form of the value",
-                    "type": "string"
-                },
-                "value": {
-                    "description": "Value is the value for the backend",
-                    "type": "string"
-                }
-            }
-        },
         "ReceiveGuestRequest": {
             "type": "object",
             "required": [
@@ -2499,90 +2430,6 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string"
-                }
-            }
-        },
-        "RequestField": {
-            "type": "object",
-            "required": [
-                "name",
-                "value"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "value": {
-                    "description": "Value can be a list of values or a value"
-                }
-            }
-        },
-        "RequestOption": {
-            "type": "object",
-            "properties": {
-                "control": {
-                    "$ref": "#/definitions/RequestOptionType"
-                },
-                "multiSelect": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "$ref": "#/definitions/ReadableValue-string"
-                },
-                "operators": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "label": {
-                                "description": "Label is the human-readable form of the value",
-                                "type": "string"
-                            },
-                            "value": {
-                                "description": "Value is the value for the backend",
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/CompareOperator"
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                },
-                "values": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "RequestOptionType": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "enum": [
-                        "string",
-                        "float",
-                        "integer",
-                        "enum"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ControlType"
-                        }
-                    ]
-                }
-            }
-        },
-        "ResultSelector": {
-            "type": "object",
-            "properties": {
-                "filter": {
-                    "$ref": "#/definitions/FilterRequest"
-                },
-                "paging": {
-                    "$ref": "#/definitions/PagingRequest"
                 }
             }
         },
@@ -2698,6 +2545,113 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/Product"
                     }
+                }
+            }
+        },
+        "filter.ReadableValue-string": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "description": "Label is the human-readable form of the value",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "Value is the value for the backend",
+                    "type": "string"
+                }
+            }
+        },
+        "filter.Request": {
+            "type": "object",
+            "required": [
+                "operator"
+            ],
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/filter.RequestField"
+                    }
+                },
+                "operator": {
+                    "type": "string"
+                }
+            }
+        },
+        "filter.RequestField": {
+            "type": "object",
+            "required": [
+                "name",
+                "operator",
+                "value"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "operator": {
+                    "$ref": "#/definitions/CompareOperator"
+                },
+                "value": {
+                    "description": "Value can be a list of values or a value"
+                }
+            }
+        },
+        "filter.RequestOption": {
+            "type": "object",
+            "properties": {
+                "control": {
+                    "$ref": "#/definitions/filter.RequestOptionType"
+                },
+                "multiSelect": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "$ref": "#/definitions/filter.ReadableValue-string"
+                },
+                "operators": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label": {
+                                "description": "Label is the human-readable form of the value",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Value is the value for the backend",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/CompareOperator"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "filter.RequestOptionType": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "enum": [
+                        "string",
+                        "float",
+                        "integer",
+                        "enum"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ControlType"
+                        }
+                    ]
                 }
             }
         },
@@ -2948,6 +2902,92 @@ const docTemplate = `{
                 "AdminCategory",
                 "GuestCatergory"
             ]
+        },
+        "paging.Request": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "paging.Response": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "index": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "query.Metadata": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/filter.Request"
+                },
+                "paging": {
+                    "$ref": "#/definitions/paging.Response"
+                }
+            }
+        },
+        "query.ResponseListWithMetadata-CartResponseData": {
+            "type": "object",
+            "required": [
+                "data",
+                "metadata"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CartResponseData"
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/query.Metadata"
+                }
+            }
+        },
+        "query.ResponseListWithMetadata-Product": {
+            "type": "object",
+            "required": [
+                "data",
+                "metadata"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/query.Metadata"
+                }
+            }
+        },
+        "query.ResultSelector": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/filter.Request"
+                },
+                "paging": {
+                    "$ref": "#/definitions/paging.Request"
+                }
+            }
         }
     },
     "securityDefinitions": {

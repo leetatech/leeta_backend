@@ -92,7 +92,7 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 	}, nil
 }
 
-func (p productStoreHandler) ListProducts(ctx context.Context, request *query.ResultSelector) (*domain.ListProductsResponse, error) {
+func (p productStoreHandler) ListProducts(ctx context.Context, request *query.ResultSelector) (*query.ResponseListWithMetadata[models.Product], error) {
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -104,6 +104,12 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 	if request.Filter != nil {
 		filter = database.BuildMongoFilterQuery(request.Filter)
 	}
+
+	totalRecord, err := p.col(models.ProductCollectionName).CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
 	pagingOptions = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
@@ -112,7 +118,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 		return nil, err
 	}
 	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
-		err := extraDocumentCursor.Close(ctx)
+		err = extraDocumentCursor.Close(ctx)
 		if err != nil {
 			log.Debug().Msgf("error closing mongo cursor %v", err)
 		}
@@ -130,8 +136,8 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 		return nil, err
 	}
 
-	return &domain.ListProductsResponse{
-		Products:    products,
-		HasNextPage: hasNextPage,
+	return &query.ResponseListWithMetadata[models.Product]{
+		Metadata: query.NewMetadata(*request, uint64(totalRecord), hasNextPage),
+		Data:     products,
 	}, nil
 }

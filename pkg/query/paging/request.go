@@ -24,5 +24,4 @@ func (req *Request) ApplyDefaults() {
 	if req.PageSize == 0 {
 		req.PageSize = 10
 	}
-	return
 }

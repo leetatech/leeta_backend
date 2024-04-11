@@ -157,9 +157,9 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Tags Product
 // @Accept json
 // @Produce json
-// @Param filter.ResultSelector body filter.ResultSelector true "list products request body"
+// @Param query.ResultSelector body query.ResultSelector true "list products request body"
 // @Security BearerToken
-// @Success 200 {object} domain.ListProductsResponse
+// @Success 200 {object} query.ResponseListWithMetadata[models.Product]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/list [post]

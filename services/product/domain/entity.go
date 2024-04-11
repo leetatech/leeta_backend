@@ -38,7 +38,7 @@ type GasProductRequest struct {
 	ProductCategory models.ProductCategory `json:"product_category"`
 }
 
-type ListProductsResponse struct {
-	Products    []models.Product `json:"products" bson:"products"`
-	HasNextPage bool             `json:"has_next_page" bson:"has_next_page"`
-} // @name ListProductsResponse
+//type ListProductsResponse struct {
+//	Products    []models.Product `json:"products" bson:"products"`
+//	HasNextPage bool             `json:"has_next_page" bson:"has_next_page"`
+//} // @name ListProductsResponse
