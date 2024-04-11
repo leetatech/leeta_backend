@@ -748,11 +748,11 @@ definitions:
       paging:
         $ref: '#/definitions/paging.Response'
     type: object
-  query.ResponseListWithMetadata-CartResponseData:
+  query.ResponseListWithMetadata-Product:
     properties:
       data:
         items:
-          $ref: '#/definitions/CartResponseData'
+          $ref: '#/definitions/Product'
         type: array
       metadata:
         $ref: '#/definitions/query.Metadata'
@@ -760,12 +760,10 @@ definitions:
     - data
     - metadata
     type: object
-  query.ResponseListWithMetadata-Product:
+  query.ResponseWithMetadata-CartResponseData:
     properties:
       data:
-        items:
-          $ref: '#/definitions/Product'
-        type: array
+        $ref: '#/definitions/CartResponseData'
       metadata:
         $ref: '#/definitions/query.Metadata'
     required:
@@ -809,7 +807,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/query.ResponseListWithMetadata-CartResponseData'
+            $ref: '#/definitions/query.ResponseWithMetadata-CartResponseData'
         "400":
           description: Bad Request
           schema:

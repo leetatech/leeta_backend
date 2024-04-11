@@ -56,7 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/query.ResponseListWithMetadata-CartResponseData"
+                            "$ref": "#/definitions/query.ResponseWithMetadata-CartResponseData"
                         }
                     },
                     "400": {
@@ -2942,24 +2942,6 @@ const docTemplate = `{
                 }
             }
         },
-        "query.ResponseListWithMetadata-CartResponseData": {
-            "type": "object",
-            "required": [
-                "data",
-                "metadata"
-            ],
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/CartResponseData"
-                    }
-                },
-                "metadata": {
-                    "$ref": "#/definitions/query.Metadata"
-                }
-            }
-        },
         "query.ResponseListWithMetadata-Product": {
             "type": "object",
             "required": [
@@ -2972,6 +2954,21 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/Product"
                     }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/query.Metadata"
+                }
+            }
+        },
+        "query.ResponseWithMetadata-CartResponseData": {
+            "type": "object",
+            "required": [
+                "data",
+                "metadata"
+            ],
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/CartResponseData"
                 },
                 "metadata": {
                     "$ref": "#/definitions/query.Metadata"

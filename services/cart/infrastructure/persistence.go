@@ -122,7 +122,7 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return &cart, nil
 }
 
-func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSelector, userID string) (*query.ResponseListWithMetadata[domain.CartResponseData], error) {
+func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSelector, userID string) (*query.ResponseWithMetadata[domain.CartResponseData], error) {
 	if request == nil {
 		return nil, errors.New("result selector is required when listing cart")
 	}
@@ -165,14 +165,12 @@ func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSe
 		}
 	}
 
-	return &query.ResponseListWithMetadata[domain.CartResponseData]{
+	return &query.ResponseWithMetadata[domain.CartResponseData]{
 		Metadata: query.NewMetadata(*request, uint64(cartResponse.TotalRecords), (request.Paging.PageIndex*request.Paging.PageSize) < cartResponse.TotalRecords),
-		Data: []domain.CartResponseData{
-			{
-				ID:        cartResponse.ID,
-				CartItems: cartResponse.CartItems,
-				Total:     cartResponse.Total,
-			},
+		Data: domain.CartResponseData{
+			ID:        cartResponse.ID,
+			CartItems: cartResponse.CartItems,
+			Total:     cartResponse.Total,
 		},
 	}, nil
 }
