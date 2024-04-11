@@ -30,8 +30,6 @@ type ProductApplication interface {
 	CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error)
 }
 
-// *query.ResponseListWithMetadata[CartResponseData]
-
 func NewProductApplication(request pkg.DefaultApplicationRequest) ProductApplication {
 	return &productAppHandler{
 		tokenHandler:  request.TokenHandler,
