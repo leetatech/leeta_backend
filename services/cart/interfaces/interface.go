@@ -157,7 +157,7 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart [post]
 func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request) {
-	var request *query.ResultSelector
+	var request query.ResultSelector
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -171,14 +171,14 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	carts, err := handler.CartApplication.ListCart(r.Context(), request)
+	carts, totalRecord, err := handler.CartApplication.ListCart(r.Context(), request)
 	if err != nil {
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	response := query.ResponseListWithMetadata[models.Cart]{
-		Metadata: query.NewMetadata(*request, uint64(len(carts))),
+		Metadata: query.NewMetadata(request, totalRecord),
 		Data:     carts,
 	}
 

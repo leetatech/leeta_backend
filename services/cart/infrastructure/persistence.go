@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"context"
-	"errors"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/query"
@@ -122,18 +121,15 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return cart, nil
 }
 
-func (c *CartStoreHandler) ListCartItems(ctx context.Context, request *query.ResultSelector, userID string) ([]models.Cart, error) {
-	if request == nil {
-		return nil, errors.New("result selector is required when listing cart")
-	}
+func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.ResultSelector, userID string) ([]models.Cart, uint64, error) {
 	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
-	queryString := database.BuildMongoFilterQuery(request.Filter)
-	queryString["customer_id"] = userID
+	filterQuery := database.BuildMongoFilterQuery(request.Filter)
+	filterQuery["customer_id"] = userID
 
 	pipeline := mongo.Pipeline{
 		{
-			{Key: "$match", Value: queryString},
+			{Key: "$match", Value: filterQuery},
 		},
 		{
 			{Key: "$project", Value: bson.M{
@@ -153,7 +149,12 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request *query.Res
 
 	cursor, err := c.col(models.CartsCollectionName).Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	totalRecord, err := c.col(models.CartsCollectionName).CountDocuments(ctx, filterQuery)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	defer cursor.Close(ctx)
@@ -162,9 +163,9 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request *query.Res
 	for cursor.Next(ctx) {
 		var cart models.Cart
 		if err := cursor.Decode(&cart); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		carts = append(carts, cart)
 	}
-	return carts, nil
+	return carts, uint64(totalRecord), nil
 }

@@ -29,7 +29,7 @@ type CartApplication interface {
 	DeleteCartItem(ctx context.Context, cartItemId string) error
 	AddToCart(ctx context.Context, request domain.CartItem) (models.Cart, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (models.Cart, error)
-	ListCart(ctx context.Context, request *query.ResultSelector) ([]models.Cart, error)
+	ListCart(ctx context.Context, request query.ResultSelector) ([]models.Cart, uint64, error)
 }
 
 func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
@@ -255,16 +255,16 @@ func (c CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) error
 	return nil
 }
 
-func (c CartAppHandler) ListCart(ctx context.Context, request *query.ResultSelector) ([]models.Cart, error) {
+func (c CartAppHandler) ListCart(ctx context.Context, request query.ResultSelector) ([]models.Cart, uint64, error) {
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, 0, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	cart, err := c.allRepository.CartRepository.ListCartItems(ctx, request, claims.UserID)
+	cart, totalResults, err := c.allRepository.CartRepository.ListCartItems(ctx, request, claims.UserID)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, fmt.Errorf("error listing cart items: %w", err))
+		return nil, 0, leetError.ErrorResponseBody(leetError.DatabaseError, fmt.Errorf("error listing cart items: %w", err))
 	}
 
-	return cart, nil
+	return cart, totalResults, nil
 }

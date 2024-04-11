@@ -24,17 +24,13 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 
 }
 
-func ValidateResultSelector(resultSelector *query.ResultSelector) (*query.ResultSelector, error) {
-	if resultSelector == nil {
-		return nil, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("the result selector cannot be empty"))
-	}
-
+func ValidateResultSelector(resultSelector query.ResultSelector) (query.ResultSelector, error) {
 	if resultSelector.Paging == nil {
-		return nil, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("the paging cannot be empty"))
+		return resultSelector, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("the paging cannot be empty"))
 	}
 
 	if err := resultSelector.Paging.Validate(); err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.InvalidRequestError, fmt.Errorf("invalid paging request %w", err))
+		return resultSelector, leetError.ErrorResponseBody(leetError.InvalidRequestError, fmt.Errorf("invalid paging request %w", err))
 	}
 	resultSelector.Paging.ApplyDefaults()
 

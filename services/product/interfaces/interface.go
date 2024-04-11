@@ -80,7 +80,7 @@ func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r
 // @deprecated
 func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
 	var (
-		product *models.Product
+		product models.Product
 		err     error
 	)
 	productID := chi.URLParam(r, "product_id")
@@ -164,7 +164,7 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/list [post]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
-	var request *query.ResultSelector
+	var request query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
@@ -177,12 +177,18 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	products, err := handler.ProductApplication.ListProducts(r.Context(), request)
+	products, totalResults, err := handler.ProductApplication.ListProducts(r.Context(), request)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, products, http.StatusOK)
+
+	response := query.ResponseListWithMetadata[models.Product]{
+		Metadata: query.NewMetadata(request, totalResults),
+		Data:     products,
+	}
+
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // ListProductOptions list product filter options

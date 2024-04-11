@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"context"
-	"errors"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/query"
@@ -42,8 +41,7 @@ func (p productStoreHandler) CreateProduct(ctx context.Context, request models.P
 	return nil
 }
 
-func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*models.Product, error) {
-	product := &models.Product{}
+func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (product models.Product, err error) {
 	filter := bson.M{
 		"id": id,
 	}
@@ -51,15 +49,15 @@ func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (*mo
 	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	err := p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(product)
+	err = p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(product)
 	if err != nil {
-		return nil, err
+		return product, err
 	}
 
 	return product, nil
 }
 
-func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) (*domain.GetVendorProductsResponse, error) {
+func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error) {
 	filter := bson.M{}
 	filter["vendor_id"] = request.VendorID
 	if len(request.ProductStatus) > 0 {
@@ -79,35 +77,28 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 	if err = cursor.All(ctx, &products); err != nil {
 		return nil, err
 	}
-	var hasNextPage bool
 
 	// TODO get the remaining batch the right way
 	//if cursor.RemainingBatchLength() > 0 {
 	//	hasNextPage = true
 	//}
 
-	return &domain.GetVendorProductsResponse{
-		Products:    products,
-		HasNextPage: hasNextPage,
-	}, nil
+	return products, nil
 }
 
-func (p productStoreHandler) ListProducts(ctx context.Context, request *query.ResultSelector) (*query.ResponseListWithMetadata[models.Product], error) {
+func (p productStoreHandler) ListProducts(ctx context.Context, request query.ResultSelector) (products []models.Product, totalResults uint64, err error) {
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	var filter bson.M
 	var pagingOptions *options.FindOptions
-	if request == nil {
-		return nil, errors.New("result selector request is required")
-	}
 	if request.Filter != nil {
 		filter = database.BuildMongoFilterQuery(request.Filter)
 	}
 
 	totalRecord, err := p.col(models.ProductCollectionName).CountDocuments(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	pagingOptions = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
@@ -115,7 +106,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
 	if err != nil {
 		p.logger.Error("error getting extra document", zap.Error(err))
-		return nil, err
+		return nil, 0, err
 	}
 	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
 		err = extraDocumentCursor.Close(ctx)
@@ -127,16 +118,13 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request *query.Re
 	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
 		p.logger.Error("error getting products", zap.Error(err))
-		return nil, err
+		return nil, 0, err
 	}
-	products := make([]models.Product, cursor.RemainingBatchLength())
+	products = make([]models.Product, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &products); err != nil {
 		p.logger.Error("error getting products", zap.Error(err))
-		return nil, err
+		return nil, 0, err
 	}
 
-	return &query.ResponseListWithMetadata[models.Product]{
-		Metadata: query.NewMetadata(*request, uint64(totalRecord)),
-		Data:     products,
-	}, nil
+	return products, uint64(totalRecord), nil
 }
