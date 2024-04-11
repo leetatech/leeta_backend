@@ -150,11 +150,11 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pk
 
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
-		r.Post("/add", handler.AddToCartHandler)
-		r.Delete("/{cart_id}", handler.DeleteCartHandler)
-		r.Delete("/item/{cart_item_id}", handler.DeleteCartItemHandler)
-		r.Put("/item/quantity", handler.UpdateCartItemQuantityHandler)
-		r.Post("/", handler.GetPaginatedCartHandler)
+		r.Post("/add", handler.AddToCart)
+		r.Delete("/{cart_id}", handler.DeleteCart)
+		r.Delete("/item/{cart_item_id}", handler.DeleteCartItem)
+		r.Put("/item/quantity", handler.UpdateCartItemQuantity)
+		r.Post("/", handler.ListCart)
 		r.Get("/options", handler.ListCartOptions)
 	})
 

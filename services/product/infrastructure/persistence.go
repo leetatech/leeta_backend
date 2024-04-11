@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/query"
@@ -91,15 +92,21 @@ func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request d
 	}, nil
 }
 
-func (p productStoreHandler) ListProducts(ctx context.Context, request query.ResultSelector) (*domain.ListProductsResponse, error) {
+func (p productStoreHandler) ListProducts(ctx context.Context, request *query.ResultSelector) (*domain.ListProductsResponse, error) {
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	filter := database.BuildMongoFilterQuery(request.Filter)
+	var filter bson.M
+	var pagingOptions *options.FindOptions
+	if request == nil {
+		return nil, errors.New("result selector request is required")
+	}
+	if request.Filter != nil {
+		filter = database.BuildMongoFilterQuery(request.Filter)
+	}
+	pagingOptions = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
-	opts := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
-
-	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*opts.Skip+*opts.Limit).SetLimit(1))
+	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
 	if err != nil {
 		p.logger.Error("error getting extra document", zap.Error(err))
 		return nil, err
@@ -112,7 +119,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request query.Res
 	}(extraDocumentCursor, ctx)
 	hasNextPage := extraDocumentCursor.Next(ctx)
 
-	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, opts)
+	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
 		p.logger.Error("error getting products", zap.Error(err))
 		return nil, err

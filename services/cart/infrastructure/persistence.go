@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/query"
@@ -9,6 +10,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"time"
 )
@@ -121,8 +123,12 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return &cart, nil
 }
 
-func (c *CartStoreHandler) GetPaginatedCart(ctx context.Context, request query.ResultSelector, userID string) (*domain.ListCartResponse, error) {
-	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+func (c *CartStoreHandler) ListCart(ctx context.Context, request *query.ResultSelector, userID string) (*domain.ListCartResponse, error) {
+	if request == nil {
+		return nil, errors.New("result selector is required when listing cart")
+	}
+	var opt *options.FindOptions
+	opt = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	queryString := database.BuildMongoFilterQuery(request.Filter)
 	queryString["customer_id"] = userID

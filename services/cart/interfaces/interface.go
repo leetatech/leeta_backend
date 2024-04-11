@@ -26,7 +26,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 	}
 }
 
-// AddToCartHandler is the endpoint to add items to cart
+// AddToCart is the endpoint to add items to cart
 // @Summary Add items to cart
 // @Description The endpoint to add items to cart
 // @Tags Cart
@@ -38,7 +38,7 @@ func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHa
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/add [post]
-func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *CartHttpHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	var request domain.CartItem
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -54,7 +54,7 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// DeleteCartHandler is the endpoint to delete carts
+// DeleteCart is the endpoint to delete carts
 // @Summary Request cart deletion
 // @Description The endpoint to request for a cart deletion
 // @Tags Cart
@@ -66,7 +66,7 @@ func (handler *CartHttpHandler) AddToCartHandler(w http.ResponseWriter, r *http.
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/{cart_id} [delete]
-func (handler *CartHttpHandler) DeleteCartHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *CartHttpHandler) DeleteCart(w http.ResponseWriter, r *http.Request) {
 	cartID := chi.URLParam(r, "cart_id")
 	if cartID == "" {
 		pkg.EncodeErrorResult(w, http.StatusBadRequest, errors.New("cart_id is required"))
@@ -81,7 +81,7 @@ func (handler *CartHttpHandler) DeleteCartHandler(w http.ResponseWriter, r *http
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// UpdateCartItemQuantityHandler is the endpoint to increase cart item quantity
+// UpdateCartItemQuantity is the endpoint to increase cart item quantity
 // @Summary increase or reduce cart item quantity
 // @Description The endpoint to increase or reduce cart item quantity
 // @Tags Cart
@@ -93,7 +93,7 @@ func (handler *CartHttpHandler) DeleteCartHandler(w http.ResponseWriter, r *http
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/item/quantity [put]
-func (handler *CartHttpHandler) UpdateCartItemQuantityHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *CartHttpHandler) UpdateCartItemQuantity(w http.ResponseWriter, r *http.Request) {
 	var request domain.UpdateCartItemQuantityRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -115,7 +115,7 @@ func (handler *CartHttpHandler) UpdateCartItemQuantityHandler(w http.ResponseWri
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// DeleteCartItemHandler is the endpoint to delete items from cart
+// DeleteCartItem is the endpoint to delete items from cart
 // @Summary Delete items from cart
 // @Description The endpoint to delete items from cart. This endpoint also deletes an entire cart if there is no item left in the cart
 // @Tags Cart
@@ -127,7 +127,7 @@ func (handler *CartHttpHandler) UpdateCartItemQuantityHandler(w http.ResponseWri
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart/item/{cart_item_id} [delete]
-func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Request) {
 	cartItemID := chi.URLParam(r, "cart_item_id")
 	if cartItemID == "" {
 		pkg.EncodeErrorResult(w, http.StatusBadRequest, fmt.Errorf("cart_item_id is required"))
@@ -143,7 +143,7 @@ func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// GetPaginatedCartHandler is the endpoint to get cart
+// ListCart is the endpoint to get cart
 // @Summary Get cart
 // @Description The endpoint to get cart
 // @Tags Cart
@@ -155,8 +155,8 @@ func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart [post]
-func (handler *CartHttpHandler) GetPaginatedCartHandler(w http.ResponseWriter, r *http.Request) {
-	var request query.ResultSelector
+func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request) {
+	var request *query.ResultSelector
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -164,7 +164,7 @@ func (handler *CartHttpHandler) GetPaginatedCartHandler(w http.ResponseWriter, r
 		return
 	}
 
-	request.Paging, err = helpers.ValidateQueryFilter(request.Paging)
+	request, err = helpers.ValidateResultSelector(request)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return

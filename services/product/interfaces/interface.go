@@ -164,14 +164,14 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/list [post]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
-	var request query.ResultSelector
+	var request *query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
 
-	request.Paging, err = helpers.ValidateQueryFilter(request.Paging)
+	request, err = helpers.ValidateResultSelector(request)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
