@@ -56,7 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/query.ResponseWithMetadata-CartResponseData"
+                            "$ref": "#/definitions/query.ResponseWithMetadata-models_Cart"
                         }
                     },
                     "400": {
@@ -1994,23 +1994,6 @@ const docTemplate = `{
                 }
             }
         },
-        "CartResponseData": {
-            "type": "object",
-            "properties": {
-                "cart_items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.CartItem"
-                    }
-                },
-                "id": {
-                    "type": "string"
-                },
-                "total": {
-                    "type": "number"
-                }
-            }
-        },
         "CompareOperator": {
             "type": "string",
             "enum": [
@@ -2765,6 +2748,35 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Cart": {
+            "type": "object",
+            "properties": {
+                "cart_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CartItem"
+                    }
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.CartStatuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "ts": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.CartItem": {
             "type": "object",
             "properties": {
@@ -2790,6 +2802,21 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        },
+        "models.CartStatuses": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "INACTIVE"
+            ],
+            "x-enum-comments": {
+                "CartActive": "cart has been created and active",
+                "CartInactive": "cart has been inactivated and no longer active due to check out or session expiry"
+            },
+            "x-enum-varnames": [
+                "CartActive",
+                "CartInactive"
+            ]
         },
         "models.OrderStatuses": {
             "type": "string",
@@ -2957,7 +2984,7 @@ const docTemplate = `{
                 }
             }
         },
-        "query.ResponseWithMetadata-CartResponseData": {
+        "query.ResponseWithMetadata-models_Cart": {
             "type": "object",
             "required": [
                 "data",
@@ -2965,7 +2992,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/CartResponseData"
+                    "$ref": "#/definitions/models.Cart"
                 },
                 "metadata": {
                     "$ref": "#/definitions/query.Metadata"

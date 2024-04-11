@@ -88,17 +88,6 @@ definitions:
       weight:
         type: number
     type: object
-  CartResponseData:
-    properties:
-      cart_items:
-        items:
-          $ref: '#/definitions/models.CartItem'
-        type: array
-      id:
-        type: string
-      total:
-        type: number
-    type: object
   CompareOperator:
     enum:
     - isEqualTo
@@ -616,6 +605,25 @@ definitions:
       message:
         type: string
     type: object
+  models.Cart:
+    properties:
+      cart_items:
+        items:
+          $ref: '#/definitions/models.CartItem'
+        type: array
+      customer_id:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/models.CartStatuses'
+      status_ts:
+        type: integer
+      total:
+        type: number
+      ts:
+        type: integer
+    type: object
   models.CartItem:
     properties:
       cost:
@@ -633,6 +641,18 @@ definitions:
       weight:
         type: number
     type: object
+  models.CartStatuses:
+    enum:
+    - ACTIVE
+    - INACTIVE
+    type: string
+    x-enum-comments:
+      CartActive: cart has been created and active
+      CartInactive: cart has been inactivated and no longer active due to check out
+        or session expiry
+    x-enum-varnames:
+    - CartActive
+    - CartInactive
   models.OrderStatuses:
     enum:
     - PENDING
@@ -758,10 +778,10 @@ definitions:
     - data
     - metadata
     type: object
-  query.ResponseWithMetadata-CartResponseData:
+  query.ResponseWithMetadata-models_Cart:
     properties:
       data:
-        $ref: '#/definitions/CartResponseData'
+        $ref: '#/definitions/models.Cart'
       metadata:
         $ref: '#/definitions/query.Metadata'
     required:
@@ -805,7 +825,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/query.ResponseWithMetadata-CartResponseData'
+            $ref: '#/definitions/query.ResponseWithMetadata-models_Cart'
         "400":
           description: Bad Request
           schema:

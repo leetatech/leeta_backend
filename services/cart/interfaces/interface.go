@@ -152,7 +152,7 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 // @Produce json
 // @Security BearerToken
 // @Param query.ResultSelector body query.ResultSelector true "list cart request body"
-// @Success 200 {object} query.ResponseWithMetadata[domain.CartResponseData]
+// @Success 200 {object} query.ResponseWithMetadata[models.Cart]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart [post]
