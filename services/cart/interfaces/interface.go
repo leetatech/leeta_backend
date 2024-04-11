@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/query"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/samber/lo"
@@ -155,7 +156,7 @@ func (handler *CartHttpHandler) DeleteCartItemHandler(w http.ResponseWriter, r *
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart [post]
 func (handler *CartHttpHandler) GetPaginatedCartHandler(w http.ResponseWriter, r *http.Request) {
-	var request filter.ResultSelector
+	var request query.ResultSelector
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {

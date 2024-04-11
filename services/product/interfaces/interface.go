@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -164,7 +164,7 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/list [post]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
-	var request filter.ResultSelector
+	var request query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)

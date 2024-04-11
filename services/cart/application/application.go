@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/query"
 	"time"
 
 	"github.com/leetatech/leeta_backend/pkg"
@@ -29,7 +29,7 @@ type CartApplication interface {
 	DeleteCartItem(ctx context.Context, cartItemId string) (*pkg.DefaultResponse, error)
 	AddToCart(ctx context.Context, request domain.CartItem) (*pkg.DefaultResponse, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (*pkg.DefaultResponse, error)
-	ListCartItems(ctx context.Context, request filter.ResultSelector) (*domain.ListCartResponse, error)
+	ListCartItems(ctx context.Context, request query.ResultSelector) (*domain.ListCartResponse, error)
 }
 
 func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
@@ -255,7 +255,7 @@ func (c CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) (*pkg
 	return &pkg.DefaultResponse{Success: "success", Message: "Successfully deleted item from cart"}, nil
 }
 
-func (c CartAppHandler) ListCartItems(ctx context.Context, request filter.ResultSelector) (*domain.ListCartResponse, error) {
+func (c CartAppHandler) ListCartItems(ctx context.Context, request query.ResultSelector) (*domain.ListCartResponse, error) {
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)

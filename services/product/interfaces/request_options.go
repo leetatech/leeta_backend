@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
 )
 
 var productStatusRequestName = filter.ReadableValue[string]{
@@ -9,7 +9,6 @@ var productStatusRequestName = filter.ReadableValue[string]{
 	Value: "status",
 }
 
-// Filter request options operator labels
 const (
 	LabelIsEqualTo = "is equal to"
 )

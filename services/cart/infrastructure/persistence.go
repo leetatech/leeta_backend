@@ -3,8 +3,8 @@ package infrastructure
 import (
 	"context"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -121,15 +121,15 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return &cart, nil
 }
 
-func (c *CartStoreHandler) GetPaginatedCart(ctx context.Context, request filter.ResultSelector, userID string) (*domain.ListCartResponse, error) {
+func (c *CartStoreHandler) GetPaginatedCart(ctx context.Context, request query.ResultSelector, userID string) (*domain.ListCartResponse, error) {
 	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
-	query := database.BuildMongoFilterQuery(request.Filter)
-	query["customer_id"] = userID
+	queryString := database.BuildMongoFilterQuery(request.Filter)
+	queryString["customer_id"] = userID
 
 	pipeline := mongo.Pipeline{
 		{
-			{Key: "$match", Value: query},
+			{Key: "$match", Value: queryString},
 		},
 		{
 			{Key: "$project", Value: bson.M{

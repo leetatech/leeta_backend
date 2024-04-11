@@ -3,8 +3,8 @@ package helpers
 import (
 	"errors"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/filter"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/query/paging"
 	"net/http"
 )
 
@@ -23,7 +23,7 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 
 }
 
-func ValidateQueryFilter(request *filter.PagingRequest) (*filter.PagingRequest, error) {
+func ValidateQueryFilter(request *paging.Request) (*paging.Request, error) {
 	if request == nil {
 		return nil, leetError.ErrorResponseBody(leetError.InvalidPageRequestError, errors.New("the paging field is required but it is missing"))
 	}
