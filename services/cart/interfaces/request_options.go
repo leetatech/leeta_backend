@@ -4,11 +4,12 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/query/filter"
 )
 
-var productStatusRequestName = filter.ReadableValue[string]{
-	Label: "Product Status",
-	Value: "status",
+var cartIDRequestName = filter.ReadableValue[string]{
+	Label: "cart id",
+	Value: "id",
 }
 
+// LabelIsEqualTo holds filter request options operator labels
 const (
 	LabelIsEqualTo = "is equal to"
 )
@@ -18,9 +19,9 @@ var operatorEqual = filter.ReadableValue[filter.CompareOperator]{
 	Value: filter.CompareOperatorIsEqualTo,
 }
 
-var listProductOptions = []filter.RequestOption{
+var listCartOptions = []filter.RequestOption{
 	{
-		Name: productStatusRequestName,
+		Name: cartIDRequestName,
 		Control: filter.RequestOptionType{
 			Type: filter.ControlTypeString,
 		},

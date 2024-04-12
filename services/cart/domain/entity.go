@@ -1,6 +1,8 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+)
 
 type CartItem struct {
 	ProductID string  `json:"product_id" bson:"product_id"`

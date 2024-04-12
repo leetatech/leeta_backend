@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/leetatech/leeta_backend/pkg/config"
-	"github.com/leetatech/leeta_backend/pkg/filter"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -31,7 +31,7 @@ func GetPaginatedOpts(limit, page int64) *options.FindOptions {
 	return &fOpt
 }
 
-func BuildMongoFilterQuery(filter *filter.FilterRequest) bson.M {
+func BuildMongoFilterQuery(filter *filter.Request) bson.M {
 	query := bson.M{}
 
 	if filter == nil {
