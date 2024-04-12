@@ -16,5 +16,5 @@ type CartRepository interface {
 	DeleteCartItem(ctx context.Context, cartItemID string, itemTotalCost float64) error
 	DeleteCart(ctx context.Context, id string) error
 	GetCartByCartItemID(ctx context.Context, cartItemID string) (models.Cart, error)
-	ListCartItems(ctx context.Context, request query.ResultSelector, userID string) (*models.Cart, uint64, error)
+	ListCartItems(ctx context.Context, request query.ResultSelector, userID string) (models.Cart, uint64, error)
 }

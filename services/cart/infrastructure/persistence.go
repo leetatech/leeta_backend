@@ -121,17 +121,21 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return cart, nil
 }
 
-func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.ResultSelector, userID string) (*models.Cart, uint64, error) {
+func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.ResultSelector, userID string) (models.Cart, uint64, error) {
 	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	filterQuery := database.BuildMongoFilterQuery(request.Filter)
 	filterQuery["customer_id"] = userID
 
 	var pipelineResp struct {
-		ID           string            `bson:"id"`
-		Total        float64           `bson:"total"`
+		ID         string       `json:"id" bson:"id"`
+		CustomerID string       `json:"customer_id" bson:"customer_id"`
+		CartItems  []models.CartItem   `json:"cart_items" bson:"cart_items"`
+		Total      float64      `json:"total" bson:"total"`
+		Status     models.CartStatuses `json:"status" bson:"status"`
+		StatusTs   int64        `json:"status_ts" bson:"status_ts"`
+		Ts         int64        `json:"ts" bson:"ts"`
 		TotalRecords int               `bson:"total_records"`
-		CartItems    []models.CartItem `bson:"cart_items"`
 	}
 	pipeline := mongo.Pipeline{
 		{
@@ -141,6 +145,10 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 			{Key: "$project", Value: bson.M{
 				"id":    1,
 				"total": 1,
+				"customer_id": 1,
+				"status": 1,
+				"status_ts": 1,
+				"ts": 1,
 				"total_records": bson.M{
 					"$cond": bson.M{
 						"if":   bson.M{"$isArray": "$cart_items"},
@@ -155,18 +163,22 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 
 	cursor, err := c.col(models.CartsCollectionName).Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, 0, err
+		return models.Cart{}, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
 		if err = cursor.Decode(&pipelineResp); err != nil {
-			return nil, 0, err
+			return models.Cart{}, 0, err
 		}
 	}
-	return &models.Cart{
+	return models.Cart{
 		ID:        pipelineResp.ID,
-		Total:     pipelineResp.Total,
+		CustomerID: pipelineResp.CustomerID,
 		CartItems: pipelineResp.CartItems,
+		Total:     pipelineResp.Total,
+		Status:   pipelineResp.Status,
+		StatusTs: pipelineResp.StatusTs,
+		Ts:       pipelineResp.Ts,
 	}, uint64(pipelineResp.TotalRecords), nil
 }
