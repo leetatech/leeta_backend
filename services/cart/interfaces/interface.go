@@ -177,9 +177,9 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response := query.ResponseListWithMetadata[models.Cart]{
+	response := query.ResponseWithMetadata[models.Cart]{
 		Metadata: query.NewMetadata(request, totalRecord),
-		Data:     carts,
+		Data:     *carts,
 	}
 
 	pkg.EncodeResult(w, response, http.StatusOK)

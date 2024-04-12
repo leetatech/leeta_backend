@@ -29,7 +29,7 @@ type CartApplication interface {
 	DeleteCartItem(ctx context.Context, cartItemId string) error
 	AddToCart(ctx context.Context, request domain.CartItem) (models.Cart, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (models.Cart, error)
-	ListCart(ctx context.Context, request query.ResultSelector) ([]models.Cart, uint64, error)
+	ListCart(ctx context.Context, request query.ResultSelector) (*models.Cart, uint64, error)
 }
 
 func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
@@ -255,7 +255,7 @@ func (c CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) error
 	return nil
 }
 
-func (c CartAppHandler) ListCart(ctx context.Context, request query.ResultSelector) ([]models.Cart, uint64, error) {
+func (c CartAppHandler) ListCart(ctx context.Context, request query.ResultSelector) (*models.Cart, uint64, error) {
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, 0, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)

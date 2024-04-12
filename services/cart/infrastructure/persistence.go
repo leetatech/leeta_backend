@@ -121,12 +121,18 @@ func (c *CartStoreHandler) GetCartByCartItemID(ctx context.Context, cartItemID s
 	return cart, nil
 }
 
-func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.ResultSelector, userID string) ([]models.Cart, uint64, error) {
+func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.ResultSelector, userID string) (*models.Cart, uint64, error) {
 	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
 	filterQuery := database.BuildMongoFilterQuery(request.Filter)
 	filterQuery["customer_id"] = userID
 
+	var pipelineResp struct {
+		ID           string            `bson:"id"`
+		Total        float64           `bson:"total"`
+		TotalRecords int               `bson:"total_records"`
+		CartItems    []models.CartItem `bson:"cart_items"`
+	}
 	pipeline := mongo.Pipeline{
 		{
 			{Key: "$match", Value: filterQuery},
@@ -151,21 +157,16 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 	if err != nil {
 		return nil, 0, err
 	}
-
-	totalRecord, err := c.col(models.CartsCollectionName).CountDocuments(ctx, filterQuery)
-	if err != nil {
-		return nil, 0, err
-	}
-
 	defer cursor.Close(ctx)
 
-	var carts []models.Cart
 	for cursor.Next(ctx) {
-		var cart models.Cart
-		if err := cursor.Decode(&cart); err != nil {
+		if err = cursor.Decode(&pipelineResp); err != nil {
 			return nil, 0, err
 		}
-		carts = append(carts, cart)
 	}
-	return carts, uint64(totalRecord), nil
+	return &models.Cart{
+		ID:        pipelineResp.ID,
+		Total:     pipelineResp.Total,
+		CartItems: pipelineResp.CartItems,
+	}, uint64(pipelineResp.TotalRecords), nil
 }
