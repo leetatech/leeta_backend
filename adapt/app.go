@@ -173,7 +173,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 
 	app.Repositories = allRepositories
 
-	address, err := address.New(&address.Config{
+	addressConfig, err := address.New(&address.Config{
 		URL:            app.Config.Address.URL,
 		RequestTimeout: app.Config.Address.RequestTimeout,
 		Verbose:        app.Config.Address.Verbose,
@@ -187,7 +187,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		AllRepository: allRepositories,
 		EmailClient:   app.EmailClient,
 		Domain:        app.Config.Leeta.Domain,
-		Address:       address,
+		Address:       addressConfig,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(request)
@@ -195,18 +195,18 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	userApplications := userApplication.NewUserApplication(request)
 	productApplications := productApplication.NewProductApplication(request)
 	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
-	cartApplication := cartApplication.NewCartApplication(request)
-	feesApplication := feesApplication.NewFeesApplication(request)
-	addressApplication := addressApplication.NewAddressApplication(request)
+	cartsApplication := cartApplication.NewCartApplication(request)
+	feeApplication := feesApplication.NewFeesApplication(request)
+	addressesApplication := addressApplication.NewAddressApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
 	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
 	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
 	gasRefillInterfaces := gasrefillInterface.NewGasRefillHTTPHandler(gasRefillApplications)
-	cartInterfaces := cartInterface.NewCartHTTPHandler(cartApplication)
-	feesInterfaces := feeInterface.NewFeesHTTPHandler(feesApplication)
-	addressInterfaces := addressInterface.NewAddressHttpHandler(addressApplication)
+	cartInterfaces := cartInterface.NewCartHTTPHandler(cartsApplication)
+	feesInterfaces := feeInterface.NewFeesHTTPHandler(feeApplication)
+	addressInterfaces := addressInterface.NewAddressHttpHandler(addressesApplication)
 
 	allInterfaces := routes.AllHTTPHandlers{
 		Order:     orderInterfaces,
