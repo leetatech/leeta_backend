@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
-	address2 "github.com/leetatech/leeta_backend/pkg/address"
+	"github.com/leetatech/leeta_backend/pkg/address"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
 
@@ -173,7 +173,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 
 	app.Repositories = allRepositories
 
-	address, err := address2.New(&address2.Config{
+	address, err := address.New(&address.Config{
 		URL:            app.Config.Address.URL,
 		RequestTimeout: app.Config.Address.RequestTimeout,
 		Verbose:        app.Config.Address.Verbose,
