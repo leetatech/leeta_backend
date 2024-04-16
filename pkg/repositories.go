@@ -1,8 +1,10 @@
 package pkg
 
 import (
+	"github.com/leetatech/leeta_backend/pkg/address"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
+	addressDomain "github.com/leetatech/leeta_backend/services/address/domain"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
@@ -21,6 +23,7 @@ type Repositories struct {
 	GasRefillRepository gasrefillDomain.GasRefillRepository
 	CartRepository      cartDomain.CartRepository
 	FeesRepository      feesDomain.FeesRepository
+	AddressRepository   addressDomain.AddressRepository
 }
 
 type DefaultResponse struct {
@@ -34,6 +37,7 @@ type DefaultApplicationRequest struct {
 	AllRepository Repositories
 	EmailClient   mailer.MailerClient
 	Domain        string
+	Address       address.Address
 }
 
 type DefaultErrorResponse struct {

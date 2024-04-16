@@ -183,10 +183,13 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 		Data: result,
 	}
 
-	err := json.NewEncoder(w).Encode(&data)
-	if err != nil {
-		return
+	if result != nil {
+		err := json.NewEncoder(w).Encode(&data)
+		if err != nil {
+			return
+		}
 	}
+
 }
 
 func EncodeErrorResult(w http.ResponseWriter, code int, err error) {

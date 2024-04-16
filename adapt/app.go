@@ -6,8 +6,14 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
+	address2 "github.com/leetatech/leeta_backend/pkg/address"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
+
+	addressApplication "github.com/leetatech/leeta_backend/services/address/application"
+	addressInfrastructure "github.com/leetatech/leeta_backend/services/address/infrastructure"
+	addressInterface "github.com/leetatech/leeta_backend/services/address/interfaces"
+
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
@@ -92,7 +98,10 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 		return nil, err
 	}
 
-	allInterfaces := app.buildApplicationConnection(*tokenHandler)
+	allInterfaces, err := app.buildApplicationConnection(*tokenHandler)
+	if err != nil {
+		return nil, err
+	}
 
 	router, _, err := routes.SetupRouter(tokenHandler, allInterfaces)
 	if err != nil {
@@ -141,7 +150,7 @@ func (app *Application) buildConfig(configFile string) (*config.ServerConfig, er
 	return config.ReadConfig(*app.Logger, configFile)
 }
 
-func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) *routes.AllHTTPHandlers {
+func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) (*routes.AllHTTPHandlers, error) {
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
@@ -149,6 +158,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillPersistence := gasrefillInfrastructure.NewRefillPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	addressPersistence := addressInfrastructure.NewAddressPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
 	allRepositories := pkg.Repositories{
 		OrderRepository:     orderPersistence,
@@ -158,15 +168,26 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		GasRefillRepository: gasRefillPersistence,
 		CartRepository:      cartPersistence,
 		FeesRepository:      feesPersistence,
+		AddressRepository:   addressPersistence,
 	}
 
 	app.Repositories = allRepositories
+
+	address, err := address2.New(&address2.Config{
+		URL:            app.Config.Address.URL,
+		RequestTimeout: app.Config.Address.RequestTimeout,
+		Verbose:        app.Config.Address.Verbose,
+	})
+	if err != nil {
+		return nil, err
+	}
 	request := pkg.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
 		Logger:        app.Logger,
 		AllRepository: allRepositories,
 		EmailClient:   app.EmailClient,
 		Domain:        app.Config.Leeta.Domain,
+		Address:       address,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(request)
@@ -176,6 +197,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
 	cartApplication := cartApplication.NewCartApplication(request)
 	feesApplication := feesApplication.NewFeesApplication(request)
+	addressApplication := addressApplication.NewAddressApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
@@ -184,6 +206,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillInterfaces := gasrefillInterface.NewGasRefillHTTPHandler(gasRefillApplications)
 	cartInterfaces := cartInterface.NewCartHTTPHandler(cartApplication)
 	feesInterfaces := feeInterface.NewFeesHTTPHandler(feesApplication)
+	addressInterfaces := addressInterface.NewAddressHttpHandler(addressApplication)
 
 	allInterfaces := routes.AllHTTPHandlers{
 		Order:     orderInterfaces,
@@ -193,6 +216,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		GasRefill: gasRefillInterfaces,
 		Cart:      cartInterfaces,
 		Fees:      feesInterfaces,
+		Address:   addressInterfaces,
 	}
-	return routes.AllInterfaces(&allInterfaces)
+	return routes.AllInterfaces(&allInterfaces), nil
 }
