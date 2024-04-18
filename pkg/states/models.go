@@ -1,4 +1,4 @@
-package address
+package states
 
 type State struct {
 	Id         string   `json:"id"`

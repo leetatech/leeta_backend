@@ -12,5 +12,5 @@ const (
 	CartsCollectionName         = "carts"
 	FeesCollectionName          = "fees"
 	GuestsCollectionName        = "guests"
-	AddressCollectionName       = "address"
+	NGNStatesCollectionName     = "ngn-states"
 )

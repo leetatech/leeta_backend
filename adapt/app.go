@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
-	"github.com/leetatech/leeta_backend/pkg/address"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
+	"github.com/leetatech/leeta_backend/pkg/states"
 
-	addressApplication "github.com/leetatech/leeta_backend/services/address/application"
-	addressInfrastructure "github.com/leetatech/leeta_backend/services/address/infrastructure"
-	addressInterface "github.com/leetatech/leeta_backend/services/address/interfaces"
+	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
+	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
+	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
 
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
@@ -158,7 +158,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillPersistence := gasrefillInfrastructure.NewRefillPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	addressPersistence := addressInfrastructure.NewAddressPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	statePersistence := stateInfrastructure.NewStatePersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
 	allRepositories := pkg.Repositories{
 		OrderRepository:     orderPersistence,
@@ -168,12 +168,12 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		GasRefillRepository: gasRefillPersistence,
 		CartRepository:      cartPersistence,
 		FeesRepository:      feesPersistence,
-		AddressRepository:   addressPersistence,
+		StatesRepository:    statePersistence,
 	}
 
 	app.Repositories = allRepositories
 
-	addressConfig, err := address.New(&address.Config{
+	statesConfig, err := states.New(&states.Config{
 		URL:            app.Config.Address.URL,
 		RequestTimeout: app.Config.Address.RequestTimeout,
 		Verbose:        app.Config.Address.Verbose,
@@ -187,7 +187,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		AllRepository: allRepositories,
 		EmailClient:   app.EmailClient,
 		Domain:        app.Config.Leeta.Domain,
-		Address:       addressConfig,
+		States:        statesConfig,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(request)
@@ -197,7 +197,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
 	cartsApplication := cartApplication.NewCartApplication(request)
 	feeApplication := feesApplication.NewFeesApplication(request)
-	addressesApplication := addressApplication.NewAddressApplication(request)
+	statesApplication := stateApplication.NewStateApplication(request)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
@@ -206,7 +206,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillInterfaces := gasrefillInterface.NewGasRefillHTTPHandler(gasRefillApplications)
 	cartInterfaces := cartInterface.NewCartHTTPHandler(cartsApplication)
 	feesInterfaces := feeInterface.NewFeesHTTPHandler(feeApplication)
-	addressInterfaces := addressInterface.NewAddressHttpHandler(addressesApplication)
+	statesInterfaces := stateInterface.NewStateHttpHandler(statesApplication)
 
 	allInterfaces := routes.AllHTTPHandlers{
 		Order:     orderInterfaces,
@@ -216,7 +216,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		GasRefill: gasRefillInterfaces,
 		Cart:      cartInterfaces,
 		Fees:      feesInterfaces,
-		Address:   addressInterfaces,
+		State:     statesInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces), nil
 }

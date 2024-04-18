@@ -1,16 +1,16 @@
 package pkg
 
 import (
-	"github.com/leetatech/leeta_backend/pkg/address"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
-	addressDomain "github.com/leetatech/leeta_backend/services/address/domain"
+	"github.com/leetatech/leeta_backend/pkg/states"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
 	gasrefillDomain "github.com/leetatech/leeta_backend/services/gasrefill/domain"
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
 	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
+	statesDomain "github.com/leetatech/leeta_backend/services/state/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"
 	"go.uber.org/zap"
 )
@@ -23,7 +23,7 @@ type Repositories struct {
 	GasRefillRepository gasrefillDomain.GasRefillRepository
 	CartRepository      cartDomain.CartRepository
 	FeesRepository      feesDomain.FeesRepository
-	AddressRepository   addressDomain.AddressRepository
+	StatesRepository    statesDomain.StateRepository
 }
 
 type DefaultResponse struct {
@@ -37,7 +37,7 @@ type DefaultApplicationRequest struct {
 	AllRepository Repositories
 	EmailClient   mailer.MailerClient
 	Domain        string
-	Address       address.Address
+	States        states.StateMethods
 }
 
 type DefaultErrorResponse struct {
