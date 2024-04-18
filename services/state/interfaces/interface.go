@@ -3,6 +3,7 @@ package interfaces
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	_ "github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/state/application"
 	"net/http"
 )

@@ -832,123 +832,6 @@ info:
   title: LEETA BACKEND API
   version: "1.0"
 paths:
-  /address:
-    get:
-      consumes:
-      - application/json
-      description: The endpoint to get all states and all their LGAs.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/State'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Get all states.
-      tags:
-      - Address
-  /address/:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint ensures that all 36 states and their LGAs are saved
-        in the DB
-      parameters:
-      - description: name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Save address in the DB
-      tags:
-      - Address
-    put:
-      consumes:
-      - application/json
-      description: The endpoint is used to update an address in the DB
-      parameters:
-      - description: update state request body
-        in: body
-        name: models.State
-        required: true
-        schema:
-          $ref: '#/definitions/State'
-      produces:
-      - application/json
-      responses:
-        "202":
-          description: Accepted
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Update address in the DB
-      tags:
-      - Address
-  /address/{name}:
-    get:
-      consumes:
-      - application/json
-      description: The endpoint to get a state and all its LGAs.
-      parameters:
-      - description: name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/State'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Get a state.
-      tags:
-      - Address
   /cart:
     post:
       consumes:
@@ -1939,6 +1822,88 @@ paths:
       summary: User Sign Up
       tags:
       - Session
+  /state:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get all states and all their LGAs.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/State'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get all states.
+      tags:
+      - state
+  /state/:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint ensures that all 36 states and their LGAs are saved
+        in the DB
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Save state in the DB
+      tags:
+      - State
+  /state/{name}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get a state and all its LGAs.
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/State'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get a state.
+      tags:
+      - state
   /user/admin/vendor:
     post:
       consumes:
