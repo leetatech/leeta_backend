@@ -1,7 +1,6 @@
 package states
 
 import (
-	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/leetatech/leeta_backend/pkg/restclient"
 	"net/url"
@@ -27,7 +26,6 @@ func (a Config) GetState(name string) (*State, error) {
 	var state State
 	_, err := restclient.GetResty(a.httpClient, &state, restclient.Config{HttpClient: a.httpClient, URL: a.URL, RequestTimeout: a.RequestTimeout, Verbose: a.Verbose}, getStatePath+name)
 	if err != nil {
-		fmt.Println("error", err)
 		return nil, err
 	}
 
@@ -39,7 +37,6 @@ func (a Config) GetAllStates() (*[]State, error) {
 	var states []State
 	_, err := restclient.GetResty(a.httpClient, &states, restclient.Config{HttpClient: a.httpClient, URL: a.URL, RequestTimeout: a.RequestTimeout, Verbose: a.Verbose}, getStatePath)
 	if err != nil {
-		fmt.Println("error", err)
 		return nil, err
 	}
 

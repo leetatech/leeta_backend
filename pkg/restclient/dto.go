@@ -8,11 +8,3 @@ type Config struct {
 	RequestTimeout int64
 	Verbose        bool
 }
-
-type ResponseBody[T any] struct {
-	Data T `json:"data"`
-}
-
-type ResponseBodyList[T any] struct {
-	Data []T `json:"data"`
-}
