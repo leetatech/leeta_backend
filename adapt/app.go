@@ -8,8 +8,6 @@ import (
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/states"
-
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -173,21 +171,12 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 
 	app.Repositories = allRepositories
 
-	statesConfig, err := states.New(&states.Config{
-		URL:            app.Config.Address.URL,
-		RequestTimeout: app.Config.Address.RequestTimeout,
-		Verbose:        app.Config.Address.Verbose,
-	})
-	if err != nil {
-		return nil, err
-	}
 	request := pkg.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
 		Logger:        app.Logger,
 		AllRepository: allRepositories,
 		EmailClient:   app.EmailClient,
 		Domain:        app.Config.Leeta.Domain,
-		States:        statesConfig,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(request)
@@ -197,7 +186,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
 	cartsApplication := cartApplication.NewCartApplication(request)
 	feeApplication := feesApplication.NewFeesApplication(request)
-	statesApplication := stateApplication.NewStateApplication(request)
+	statesApplication := stateApplication.NewStateApplication(request, app.Config.NgnStates)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)

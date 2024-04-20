@@ -3,7 +3,6 @@ package pkg
 import (
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
-	"github.com/leetatech/leeta_backend/pkg/states"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
@@ -37,7 +36,6 @@ type DefaultApplicationRequest struct {
 	AllRepository Repositories
 	EmailClient   mailer.MailerClient
 	Domain        string
-	States        states.StateMethods
 }
 
 type DefaultErrorResponse struct {

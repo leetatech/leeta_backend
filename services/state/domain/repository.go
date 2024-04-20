@@ -6,7 +6,7 @@ import (
 )
 
 type StateRepository interface {
-	SaveStates(ctx context.Context, states []interface{}) error
+	SaveStates(ctx context.Context, states []any) error
 	GetState(ctx context.Context, name string) (models.State, error)
 	GetAllStates(ctx context.Context) ([]models.State, error)
 }

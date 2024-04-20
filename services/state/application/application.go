@@ -2,7 +2,9 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/states"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -12,22 +14,27 @@ import (
 )
 
 type StateAppHandler struct {
+	config        config.NgnStatesConfig
 	idGenerator   pkg.IDGenerator
 	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
 	allRepository pkg.Repositories
-	stateConfig   states.StateMethods
 }
 
-func (s StateAppHandler) Save(ctx context.Context) error {
-	fetchedStates, err := s.stateConfig.GetAllStates()
+func (s StateAppHandler) FetchStateDataFromAPI(ctx context.Context) error {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, time.Second*60)
+	defer cancel()
+	fetchedStates, err := states.GetAllStates(ctxWithTimeout, s.config.URL)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.InternalError, err)
 	}
-	var allStates []interface{}
+	if len(fetchedStates) == 0 {
+		return leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("no ngn states found from api %v", s.config.URL))
+	}
+	var allStates []any
 
-	for _, perState := range *fetchedStates {
-		fetchedState, err := s.stateConfig.GetState(perState.Id)
+	for _, perState := range fetchedStates {
+		fetchedState, err := states.GetState(ctxWithTimeout, perState.Id, s.config.URL)
 		if err != nil {
 			return leetError.ErrorResponseBody(leetError.InternalError, err)
 		}
@@ -75,17 +82,17 @@ func (s StateAppHandler) GetAllStates(ctx context.Context) ([]models.State, erro
 }
 
 type StateApplication interface {
-	Save(ctx context.Context) error
+	FetchStateDataFromAPI(ctx context.Context) error
 	GetState(ctx context.Context, name string) (models.State, error)
 	GetAllStates(ctx context.Context) ([]models.State, error)
 }
 
-func NewStateApplication(request pkg.DefaultApplicationRequest) StateApplication {
+func NewStateApplication(request pkg.DefaultApplicationRequest, config config.NgnStatesConfig) StateApplication {
 	return &StateAppHandler{
 		idGenerator:   pkg.NewIDGenerator(),
 		logger:        request.Logger,
 		tokenHandler:  request.TokenHandler,
 		allRepository: request.AllRepository,
-		stateConfig:   request.States,
+		config:        config,
 	}
 }

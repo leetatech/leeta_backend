@@ -53,7 +53,7 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 	gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler)
 	cartRouter := buildCartEndpoints(*interfaces.Cart, tokenHandler)
 	feesRouter := buildFeesEndpoints(*interfaces.Fees, tokenHandler)
-	stateRouter := buildStateEndpoints(*interfaces.State, tokenHandler)
+	stateRouter := buildStatesEndpoints(*interfaces.State, tokenHandler)
 
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
@@ -176,13 +176,13 @@ func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pk
 	return router
 }
 
-func buildStateEndpoints(handler stateInterfaces.StateHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+func buildStatesEndpoints(handler stateInterfaces.StateHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", handler.SaveStateHandler)
-	router.Get("/{name}", handler.GetStateHandler)
-	router.Get("/", handler.GetAllStatesHandler)
+	router.Post("/", handler.RetrieveNGNStatesData)
+	router.Get("/{name}", handler.GetState)
+	router.Get("/", handler.ListStates)
 
 	return router
 }

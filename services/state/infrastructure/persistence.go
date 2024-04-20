@@ -16,8 +16,7 @@ type StateStoreHandler struct {
 	logger       *zap.Logger
 }
 
-func (s *StateStoreHandler) SaveStates(ctx context.Context, states []interface{}) error {
-
+func (s *StateStoreHandler) SaveStates(ctx context.Context, states []any) error {
 	_, err := s.col(models.NGNStatesCollectionName).InsertMany(ctx, states)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)

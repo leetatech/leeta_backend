@@ -1849,30 +1849,6 @@ paths:
       summary: Get all states.
       tags:
       - state
-  /state/:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint ensures that all 36 states and their LGAs are saved
-        in the DB
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Save state in the DB
-      tags:
-      - State
   /state/{name}:
     get:
       consumes:

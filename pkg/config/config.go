@@ -25,7 +25,7 @@ type ServerConfig struct {
 	PublicKey  string `env:"PUBLIC_KEY"`
 	Postmark   PostmarkConfig
 	Leeta      LeetaConfig
-	Address    AddressConfig
+	NgnStates  NgnStatesConfig // configure resource API to retrieve NGN states
 }
 
 type DatabaseConfig struct {
@@ -47,7 +47,7 @@ type LeetaConfig struct {
 	Domain string `env:"DOMAIN"`
 }
 
-type AddressConfig struct {
+type NgnStatesConfig struct {
 	URL            string `env:"URL" envDefault:"https://api.facts.ng/v1"`
 	RequestTimeout int64  `env:"REQUEST_TIMEOUT" envDefault:"10"`
 	Verbose        bool   `env:"VERBOSE" envDefault:"true"`
@@ -73,7 +73,7 @@ func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
 		&serverConfig.Database,
 		&serverConfig.Postmark,
 		&serverConfig.Leeta,
-		&serverConfig.Address,
+		&serverConfig.NgnStates,
 	}
 
 	for _, target := range targets {

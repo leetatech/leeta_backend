@@ -1,63 +1,47 @@
 package states
 
 import (
-	"github.com/go-resty/resty/v2"
+	"context"
+	"encoding/json"
 	"github.com/leetatech/leeta_backend/pkg/restclient"
-	"net/url"
+	"github.com/leetatech/leeta_backend/services/models"
+	"net/http"
 )
 
 const (
 	getStatePath = "/states/"
 )
 
-type StateMethods interface {
-	GetState(name string) (*State, error)
-	GetAllStates() (states *[]State, err error)
+func GetState(ctx context.Context, name, url string) (state models.State, err error) {
+	getStateUrl := url + getStatePath + name
+	resp, err := restclient.DoHTTPRequest(ctx, http.MethodGet, nil, getStateUrl)
+	if err != nil {
+		return state, err
+	}
+
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&state)
+	if err != nil {
+		return state, err
+	}
+
+	return
 }
 
-type Config struct {
-	httpClient     *resty.Client
-	URL            string
-	RequestTimeout int64
-	Verbose        bool
-}
-
-func (a Config) GetState(name string) (*State, error) {
-	var state State
-	_, err := restclient.GetResty(a.httpClient, &state, restclient.Config{HttpClient: a.httpClient, URL: a.URL, RequestTimeout: a.RequestTimeout, Verbose: a.Verbose}, getStatePath+name)
+func GetAllStates(ctx context.Context, url string) (stateList []models.State, err error) {
+	listStateUrl := url + getStatePath
+	resp, err := restclient.DoHTTPRequest(ctx, http.MethodGet, nil, listStateUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	return &state, nil
-}
+	defer resp.Body.Close()
 
-func (a Config) GetAllStates() (*[]State, error) {
-
-	var states []State
-	_, err := restclient.GetResty(a.httpClient, &states, restclient.Config{HttpClient: a.httpClient, URL: a.URL, RequestTimeout: a.RequestTimeout, Verbose: a.Verbose}, getStatePath)
+	err = json.NewDecoder(resp.Body).Decode(&stateList)
 	if err != nil {
 		return nil, err
 	}
 
-	return &states, nil
-}
-
-func New(cfg *Config) (StateMethods, error) {
-	_, err := url.Parse(cfg.URL)
-	if err != nil {
-		return nil, err
-	}
-
-	// defaults request timeouts to 60secs
-	if cfg.RequestTimeout <= 0 {
-		cfg.RequestTimeout = 60
-	}
-
-	return &Config{
-		httpClient:     resty.New(),
-		URL:            cfg.URL,
-		RequestTimeout: cfg.RequestTimeout,
-		Verbose:        cfg.Verbose,
-	}, nil
+	return stateList, nil
 }
