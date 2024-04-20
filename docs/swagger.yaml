@@ -395,6 +395,31 @@ definitions:
       user_type:
         $ref: '#/definitions/models.UserCategory'
     type: object
+  State:
+    properties:
+      capital:
+        type: string
+      id:
+        type: string
+      lgas:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      region:
+        type: string
+      slogan:
+        type: string
+      status_ts:
+        type: integer
+      towns:
+        items:
+          type: string
+        type: array
+      ts:
+        type: integer
+    type: object
   UpdateCartItemQuantityRequest:
     properties:
       cart_item_id:
@@ -1797,6 +1822,64 @@ paths:
       summary: User Sign Up
       tags:
       - Session
+  /state:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get all states and all their LGAs.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/State'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get all states.
+      tags:
+      - state
+  /state/{name}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get a state and all its LGAs.
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/State'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get a state.
+      tags:
+      - state
   /user/admin/vendor:
     post:
       consumes:

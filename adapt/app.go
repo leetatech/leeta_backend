@@ -8,6 +8,10 @@ import (
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
+	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
+	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
+	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
+
 	authApplication "github.com/leetatech/leeta_backend/services/auth/application"
 	authInfrastructure "github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	authInterface "github.com/leetatech/leeta_backend/services/auth/interfaces"
@@ -149,6 +153,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	gasRefillPersistence := gasrefillInfrastructure.NewRefillPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
+	statePersistence := stateInfrastructure.NewStatePersistence(app.Db, app.Config.Database.DBName, app.Logger)
 
 	allRepositories := pkg.Repositories{
 		OrderRepository:     orderPersistence,
@@ -158,9 +163,11 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		GasRefillRepository: gasRefillPersistence,
 		CartRepository:      cartPersistence,
 		FeesRepository:      feesPersistence,
+		StatesRepository:    statePersistence,
 	}
 
 	app.Repositories = allRepositories
+
 	request := pkg.DefaultApplicationRequest{
 		TokenHandler:  tokenHandler,
 		Logger:        app.Logger,
@@ -174,16 +181,18 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	userApplications := userApplication.NewUserApplication(request)
 	productApplications := productApplication.NewProductApplication(request)
 	gasRefillApplications := gasrefillApplication.NewGasRefillApplication(request)
-	cartApplication := cartApplication.NewCartApplication(request)
-	feesApplication := feesApplication.NewFeesApplication(request)
+	cartsApplication := cartApplication.NewCartApplication(request)
+	feeApplication := feesApplication.NewFeesApplication(request)
+	statesApplication := stateApplication.NewStateApplication(request, app.Config.NgnStates)
 
 	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
 	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
 	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
 	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
 	gasRefillInterfaces := gasrefillInterface.NewGasRefillHTTPHandler(gasRefillApplications)
-	cartInterfaces := cartInterface.NewCartHTTPHandler(cartApplication)
-	feesInterfaces := feeInterface.NewFeesHTTPHandler(feesApplication)
+	cartInterfaces := cartInterface.NewCartHTTPHandler(cartsApplication)
+	feesInterfaces := feeInterface.NewFeesHTTPHandler(feeApplication)
+	statesInterfaces := stateInterface.NewStateHttpHandler(statesApplication)
 
 	allInterfaces := routes.AllHTTPHandlers{
 		Order:     orderInterfaces,
@@ -193,6 +202,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		GasRefill: gasRefillInterfaces,
 		Cart:      cartInterfaces,
 		Fees:      feesInterfaces,
+		State:     statesInterfaces,
 	}
 	return routes.AllInterfaces(&allInterfaces)
 }

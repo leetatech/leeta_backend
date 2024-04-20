@@ -25,6 +25,7 @@ type ServerConfig struct {
 	PublicKey  string `env:"PUBLIC_KEY"`
 	Postmark   PostmarkConfig
 	Leeta      LeetaConfig
+	NgnStates  NgnStatesConfig // configure resource API to retrieve NGN states
 }
 
 type DatabaseConfig struct {
@@ -44,6 +45,10 @@ type PostmarkConfig struct {
 
 type LeetaConfig struct {
 	Domain string `env:"DOMAIN"`
+}
+
+type NgnStatesConfig struct {
+	URL string `env:"URL" envDefault:"https://api.facts.ng/v1"`
 }
 
 func LoadEnv(configFile string) error {
@@ -66,6 +71,7 @@ func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
 		&serverConfig.Database,
 		&serverConfig.Postmark,
 		&serverConfig.Leeta,
+		&serverConfig.NgnStates,
 	}
 
 	for _, target := range targets {

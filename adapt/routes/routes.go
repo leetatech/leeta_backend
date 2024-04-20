@@ -12,6 +12,7 @@ import (
 	gasRefillInterfaces "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
 	productInterfaces "github.com/leetatech/leeta_backend/services/product/interfaces"
+	stateInterfaces "github.com/leetatech/leeta_backend/services/state/interfaces"
 	userInterfaces "github.com/leetatech/leeta_backend/services/user/interfaces"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
@@ -25,10 +26,11 @@ type AllHTTPHandlers struct {
 	GasRefill *gasRefillInterfaces.GasRefillHttpHandler
 	Cart      *cartInterfaces.CartHttpHandler
 	Fees      *feesInterfaces.FeesHttpHandler
+	State     *stateInterfaces.StateHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product, GasRefill: interfaces.GasRefill, Cart: interfaces.Cart, Fees: interfaces.Fees}
+	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product, GasRefill: interfaces.GasRefill, Cart: interfaces.Cart, Fees: interfaces.Fees, State: interfaces.State}
 }
 
 func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *pkg.TokenHandler, error) {
@@ -51,6 +53,7 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 	gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler)
 	cartRouter := buildCartEndpoints(*interfaces.Cart, tokenHandler)
 	feesRouter := buildFeesEndpoints(*interfaces.Fees, tokenHandler)
+	stateRouter := buildStatesEndpoints(*interfaces.State, tokenHandler)
 
 	router.Route("/api", func(r chi.Router) {
 		r.Handle("/swagger/*", httpSwagger.WrapHandler)
@@ -61,6 +64,7 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 		r.Mount("/gas-refill", gasRefillRouter)
 		r.Mount("/cart", cartRouter)
 		r.Mount("/fees", feesRouter)
+		r.Mount("/state", stateRouter)
 	})
 
 	return router, tokenHandler, nil
@@ -168,6 +172,17 @@ func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pk
 	router.Post("/", handler.CreateFeeHandler)
 	router.Get("/", handler.GetFeesHandler)
 	router.Get("/product/{product_id}", handler.GetFeeByProductIDHandler)
+
+	return router
+}
+
+func buildStatesEndpoints(handler stateInterfaces.StateHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+	router := chi.NewRouter()
+
+	router.Use(tokenHandler.ValidateMiddleware)
+	router.Post("/", handler.RetrieveNGNStatesData)
+	router.Get("/{name}", handler.GetState)
+	router.Get("/", handler.ListStates)
 
 	return router
 }
