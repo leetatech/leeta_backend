@@ -24,29 +24,29 @@ type StateAppHandler struct {
 func (s StateAppHandler) FetchStateDataFromAPI(ctx context.Context) error {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
-	fetchedStates, err := states.GetAllStates(ctxWithTimeout, s.config.URL)
+	stateList, err := states.GetAllStates(ctxWithTimeout, s.config.URL)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.InternalError, err)
 	}
-	if len(fetchedStates) == 0 {
+	if len(stateList) == 0 {
 		return leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("no ngn states found from api %v", s.config.URL))
 	}
 	var allStates []any
 
-	for _, perState := range fetchedStates {
-		fetchedState, err := states.GetState(ctxWithTimeout, perState.Id, s.config.URL)
+	for _, eachState := range stateList {
+		updatedState, err := states.GetState(ctxWithTimeout, eachState.Id, s.config.URL)
 		if err != nil {
 			return leetError.ErrorResponseBody(leetError.InternalError, err)
 		}
 
 		state := models.State{
 			Id:       s.idGenerator.Generate(),
-			Name:     strings.ToUpper(perState.Name),
-			Region:   perState.Region,
-			Capital:  perState.Capital,
-			Lgas:     fetchedState.Lgas,
-			Slogan:   perState.Slogan,
-			Towns:    fetchedState.Towns,
+			Name:     strings.ToUpper(eachState.Name),
+			Region:   eachState.Region,
+			Capital:  eachState.Capital,
+			Lgas:     updatedState.Lgas,
+			Slogan:   eachState.Slogan,
+			Towns:    updatedState.Towns,
 			StatusTs: time.Now().Unix(),
 			Ts:       time.Now().Unix(),
 		}

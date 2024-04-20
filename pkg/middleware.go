@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
+	"github.com/rs/zerolog/log"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -186,6 +187,7 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 	if result != nil {
 		err := json.NewEncoder(w).Encode(&data)
 		if err != nil {
+			log.Err(err).Msg("fail to encode result")
 			return
 		}
 	}
@@ -204,6 +206,7 @@ func EncodeErrorResult(w http.ResponseWriter, code int, err error) {
 
 	newErr := json.NewEncoder(w).Encode(&data)
 	if newErr != nil {
+		log.Err(newErr).Msg("fail to encode result")
 		return
 	}
 }

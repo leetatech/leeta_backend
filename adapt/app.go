@@ -96,10 +96,7 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 		return nil, err
 	}
 
-	allInterfaces, err := app.buildApplicationConnection(*tokenHandler)
-	if err != nil {
-		return nil, err
-	}
+	allInterfaces := app.buildApplicationConnection(*tokenHandler)
 
 	router, _, err := routes.SetupRouter(tokenHandler, allInterfaces)
 	if err != nil {
@@ -148,7 +145,7 @@ func (app *Application) buildConfig(configFile string) (*config.ServerConfig, er
 	return config.ReadConfig(*app.Logger, configFile)
 }
 
-func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) (*routes.AllHTTPHandlers, error) {
+func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) *routes.AllHTTPHandlers {
 	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
 	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
@@ -207,5 +204,5 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		Fees:      feesInterfaces,
 		State:     statesInterfaces,
 	}
-	return routes.AllInterfaces(&allInterfaces), nil
+	return routes.AllInterfaces(&allInterfaces)
 }

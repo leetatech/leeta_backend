@@ -8,9 +8,7 @@ import (
 	"net/http"
 )
 
-const (
-	getStatePath = "/states/"
-)
+const getStatePath = "/states/"
 
 func GetState(ctx context.Context, name, url string) (state models.State, err error) {
 	getStateUrl := url + getStatePath + name

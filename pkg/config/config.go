@@ -48,9 +48,7 @@ type LeetaConfig struct {
 }
 
 type NgnStatesConfig struct {
-	URL            string `env:"URL" envDefault:"https://api.facts.ng/v1"`
-	RequestTimeout int64  `env:"REQUEST_TIMEOUT" envDefault:"10"`
-	Verbose        bool   `env:"VERBOSE" envDefault:"true"`
+	URL string `env:"URL" envDefault:"https://api.facts.ng/v1"`
 }
 
 func LoadEnv(configFile string) error {
