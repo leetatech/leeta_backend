@@ -58,6 +58,10 @@ func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest
 	}
 	request.Password = hashedPassword
 
+	// trim email spaces
+	trimmedEmail := request.TrimEmailSpace()
+	request.Email = trimmedEmail
+
 	category, err := models.SetUserCategory(request.UserType)
 	if err != nil {
 		return nil, err
@@ -121,6 +125,10 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 }
 
 func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
+	// trim email spaces
+	trimmedEmail := request.TrimEmailSpace()
+	request.Email = trimmedEmail
+
 	category, err := models.SetUserCategory(request.UserType)
 	if err != nil {
 		return nil, err
