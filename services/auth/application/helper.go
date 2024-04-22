@@ -73,7 +73,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 			}
 			err = a.allRepository.AuthRepository.CreateIdentity(ctx, identity)
 			if err != nil {
-				return nil, err
+				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 			}
 
 			response, err := a.tokenHandler.BuildAuthResponse(request.Email, vendor.ID, request.UserType)
@@ -90,12 +90,11 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 			return &domain.DefaultSigningResponse{AuthToken: response, Body: vendor.User}, nil
 
 		default:
-			return nil, err
+			return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 		}
 	}
 
-	a.logger.Error("vendorSignUP", zap.Error(leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)))
-	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)
+	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, errors.New("user already exists"))
 }
 
 func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
@@ -149,18 +148,17 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 
 			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.BuyerCategory)
 			if err != nil {
-				return nil, err
+				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 			}
 
 			return &domain.DefaultSigningResponse{AuthToken: response, Body: customer.User}, nil
 
 		default:
-			return nil, err
+			return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 		}
 	}
 
-	a.logger.Error("customerSignUP", zap.Error(leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)))
-	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, nil)
+	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, errors.New("user already exists"))
 }
 
 func (a authAppHandler) accountVerification(ctx context.Context, userID, target, templateAlias string, userCategory models.UserCategory) error {

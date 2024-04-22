@@ -1,6 +1,9 @@
 package domain
 
-import "github.com/leetatech/leeta_backend/services/models"
+import (
+	"github.com/leetatech/leeta_backend/services/models"
+	"strings"
+)
 
 type SignupRequest struct {
 	FullName string              `json:"full_name"`
@@ -68,3 +71,11 @@ type ReceiveGuestResponse struct {
 	DeviceID  string `json:"device_id" bson:"device_id"`
 	Token     string `json:"token" bson:"token"`
 } // @name ReceiveGuestResponse
+
+func (s *SignupRequest) TrimEmailSpace() string {
+	return strings.TrimSpace(s.Email)
+}
+
+func (s *SigningRequest) TrimEmailSpace() string {
+	return strings.TrimSpace(s.Email)
+}
