@@ -199,7 +199,7 @@ func (r *GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []m
 		return 0, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	for _, _ = range items {
+	for range items {
 		for _, fee := range fees {
 			serviceFee += fee.Cost.CostPerType
 		}
