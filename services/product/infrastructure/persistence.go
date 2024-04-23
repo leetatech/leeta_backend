@@ -49,7 +49,7 @@ func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (pro
 	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	err = p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(product)
+	err = p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(&product)
 	if err != nil {
 		return product, err
 	}

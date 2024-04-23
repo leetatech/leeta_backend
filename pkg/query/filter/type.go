@@ -20,6 +20,7 @@ ControlType ENUM(
 	dateTime
 	uuid
 	autocomplete
+	models.LGA
 
 )
 */
@@ -27,6 +28,7 @@ ControlType ENUM(
 const (
 	// ControlTypeString is a ControlType of type string.
 	ControlTypeString ControlType = "string"
+	ControlTypeLGA    ControlType = "models.LGA"
 )
 
 const (

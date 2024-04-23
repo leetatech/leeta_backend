@@ -128,7 +128,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 func (c CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []models.CartItem) (float64, error) {
 	var total float64
 
-	fees, err := c.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
+	fees, err := c.allRepository.FeesRepository.GetFeesByStatus(ctx, models.FeesActive)
 	if err != nil {
 		return 0, err
 	}
@@ -217,7 +217,7 @@ func (c CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item
 
 	switch item.ProductCategory {
 	case models.LNGProductCategory, models.LPGProductCategory:
-		itemWeightCost := item.Weight * float32(fee.CostPerKg)
+		itemWeightCost := item.Weight * float32(fee.Cost.CostPerKG)
 		itemCost := itemWeightCost * float32(item.Quantity)
 		item.Cost = float64(itemCost)
 	default:

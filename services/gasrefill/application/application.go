@@ -5,8 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/query"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
+	"github.com/leetatech/leeta_backend/pkg/query/paging"
 	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -171,17 +175,33 @@ func (r *GasRefillHandler) requestRefill(ctx context.Context, userID string, req
 func (r *GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []models.CartItem) (float64, error) {
 	var serviceFee float64
 
-	fees, err := r.allRepository.FeesRepository.GetFees(ctx, models.FeesActive)
+	getRequest := query.ResultSelector{
+		Filter: &filter.Request{
+			Operator: "and",
+			Fields: []filter.RequestField{
+				{
+					Name:  "fee_type",
+					Value: models.ServiceFee,
+				},
+			},
+		},
+		Paging: &paging.Request{},
+	}
+
+	getRequest, err := helpers.ValidateResultSelector(getRequest)
+	if err != nil {
+		return 0, err
+	}
+
+	fees, _, err := r.allRepository.FeesRepository.GetTypedFees(ctx, getRequest)
 	if err != nil {
 		r.logger.Error("get fees", zap.Error(err))
 		return 0, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	for _, item := range items {
+	for _, _ = range items {
 		for _, fee := range fees {
-			if fee.ProductID == item.ProductID {
-				serviceFee += fee.ServiceFee
-			}
+			serviceFee += fee.Cost.CostPerType
 		}
 	}
 

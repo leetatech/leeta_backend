@@ -39,9 +39,9 @@ func (c *CartItem) CalculateCartItemFee(fee *Fee) (float64, error) {
 
 	// Calculate cost based on weight or quantity
 	if c.Weight != 0 {
-		totalCost = float64(c.Weight) * fee.CostPerKg
+		totalCost = float64(c.Weight) * fee.Cost.CostPerKG
 	} else {
-		totalCost = fee.CostPerQty
+		totalCost = fee.Cost.CostPerQt
 	}
 
 	// Multiply cost by quantity

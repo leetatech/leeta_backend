@@ -2,11 +2,15 @@ package interfaces
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/query"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/fees/application"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
+	"github.com/leetatech/leeta_backend/services/models"
+	"github.com/samber/lo"
 	"net/http"
 )
 
@@ -39,6 +43,11 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
+	request, err = request.FeeTypeValidation()
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		return
+	}
 
 	response, err := handler.FeesApplication.FeeQuotation(r.Context(), request)
 	if err != nil {
@@ -48,44 +57,61 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// GetFeesHandler is the endpoint to get fees
-// @Summary Get fees
-// @Description The endpoint to get fees for gas refill
+// GetTypedFeesHandler is the endpoint to get typed fees
+// @Summary Get typed fees
+// @Description The endpoint to get all types of fees
 // @Tags Fees
 // @Accept json
 // @produce json
+// @param query.ResultSelector body query.ResultSelector true "list fees request body"
 // @Security BearerToken
-// @success 200 {object} pkg.DefaultResponse
+// @success 200 {object} query.ResponseListWithMetadata[models.Fee]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /fees/ [GET]
-func (handler *FeesHttpHandler) GetFeesHandler(w http.ResponseWriter, r *http.Request) {
-	response, err := handler.FeesApplication.GetFees(r.Context())
+// @Router /fees/type [POST]
+func (handler *FeesHttpHandler) GetTypedFeesHandler(w http.ResponseWriter, r *http.Request) {
+	var request query.ResultSelector
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		return
+	}
+
+	request, err = helpers.ValidateResultSelector(request)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
+	}
+
+	fees, totalRecord, err := handler.FeesApplication.GetTypedFees(r.Context(), request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response := query.ResponseListWithMetadata[models.Fee]{
+		Metadata: query.NewMetadata(request, totalRecord),
+		Data:     fees,
 	}
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// GetFeeByProductIDHandler is the endpoint to get fees by product ID
-// @Summary Get fee by product ID
-// @Description The endpoint to get fees for gas refill by product ID
+// ListFeesOptions is the endpoint to get fees filter options
+// @Summary Get fees filter options
+// @Description Retrieve fees filter options
 // @Tags Fees
 // @Accept json
-// @produce json
-// @param product_id path string true "product ID"
+// @Produce json
 // @Security BearerToken
-// @success 200 {object} pkg.DefaultResponse
+// @Success 200 {object} filter.RequestOption
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /fees/product/{product_id} [GET]
-func (handler *FeesHttpHandler) GetFeeByProductIDHandler(w http.ResponseWriter, r *http.Request) {
-	productID := chi.URLParam(r, "product_id")
-	response, err := handler.FeesApplication.GetFeeByProductID(r.Context(), productID)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+// @Router /fees/options [get]
+func (handler *FeesHttpHandler) ListFeesOptions(w http.ResponseWriter, r *http.Request) {
+	requestOptions := lo.Map(listFeesOptions, toFilterOption)
+	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+}
+
+func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
+	return options
 }
