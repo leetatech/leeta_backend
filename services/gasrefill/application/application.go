@@ -193,7 +193,7 @@ func (r *GasRefillHandler) calculateCartItemTotal(ctx context.Context, items []m
 		return 0, err
 	}
 
-	fees, _, err := r.allRepository.FeesRepository.GetTypedFees(ctx, getRequest)
+	fees, _, err := r.allRepository.FeesRepository.FetchFees(ctx, getRequest)
 	if err != nil {
 		r.logger.Error("get fees", zap.Error(err))
 		return 0, leetError.ErrorResponseBody(leetError.DatabaseError, err)

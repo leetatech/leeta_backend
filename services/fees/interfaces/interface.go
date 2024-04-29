@@ -57,8 +57,8 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// GetTypedFeesHandler is the endpoint to get typed fees
-// @Summary Get typed fees
+// FetchFeesHandler is the endpoint to all fees
+// @Summary Get fees
 // @Description The endpoint to get all types of fees
 // @Tags Fees
 // @Accept json
@@ -69,7 +69,7 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /fees/type [POST]
-func (handler *FeesHttpHandler) GetTypedFeesHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.Request) {
 	var request query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {

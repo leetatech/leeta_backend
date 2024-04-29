@@ -42,7 +42,7 @@ func NewFeesApplication(request pkg.DefaultApplicationRequest) FeesApplication {
 }
 
 func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error) {
-	err := f.validProductFeeType(ctx, request)
+	err := f.validateFeeRequest(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		return nil, err
 	}
 
-	fees, _, err := f.allRepository.FeesRepository.GetTypedFees(ctx, getRequest)
+	fees, _, err := f.allRepository.FeesRepository.FetchFees(ctx, getRequest)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = f.allRepository.FeesRepository.CreateFees(ctx, newFees)
@@ -123,7 +123,7 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 	return &pkg.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 }
 
-func (f *FeesHandler) validProductFeeType(ctx context.Context, request domain.FeeQuotationRequest) error {
+func (f *FeesHandler) validateFeeRequest(ctx context.Context, request domain.FeeQuotationRequest) error {
 	if request.FeeType == models.ProductFee && request.ProductID != "" {
 		product, err := f.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
 		if err != nil {
@@ -151,7 +151,7 @@ func (f *FeesHandler) validProductFeeType(ctx context.Context, request domain.Fe
 }
 
 func (f *FeesHandler) GetTypedFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
-	fees, totalRecord, err := f.allRepository.FeesRepository.GetTypedFees(ctx, request)
+	fees, totalRecord, err := f.allRepository.FeesRepository.FetchFees(ctx, request)
 	if err != nil {
 		return nil, 0, err
 	}

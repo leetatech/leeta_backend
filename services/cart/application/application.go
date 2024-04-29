@@ -128,7 +128,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 func (c CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []models.CartItem) (float64, error) {
 	var total float64
 
-	fees, err := c.allRepository.FeesRepository.GetFeesByStatus(ctx, models.FeesActive)
+	fees, err := c.allRepository.FeesRepository.GetActiveFees(ctx, models.FeesActive)
 	if err != nil {
 		return 0, err
 	}
