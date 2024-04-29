@@ -97,9 +97,11 @@ definitions:
   ControlType:
     enum:
     - string
+    - models.LGA
     type: string
     x-enum-varnames:
     - ControlTypeString
+    - ControlTypeLGA
   Coordinates:
     properties:
       latitude:
@@ -153,12 +155,33 @@ definitions:
       email:
         type: string
     type: object
+  Fee:
+    properties:
+      cost:
+        $ref: '#/definitions/models.Cost'
+      fee_type:
+        $ref: '#/definitions/models.FeeType'
+      id:
+        type: string
+      lga:
+        $ref: '#/definitions/models.LGA'
+      product_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.FeesStatuses'
+      status_ts:
+        type: integer
+      ts:
+        type: integer
+    type: object
   FeeQuotationRequest:
     properties:
-      cost_per_kg:
-        type: number
-      cost_per_qty:
-        type: number
+      cost:
+        $ref: '#/definitions/models.Cost'
+      fee_type:
+        $ref: '#/definitions/models.FeeType'
+      lga:
+        $ref: '#/definitions/models.LGA'
       product_id:
         type: string
     type: object
@@ -529,6 +552,7 @@ definitions:
         - float
         - integer
         - enum
+        - models.LGA
     type: object
   leetError.ErrorCode:
     enum:
@@ -678,6 +702,62 @@ definitions:
     x-enum-varnames:
     - CartActive
     - CartInactive
+  models.Cost:
+    properties:
+      cost_per_kg:
+        type: number
+      cost_per_qty:
+        type: number
+      cost_per_type:
+        type: number
+    type: object
+  models.FeeType:
+    enum:
+    - SERVICE_FEE
+    - PRODUCT_FEE
+    - DELIVERY_FEE
+    type: string
+    x-enum-varnames:
+    - ServiceFee
+    - ProductFee
+    - DeliveryFee
+  models.FeesStatuses:
+    enum:
+    - ACTIVE
+    - INACTIVE
+    type: string
+    x-enum-comments:
+      FeesActive: fees has been created and active
+      FeesInactive: fees has been inactivated
+    x-enum-varnames:
+    - FeesActive
+    - FeesInactive
+  models.Guest:
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      default_delivery_address:
+        type: boolean
+      device_id:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      location:
+        $ref: '#/definitions/Coordinates'
+      name:
+        type: string
+      number:
+        type: string
+    type: object
+  models.LGA:
+    properties:
+      lga:
+        type: string
+      state:
+        type: string
+    type: object
   models.OrderStatuses:
     enum:
     - PENDING
@@ -791,6 +871,18 @@ definitions:
       paging:
         $ref: '#/definitions/paging.Response'
     type: object
+  query.ResponseListWithMetadata-Fee:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/Fee'
+        type: array
+      metadata:
+        $ref: '#/definitions/query.Metadata'
+    required:
+    - data
+    - metadata
+    type: object
   query.ResponseListWithMetadata-Product:
     properties:
       data:
@@ -820,7 +912,7 @@ definitions:
       paging:
         $ref: '#/definitions/paging.Request'
     type: object
-host: https://leetabackend-e6d948d15ae2.herokuapp.com
+host: localhost:3000
 info:
   contact:
     email: admin@getlleta.com
@@ -1018,30 +1110,6 @@ paths:
       tags:
       - Cart
   /fees/:
-    get:
-      consumes:
-      - application/json
-      description: The endpoint to get fees for gas refill
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Get fees
-      tags:
-      - Fees
     post:
       consumes:
       - application/json
@@ -1073,24 +1141,18 @@ paths:
       summary: Create fees
       tags:
       - Fees
-  /fees/product/{product_id}:
+  /fees/options:
     get:
       consumes:
       - application/json
-      description: The endpoint to get fees for gas refill by product ID
-      parameters:
-      - description: product ID
-        in: path
-        name: product_id
-        required: true
-        type: string
+      description: Retrieve fees filter options
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/DefaultResponse'
+            $ref: '#/definitions/filter.RequestOption'
         "400":
           description: Bad Request
           schema:
@@ -1101,7 +1163,39 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Get fee by product ID
+      summary: Get fees filter options
+      tags:
+      - Fees
+  /fees/type:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to get all types of fees
+      parameters:
+      - description: list fees request body
+        in: body
+        name: query.ResultSelector
+        required: true
+        schema:
+          $ref: '#/definitions/query.ResultSelector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.ResponseListWithMetadata-Fee'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get typed fees
       tags:
       - Fees
   /gas-refill/:
@@ -1616,51 +1710,7 @@ paths:
       summary: Get Product filter options
       tags:
       - Product
-  /session/admin/signup:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows admins to sign up
-      parameters:
-      - description: admin sign up request body
-        in: body
-        name: domain.AdminSignUpRequest
-        required: true
-        schema:
-          $ref: '#/definitions/AdminSignUpRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultSigningResponse'
-      summary: Admin Sign Up
-      tags:
-      - Session
-  /session/create_new_password:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to create a new password.
-      parameters:
-      - description: request reset password body
-        in: body
-        name: domain.CreateNewPasswordRequest
-        required: true
-        schema:
-          $ref: '#/definitions/CreateNewPasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/APIResponseWithoutToken'
-      summary: Create Password
-      tags:
-      - Session
-  /session/early_access:
+  /session/early_access/:
     post:
       consumes:
       - application/json
@@ -1682,28 +1732,6 @@ paths:
       summary: Early Access
       tags:
       - Early Access
-  /session/forgot_password:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to request for password reset
-      parameters:
-      - description: request forgot password body
-        in: body
-        name: domain.EmailRequestBody
-        required: true
-        schema:
-          $ref: '#/definitions/EmailRequestBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-      summary: Forgot Password
-      tags:
-      - Session
   /session/guest:
     post:
       consumes:
@@ -1733,7 +1761,50 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       summary: Request accept guests
       tags:
-      - Session
+      - Session/guest
+  /session/guest/:
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to update guest record
+      parameters:
+      - description: update guest request body
+        in: body
+        name: models.Guest
+        required: true
+        schema:
+          $ref: '#/definitions/models.Guest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Update guest record
+      tags:
+      - Session/guest
+  /session/guest/{device_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get guest record
+      parameters:
+      - description: device id
+        in: path
+        name: device_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Guest'
+      summary: Get guest record
+      tags:
+      - Session/guest
   /session/otp/request:
     post:
       consumes:
@@ -1755,7 +1826,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Request for new OTP for target email
       tags:
-      - Session
+      - Session/otp
   /session/otp/validate:
     post:
       consumes:
@@ -1777,8 +1848,74 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Validate OTP
       tags:
-      - Session
-  /session/signin:
+      - Session/otp
+  /session/password/create:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to create a new password.
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.CreateNewPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CreateNewPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/APIResponseWithoutToken'
+      summary: Create Password
+      tags:
+      - Session/password
+  /session/password/forgot:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for password reset
+      parameters:
+      - description: request forgot password body
+        in: body
+        name: domain.EmailRequestBody
+        required: true
+        schema:
+          $ref: '#/definitions/EmailRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Forgot Password
+      tags:
+      - Session/password
+  /session/signing/admin/up:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows admins to sign up
+      parameters:
+      - description: admin sign up request body
+        in: body
+        name: domain.AdminSignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AdminSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Admin Sign Up
+      tags:
+      - Session/signing
+  /session/signing/in:
     post:
       consumes:
       - application/json
@@ -1799,8 +1936,8 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign In
       tags:
-      - Session
-  /session/signup:
+      - Session/signing
+  /session/signing/up:
     post:
       consumes:
       - application/json
@@ -1821,7 +1958,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign Up
       tags:
-      - Session
+      - Session/signing
   /state:
     get:
       consumes:

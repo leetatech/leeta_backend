@@ -20,4 +20,5 @@ type AuthRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.Customer, error)
 	CreateUser(ctx context.Context, user any) error
 	UpdateEmailVerify(ctx context.Context, userID string, status bool) error
+	UpdateGuestRecord(ctx context.Context, guest models.Guest) error
 }

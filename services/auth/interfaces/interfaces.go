@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/services/auth/application"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
@@ -23,12 +24,12 @@ func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHa
 // SignUpHandler godoc
 // @Summary User Sign Up
 // @Description The endpoint allows users, both vendors and buyers to sign up
-// @Tags Session
+// @Tags Session/signing
 // @Accept json
 // @Produce json
 // @Param domain.SignupRequest body domain.SignupRequest true "user sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/signup [post]
+// @Router /session/signing/up [post]
 func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var signUpRequest domain.SignupRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
@@ -49,7 +50,7 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 // RequestOTPHandler godoc
 // @Summary Request for new OTP for target email
 // @Description The endpoint allows client side to request for new OTP for target
-// @Tags Session
+// @Tags Session/otp
 // @Accept json
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request otp body"
@@ -80,7 +81,7 @@ func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http
 // @Produce json
 // @Param models.EarlyAccess body models.EarlyAccess true "request early access body"
 // @Success 200 {object} pkg.DefaultResponse
-// @Router /session/early_access [post]
+// @Router /session/early_access/ [post]
 func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *http.Request) {
 	var request models.EarlyAccess
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -100,12 +101,12 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 // SignInHandler godoc
 // @Summary User Sign In
 // @Description The endpoint allows users, both vendors and buyers to sign in
-// @Tags Session
+// @Tags Session/signing
 // @Accept json
 // @Produce json
 // @Param domain.SigningRequest body domain.SigningRequest true "user sign in request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/signin [post]
+// @Router /session/signing/in [post]
 func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Request) {
 	var signInRequest domain.SigningRequest
 	err := json.NewDecoder(r.Body).Decode(&signInRequest)
@@ -125,12 +126,12 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // ForgotPasswordHandler godoc
 // @Summary Forgot Password
 // @Description The endpoint allows users to request for password reset
-// @Tags Session
+// @Tags Session/password
 // @Accept json
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request forgot password body"
 // @Success 200 {object} pkg.DefaultResponse
-// @Router /session/forgot_password [post]
+// @Router /session/password/forgot [post]
 func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -151,7 +152,7 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 // ValidateOTPHandler godoc
 // @Summary Validate OTP
 // @Description The endpoint allows users to validate OTP
-// @Tags Session
+// @Tags Session/otp
 // @Accept json
 // @Produce json
 // @Param domain.OTPValidationRequest body domain.OTPValidationRequest true "request otp validation body"
@@ -177,12 +178,12 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 // CreateNewPasswordHandler godoc
 // @Summary Create Password
 // @Description The endpoint allows users to create a new password.
-// @Tags Session
+// @Tags Session/password
 // @Accept json
 // @Produce json
 // @Param domain.CreateNewPasswordRequest body domain.CreateNewPasswordRequest true "request reset password body"
 // @Success 200 {object} domain.APIResponseWithoutToken
-// @Router /session/create_new_password [post]
+// @Router /session/password/create [post]
 func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.CreateNewPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -203,12 +204,12 @@ func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, 
 // AdminSignUpHandler godoc
 // @Summary Admin Sign Up
 // @Description The endpoint allows admins to sign up
-// @Tags Session
+// @Tags Session/signing
 // @Accept json
 // @Produce json
 // @Param domain.AdminSignUpRequest body domain.AdminSignUpRequest true "admin sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/admin/signup [post]
+// @Router /session/signing/admin/up [post]
 func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.AdminSignUpRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -228,7 +229,7 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 // ReceiveGuestTokenHandler godoc
 // @Summary Request accept guests
 // @Description The endpoint to allow guests to shop
-// @Tags Session
+// @Tags Session/guest
 // @Accept json
 // @Produce json
 // @Param domain.ReceiveGuestRequest body domain.ReceiveGuestRequest true "receive guest request body"
@@ -250,4 +251,54 @@ func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, 
 		return
 	}
 	pkg.EncodeResult(w, token, http.StatusOK)
+}
+
+// UpdateGuestRecordHandler godoc
+// @Summary Update guest record
+// @Description The endpoint to update guest record
+// @Tags Session/guest
+// @Accept json
+// @Produce json
+// @Param models.Guest body models.Guest true "update guest request body"
+// @Success 200 {object} pkg.DefaultResponse
+// @error 400 {object} pkg.DefaultErrorResponse
+// @error 401 {object} pkg.DefaultErrorResponse
+// @Router /session/guest/ [put]
+func (handler *AuthHttpHandler) UpdateGuestRecordHandler(w http.ResponseWriter, r *http.Request) {
+	var request models.Guest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := handler.AuthApplication.UpdateGuestRecord(r.Context(), request)
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		return
+	}
+	pkg.EncodeResult(w, resp, http.StatusOK)
+}
+
+// GetGuestRecordHandler godoc
+// @Summary Get guest record
+// @Description The endpoint to get guest record
+// @Tags Session/guest
+// @Accept json
+// @Produce json
+// @Param device_id path string true "device id"
+// @Success 200 {object} models.Guest
+// @error 400 {object} pkg.DefaultErrorResponse
+// @error 401 {object} pkg.DefaultErrorResponse
+// @Router /session/guest/{device_id} [get]
+func (handler *AuthHttpHandler) GetGuestRecordHandler(w http.ResponseWriter, r *http.Request) {
+	deviceID := chi.URLParam(r, "device_id")
+
+	resp, err := handler.AuthApplication.GetGuestRecord(r.Context(), deviceID)
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	pkg.EncodeResult(w, resp, http.StatusOK)
 }

@@ -315,44 +315,6 @@ const docTemplate = `{
             }
         },
         "/fees/": {
-            "get": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to get fees for gas refill",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Fees"
-                ],
-                "summary": "Get fees",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -403,14 +365,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/fees/product/{product_id}": {
+        "/fees/options": {
             "get": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to get fees for gas refill by product ID",
+                "description": "Retrieve fees filter options",
                 "consumes": [
                     "application/json"
                 ],
@@ -420,21 +382,63 @@ const docTemplate = `{
                 "tags": [
                     "Fees"
                 ],
-                "summary": "Get fee by product ID",
+                "summary": "Get fees filter options",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/filter.RequestOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fees/type": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get all types of fees",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fees"
+                ],
+                "summary": "Get typed fees",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "product ID",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
+                        "description": "list fees request body",
+                        "name": "query.ResultSelector",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/query.ResultSelector"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
+                            "$ref": "#/definitions/query.ResponseListWithMetadata-Fee"
                         }
                     },
                     "400": {
@@ -1232,75 +1236,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/admin/signup": {
-            "post": {
-                "description": "The endpoint allows admins to sign up",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Admin Sign Up",
-                "parameters": [
-                    {
-                        "description": "admin sign up request body",
-                        "name": "domain.AdminSignUpRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/AdminSignUpRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/create_new_password": {
-            "post": {
-                "description": "The endpoint allows users to create a new password.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Create Password",
-                "parameters": [
-                    {
-                        "description": "request reset password body",
-                        "name": "domain.CreateNewPasswordRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/CreateNewPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/APIResponseWithoutToken"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/early_access": {
+        "/session/early_access/": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
                 "consumes": [
@@ -1334,40 +1270,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/forgot_password": {
-            "post": {
-                "description": "The endpoint allows users to request for password reset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Forgot Password",
-                "parameters": [
-                    {
-                        "description": "request forgot password body",
-                        "name": "domain.EmailRequestBody",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/EmailRequestBody"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/session/guest": {
             "post": {
                 "description": "The endpoint to allow guests to shop",
@@ -1378,7 +1280,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/guest"
                 ],
                 "summary": "Request accept guests",
                 "parameters": [
@@ -1414,6 +1316,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/session/guest/": {
+            "put": {
+                "description": "The endpoint to update guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/guest"
+                ],
+                "summary": "Update guest record",
+                "parameters": [
+                    {
+                        "description": "update guest request body",
+                        "name": "models.Guest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/guest/{device_id}": {
+            "get": {
+                "description": "The endpoint to get guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/guest"
+                ],
+                "summary": "Get guest record",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "device id",
+                        "name": "device_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                }
+            }
+        },
         "/session/otp/request": {
             "post": {
                 "description": "The endpoint allows client side to request for new OTP for target",
@@ -1424,7 +1392,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/otp"
                 ],
                 "summary": "Request for new OTP for target email",
                 "parameters": [
@@ -1458,7 +1426,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/otp"
                 ],
                 "summary": "Validate OTP",
                 "parameters": [
@@ -1482,7 +1450,109 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/signin": {
+        "/session/password/create": {
+            "post": {
+                "description": "The endpoint allows users to create a new password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/password"
+                ],
+                "summary": "Create Password",
+                "parameters": [
+                    {
+                        "description": "request reset password body",
+                        "name": "domain.CreateNewPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateNewPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/APIResponseWithoutToken"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/password/forgot": {
+            "post": {
+                "description": "The endpoint allows users to request for password reset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/password"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "request forgot password body",
+                        "name": "domain.EmailRequestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EmailRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/signing/admin/up": {
+            "post": {
+                "description": "The endpoint allows admins to sign up",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/signing"
+                ],
+                "summary": "Admin Sign Up",
+                "parameters": [
+                    {
+                        "description": "admin sign up request body",
+                        "name": "domain.AdminSignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminSignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/signing/in": {
             "post": {
                 "description": "The endpoint allows users, both vendors and buyers to sign in",
                 "consumes": [
@@ -1492,7 +1562,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/signing"
                 ],
                 "summary": "User Sign In",
                 "parameters": [
@@ -1516,7 +1586,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/signup": {
+        "/session/signing/up": {
             "post": {
                 "description": "The endpoint allows users, both vendors and buyers to sign up",
                 "consumes": [
@@ -1526,7 +1596,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/signing"
                 ],
                 "summary": "User Sign Up",
                 "parameters": [
@@ -2098,10 +2168,12 @@ const docTemplate = `{
         "ControlType": {
             "type": "string",
             "enum": [
-                "string"
+                "string",
+                "models.LGA"
             ],
             "x-enum-varnames": [
-                "ControlTypeString"
+                "ControlTypeString",
+                "ControlTypeLGA"
             ]
         },
         "Coordinates": {
@@ -2187,14 +2259,46 @@ const docTemplate = `{
                 }
             }
         },
+        "Fee": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "$ref": "#/definitions/models.Cost"
+                },
+                "fee_type": {
+                    "$ref": "#/definitions/models.FeeType"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lga": {
+                    "$ref": "#/definitions/models.LGA"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.FeesStatuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "ts": {
+                    "type": "integer"
+                }
+            }
+        },
         "FeeQuotationRequest": {
             "type": "object",
             "properties": {
-                "cost_per_kg": {
-                    "type": "number"
+                "cost": {
+                    "$ref": "#/definitions/models.Cost"
                 },
-                "cost_per_qty": {
-                    "type": "number"
+                "fee_type": {
+                    "$ref": "#/definitions/models.FeeType"
+                },
+                "lga": {
+                    "$ref": "#/definitions/models.LGA"
                 },
                 "product_id": {
                     "type": "string"
@@ -2758,7 +2862,8 @@ const docTemplate = `{
                         "string",
                         "float",
                         "integer",
-                        "enum"
+                        "enum",
+                        "models.LGA"
                     ],
                     "allOf": [
                         {
@@ -2948,6 +3053,88 @@ const docTemplate = `{
                 "CartInactive"
             ]
         },
+        "models.Cost": {
+            "type": "object",
+            "properties": {
+                "cost_per_kg": {
+                    "type": "number"
+                },
+                "cost_per_qty": {
+                    "type": "number"
+                },
+                "cost_per_type": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.FeeType": {
+            "type": "string",
+            "enum": [
+                "SERVICE_FEE",
+                "PRODUCT_FEE",
+                "DELIVERY_FEE"
+            ],
+            "x-enum-varnames": [
+                "ServiceFee",
+                "ProductFee",
+                "DeliveryFee"
+            ]
+        },
+        "models.FeesStatuses": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "INACTIVE"
+            ],
+            "x-enum-comments": {
+                "FeesActive": "fees has been created and active",
+                "FeesInactive": "fees has been inactivated"
+            },
+            "x-enum-varnames": [
+                "FeesActive",
+                "FeesInactive"
+            ]
+        },
+        "models.Guest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "default_delivery_address": {
+                    "type": "boolean"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.LGA": {
+            "type": "object",
+            "properties": {
+                "lga": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
         "models.OrderStatuses": {
             "type": "string",
             "enum": [
@@ -3096,6 +3283,24 @@ const docTemplate = `{
                 }
             }
         },
+        "query.ResponseListWithMetadata-Fee": {
+            "type": "object",
+            "required": [
+                "data",
+                "metadata"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Fee"
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/query.Metadata"
+                }
+            }
+        },
         "query.ResponseListWithMetadata-Product": {
             "type": "object",
             "required": [
@@ -3153,7 +3358,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "https://leetabackend-e6d948d15ae2.herokuapp.com",
+	Host:             "localhost:3000",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "LEETA BACKEND API",
