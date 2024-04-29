@@ -10,7 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"time"
 )
@@ -38,7 +37,7 @@ func (f feeStoreHandler) CreateFees(ctx context.Context, request models.Fee) err
 	return nil
 }
 
-func (f feeStoreHandler) GetFeesByStatus(ctx context.Context, status models.FeesStatuses) ([]models.Fee, error) {
+func (f feeStoreHandler) GetActiveFees(ctx context.Context, status models.FeesStatuses) ([]models.Fee, error) {
 	filter := bson.M{"status": status}
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filter)
@@ -103,30 +102,13 @@ func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string
 	return fee, nil
 }
 
-func (f feeStoreHandler) GetTypedFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
-	opt := database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+func (f feeStoreHandler) FetchFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
 	var filterQuery bson.M
 	if request.Filter != nil {
 		filterQuery = database.BuildMongoFilterQuery(request.Filter)
 	}
-	totalRecord, err := f.col(models.FeesCollectionName).CountDocuments(ctx, filterQuery)
-	if err != nil {
-		return nil, 0, err
-	}
 
-	extraDocumentCursor, err := f.col(models.FeesCollectionName).Find(ctx, filterQuery, options.Find().SetSkip(*opt.Skip+*opt.Limit).SetLimit(1))
-	if err != nil {
-		f.logger.Error("error getting extra document", zap.Error(err))
-		return nil, 0, err
-	}
-	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
-		err = extraDocumentCursor.Close(ctx)
-		if err != nil {
-			log.Debug().Msgf("error closing mongo cursor %v", err)
-		}
-	}(extraDocumentCursor, ctx)
-
-	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filterQuery, opt)
+	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filterQuery)
 	if err != nil {
 		f.logger.Error("error getting fees", zap.Error(err))
 		return nil, 0, err
@@ -145,5 +127,5 @@ func (f feeStoreHandler) GetTypedFees(ctx context.Context, request query.ResultS
 		}
 	}(cursor, ctx)
 
-	return fees, uint64(totalRecord), nil
+	return fees, uint64(len(fees)), nil
 }

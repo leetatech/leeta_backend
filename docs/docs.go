@@ -315,44 +315,6 @@ const docTemplate = `{
             }
         },
         "/fees/": {
-            "get": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to get fees for gas refill",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Fees"
-                ],
-                "summary": "Get fees",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -403,14 +365,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/fees/product/{product_id}": {
+        "/fees/options": {
             "get": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to get fees for gas refill by product ID",
+                "description": "Retrieve fees filter options",
                 "consumes": [
                     "application/json"
                 ],
@@ -420,21 +382,63 @@ const docTemplate = `{
                 "tags": [
                     "Fees"
                 ],
-                "summary": "Get fee by product ID",
+                "summary": "Get fees filter options",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/filter.RequestOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/fees/type": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get all types of fees",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fees"
+                ],
+                "summary": "Get fees",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "product ID",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
+                        "description": "list fees request body",
+                        "name": "query.ResultSelector",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/query.ResultSelector"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
+                            "$ref": "#/definitions/query.ResponseListWithMetadata-Fee"
                         }
                     },
                     "400": {
@@ -2187,14 +2191,46 @@ const docTemplate = `{
                 }
             }
         },
+        "Fee": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "$ref": "#/definitions/models.Cost"
+                },
+                "fee_type": {
+                    "$ref": "#/definitions/models.FeeType"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lga": {
+                    "$ref": "#/definitions/models.LGA"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.FeesStatuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "ts": {
+                    "type": "integer"
+                }
+            }
+        },
         "FeeQuotationRequest": {
             "type": "object",
             "properties": {
-                "cost_per_kg": {
-                    "type": "number"
+                "cost": {
+                    "$ref": "#/definitions/models.Cost"
                 },
-                "cost_per_qty": {
-                    "type": "number"
+                "fee_type": {
+                    "$ref": "#/definitions/models.FeeType"
+                },
+                "lga": {
+                    "$ref": "#/definitions/models.LGA"
                 },
                 "product_id": {
                     "type": "string"
@@ -2948,6 +2984,59 @@ const docTemplate = `{
                 "CartInactive"
             ]
         },
+        "models.Cost": {
+            "type": "object",
+            "properties": {
+                "cost_per_kg": {
+                    "type": "number"
+                },
+                "cost_per_qty": {
+                    "type": "number"
+                },
+                "cost_per_type": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.FeeType": {
+            "type": "string",
+            "enum": [
+                "SERVICE_FEE",
+                "PRODUCT_FEE",
+                "DELIVERY_FEE"
+            ],
+            "x-enum-varnames": [
+                "ServiceFee",
+                "ProductFee",
+                "DeliveryFee"
+            ]
+        },
+        "models.FeesStatuses": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "INACTIVE"
+            ],
+            "x-enum-comments": {
+                "FeesActive": "fees has been created and active",
+                "FeesInactive": "fees has been inactivated"
+            },
+            "x-enum-varnames": [
+                "FeesActive",
+                "FeesInactive"
+            ]
+        },
+        "models.LGA": {
+            "type": "object",
+            "properties": {
+                "lga": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
         "models.OrderStatuses": {
             "type": "string",
             "enum": [
@@ -3093,6 +3182,24 @@ const docTemplate = `{
                 },
                 "paging": {
                     "$ref": "#/definitions/paging.Response"
+                }
+            }
+        },
+        "query.ResponseListWithMetadata-Fee": {
+            "type": "object",
+            "required": [
+                "data",
+                "metadata"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Fee"
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/query.Metadata"
                 }
             }
         },

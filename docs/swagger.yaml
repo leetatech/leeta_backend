@@ -153,12 +153,33 @@ definitions:
       email:
         type: string
     type: object
+  Fee:
+    properties:
+      cost:
+        $ref: '#/definitions/models.Cost'
+      fee_type:
+        $ref: '#/definitions/models.FeeType'
+      id:
+        type: string
+      lga:
+        $ref: '#/definitions/models.LGA'
+      product_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.FeesStatuses'
+      status_ts:
+        type: integer
+      ts:
+        type: integer
+    type: object
   FeeQuotationRequest:
     properties:
-      cost_per_kg:
-        type: number
-      cost_per_qty:
-        type: number
+      cost:
+        $ref: '#/definitions/models.Cost'
+      fee_type:
+        $ref: '#/definitions/models.FeeType'
+      lga:
+        $ref: '#/definitions/models.LGA'
       product_id:
         type: string
     type: object
@@ -678,6 +699,43 @@ definitions:
     x-enum-varnames:
     - CartActive
     - CartInactive
+  models.Cost:
+    properties:
+      cost_per_kg:
+        type: number
+      cost_per_qty:
+        type: number
+      cost_per_type:
+        type: number
+    type: object
+  models.FeeType:
+    enum:
+    - SERVICE_FEE
+    - PRODUCT_FEE
+    - DELIVERY_FEE
+    type: string
+    x-enum-varnames:
+    - ServiceFee
+    - ProductFee
+    - DeliveryFee
+  models.FeesStatuses:
+    enum:
+    - ACTIVE
+    - INACTIVE
+    type: string
+    x-enum-comments:
+      FeesActive: fees has been created and active
+      FeesInactive: fees has been inactivated
+    x-enum-varnames:
+    - FeesActive
+    - FeesInactive
+  models.LGA:
+    properties:
+      lga:
+        type: string
+      state:
+        type: string
+    type: object
   models.OrderStatuses:
     enum:
     - PENDING
@@ -790,6 +848,18 @@ definitions:
         $ref: '#/definitions/filter.Request'
       paging:
         $ref: '#/definitions/paging.Response'
+    type: object
+  query.ResponseListWithMetadata-Fee:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/Fee'
+        type: array
+      metadata:
+        $ref: '#/definitions/query.Metadata'
+    required:
+    - data
+    - metadata
     type: object
   query.ResponseListWithMetadata-Product:
     properties:
@@ -1018,30 +1088,6 @@ paths:
       tags:
       - Cart
   /fees/:
-    get:
-      consumes:
-      - application/json
-      description: The endpoint to get fees for gas refill
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Get fees
-      tags:
-      - Fees
     post:
       consumes:
       - application/json
@@ -1073,24 +1119,18 @@ paths:
       summary: Create fees
       tags:
       - Fees
-  /fees/product/{product_id}:
+  /fees/options:
     get:
       consumes:
       - application/json
-      description: The endpoint to get fees for gas refill by product ID
-      parameters:
-      - description: product ID
-        in: path
-        name: product_id
-        required: true
-        type: string
+      description: Retrieve fees filter options
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/DefaultResponse'
+            $ref: '#/definitions/filter.RequestOption'
         "400":
           description: Bad Request
           schema:
@@ -1101,7 +1141,39 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Get fee by product ID
+      summary: Get fees filter options
+      tags:
+      - Fees
+  /fees/type:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to get all types of fees
+      parameters:
+      - description: list fees request body
+        in: body
+        name: query.ResultSelector
+        required: true
+        schema:
+          $ref: '#/definitions/query.ResultSelector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.ResponseListWithMetadata-Fee'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fees
       tags:
       - Fees
   /gas-refill/:
