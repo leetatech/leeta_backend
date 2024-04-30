@@ -74,11 +74,9 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router := chi.NewRouter()
 
 	// Signing
-	router.Route("/signing", func(r chi.Router) {
-		r.Post("/up", session.SignUpHandler)
-		r.Post("/in", session.SignInHandler)
-		r.Post("/admin/up", session.AdminSignUpHandler)
-	})
+	router.Post("/up", session.SignUpHandler)
+	router.Post("/in", session.SignInHandler)
+	router.Post("/admin/up", session.AdminSignUpHandler)
 
 	// Guest
 	router.Route("/guest", func(r chi.Router) {

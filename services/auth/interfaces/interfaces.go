@@ -24,12 +24,12 @@ func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHa
 // SignUpHandler godoc
 // @Summary User Sign Up
 // @Description The endpoint allows users, both vendors and buyers to sign up
-// @Tags Session/signing
+// @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param domain.SignupRequest body domain.SignupRequest true "user sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/signing/up [post]
+// @Router /session/signup [post]
 func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var signUpRequest domain.SignupRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
@@ -50,7 +50,7 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 // RequestOTPHandler godoc
 // @Summary Request for new OTP for target email
 // @Description The endpoint allows client side to request for new OTP for target
-// @Tags Session/otp
+// @Tags OTP Management
 // @Accept json
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request otp body"
@@ -101,12 +101,12 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 // SignInHandler godoc
 // @Summary User Sign In
 // @Description The endpoint allows users, both vendors and buyers to sign in
-// @Tags Session/signing
+// @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param domain.SigningRequest body domain.SigningRequest true "user sign in request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/signing/in [post]
+// @Router /session/signin [post]
 func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Request) {
 	var signInRequest domain.SigningRequest
 	err := json.NewDecoder(r.Body).Decode(&signInRequest)
@@ -126,7 +126,7 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // ForgotPasswordHandler godoc
 // @Summary Forgot Password
 // @Description The endpoint allows users to request for password reset
-// @Tags Session/password
+// @Tags Password Management
 // @Accept json
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request forgot password body"
@@ -152,7 +152,7 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 // ValidateOTPHandler godoc
 // @Summary Validate OTP
 // @Description The endpoint allows users to validate OTP
-// @Tags Session/otp
+// @Tags OTP Management
 // @Accept json
 // @Produce json
 // @Param domain.OTPValidationRequest body domain.OTPValidationRequest true "request otp validation body"
@@ -178,7 +178,7 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 // CreateNewPasswordHandler godoc
 // @Summary Create Password
 // @Description The endpoint allows users to create a new password.
-// @Tags Session/password
+// @Tags Password Management
 // @Accept json
 // @Produce json
 // @Param domain.CreateNewPasswordRequest body domain.CreateNewPasswordRequest true "request reset password body"
@@ -204,12 +204,12 @@ func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, 
 // AdminSignUpHandler godoc
 // @Summary Admin Sign Up
 // @Description The endpoint allows admins to sign up
-// @Tags Session/signing
+// @Tags Admin
 // @Accept json
 // @Produce json
 // @Param domain.AdminSignUpRequest body domain.AdminSignUpRequest true "admin sign up request body"
 // @Success 200 {object} domain.DefaultSigningResponse
-// @Router /session/signing/admin/up [post]
+// @Router /session/admin/signup [post]
 func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.AdminSignUpRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -229,7 +229,7 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 // ReceiveGuestTokenHandler godoc
 // @Summary Request accept guests
 // @Description The endpoint to allow guests to shop
-// @Tags Session/guest
+// @Tags Guest Authentication
 // @Accept json
 // @Produce json
 // @Param domain.ReceiveGuestRequest body domain.ReceiveGuestRequest true "receive guest request body"
@@ -256,7 +256,7 @@ func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, 
 // UpdateGuestRecordHandler godoc
 // @Summary Update guest record
 // @Description The endpoint to update guest record
-// @Tags Session/guest
+// @Tags Guest Management
 // @Accept json
 // @Produce json
 // @Param models.Guest body models.Guest true "update guest request body"
@@ -283,7 +283,7 @@ func (handler *AuthHttpHandler) UpdateGuestRecordHandler(w http.ResponseWriter, 
 // GetGuestRecordHandler godoc
 // @Summary Get guest record
 // @Description The endpoint to get guest record
-// @Tags Session/guest
+// @Tags Guest Management
 // @Accept json
 // @Produce json
 // @Param device_id path string true "device id"
