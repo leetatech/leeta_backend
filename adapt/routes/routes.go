@@ -170,9 +170,8 @@ func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pk
 
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/", handler.CreateFeeHandler)
-	router.Get("/", handler.GetFeesHandler)
-	router.Get("/product/{product_id}", handler.GetFeeByProductIDHandler)
-
+	router.Post("/type", handler.FetchFeesHandler)
+	router.Get("/options", handler.ListFeesOptions)
 	return router
 }
 
