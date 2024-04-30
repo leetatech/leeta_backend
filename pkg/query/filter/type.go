@@ -20,7 +20,6 @@ ControlType ENUM(
 	dateTime
 	uuid
 	autocomplete
-	models.LGA
 
 )
 */

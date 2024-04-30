@@ -1229,75 +1229,7 @@
                 }
             }
         },
-        "/session/admin/signup": {
-            "post": {
-                "description": "The endpoint allows admins to sign up",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Admin Sign Up",
-                "parameters": [
-                    {
-                        "description": "admin sign up request body",
-                        "name": "domain.AdminSignUpRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/AdminSignUpRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/create_new_password": {
-            "post": {
-                "description": "The endpoint allows users to create a new password.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Create Password",
-                "parameters": [
-                    {
-                        "description": "request reset password body",
-                        "name": "domain.CreateNewPasswordRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/CreateNewPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/APIResponseWithoutToken"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/early_access": {
+        "/session/early_access/": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
                 "consumes": [
@@ -1331,40 +1263,6 @@
                 }
             }
         },
-        "/session/forgot_password": {
-            "post": {
-                "description": "The endpoint allows users to request for password reset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session"
-                ],
-                "summary": "Forgot Password",
-                "parameters": [
-                    {
-                        "description": "request forgot password body",
-                        "name": "domain.EmailRequestBody",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/EmailRequestBody"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/session/guest": {
             "post": {
                 "description": "The endpoint to allow guests to shop",
@@ -1375,7 +1273,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/guest"
                 ],
                 "summary": "Request accept guests",
                 "parameters": [
@@ -1411,6 +1309,72 @@
                 }
             }
         },
+        "/session/guest/": {
+            "put": {
+                "description": "The endpoint to update guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/guest"
+                ],
+                "summary": "Update guest record",
+                "parameters": [
+                    {
+                        "description": "update guest request body",
+                        "name": "models.Guest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/guest/{device_id}": {
+            "get": {
+                "description": "The endpoint to get guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/guest"
+                ],
+                "summary": "Get guest record",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "device id",
+                        "name": "device_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                }
+            }
+        },
         "/session/otp/request": {
             "post": {
                 "description": "The endpoint allows client side to request for new OTP for target",
@@ -1421,7 +1385,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/otp"
                 ],
                 "summary": "Request for new OTP for target email",
                 "parameters": [
@@ -1455,7 +1419,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/otp"
                 ],
                 "summary": "Validate OTP",
                 "parameters": [
@@ -1479,7 +1443,109 @@
                 }
             }
         },
-        "/session/signin": {
+        "/session/password/create": {
+            "post": {
+                "description": "The endpoint allows users to create a new password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/password"
+                ],
+                "summary": "Create Password",
+                "parameters": [
+                    {
+                        "description": "request reset password body",
+                        "name": "domain.CreateNewPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateNewPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/APIResponseWithoutToken"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/password/forgot": {
+            "post": {
+                "description": "The endpoint allows users to request for password reset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/password"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "request forgot password body",
+                        "name": "domain.EmailRequestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EmailRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/signing/admin/up": {
+            "post": {
+                "description": "The endpoint allows admins to sign up",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Session/signing"
+                ],
+                "summary": "Admin Sign Up",
+                "parameters": [
+                    {
+                        "description": "admin sign up request body",
+                        "name": "domain.AdminSignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminSignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/signing/in": {
             "post": {
                 "description": "The endpoint allows users, both vendors and buyers to sign in",
                 "consumes": [
@@ -1489,7 +1555,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/signing"
                 ],
                 "summary": "User Sign In",
                 "parameters": [
@@ -1513,7 +1579,7 @@
                 }
             }
         },
-        "/session/signup": {
+        "/session/signing/up": {
             "post": {
                 "description": "The endpoint allows users, both vendors and buyers to sign up",
                 "consumes": [
@@ -1523,7 +1589,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Session/signing"
                 ],
                 "summary": "User Sign Up",
                 "parameters": [
@@ -3018,6 +3084,35 @@
                 "FeesActive",
                 "FeesInactive"
             ]
+        },
+        "models.Guest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "default_delivery_address": {
+                    "type": "boolean"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                }
+            }
         },
         "models.LGA": {
             "type": "object",
