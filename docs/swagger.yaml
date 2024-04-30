@@ -729,25 +729,6 @@ definitions:
     x-enum-varnames:
     - FeesActive
     - FeesInactive
-  models.Guest:
-    properties:
-      address:
-        $ref: '#/definitions/Address'
-      default_delivery_address:
-        type: boolean
-      device_id:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      location:
-        $ref: '#/definitions/Coordinates'
-      name:
-        type: string
-      number:
-        type: string
-    type: object
   models.LGA:
     properties:
       lga:
@@ -1707,7 +1688,51 @@ paths:
       summary: Get Product filter options
       tags:
       - Product
-  /session/early_access/:
+  /session/admin/signup:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows admins to sign up
+      parameters:
+      - description: admin sign up request body
+        in: body
+        name: domain.AdminSignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AdminSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Admin Sign Up
+      tags:
+      - Session
+  /session/create_new_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to create a new password.
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.CreateNewPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CreateNewPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/APIResponseWithoutToken'
+      summary: Create Password
+      tags:
+      - Session
+  /session/early_access:
     post:
       consumes:
       - application/json
@@ -1729,6 +1754,28 @@ paths:
       summary: Early Access
       tags:
       - Early Access
+  /session/forgot_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for password reset
+      parameters:
+      - description: request forgot password body
+        in: body
+        name: domain.EmailRequestBody
+        required: true
+        schema:
+          $ref: '#/definitions/EmailRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Forgot Password
+      tags:
+      - Session
   /session/guest:
     post:
       consumes:
@@ -1758,50 +1805,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       summary: Request accept guests
       tags:
-      - Session/guest
-  /session/guest/:
-    put:
-      consumes:
-      - application/json
-      description: The endpoint to update guest record
-      parameters:
-      - description: update guest request body
-        in: body
-        name: models.Guest
-        required: true
-        schema:
-          $ref: '#/definitions/models.Guest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-      summary: Update guest record
-      tags:
-      - Session/guest
-  /session/guest/{device_id}:
-    get:
-      consumes:
-      - application/json
-      description: The endpoint to get guest record
-      parameters:
-      - description: device id
-        in: path
-        name: device_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.Guest'
-      summary: Get guest record
-      tags:
-      - Session/guest
+      - Session
   /session/otp/request:
     post:
       consumes:
@@ -1823,7 +1827,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Request for new OTP for target email
       tags:
-      - Session/otp
+      - Session
   /session/otp/validate:
     post:
       consumes:
@@ -1845,74 +1849,8 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Validate OTP
       tags:
-      - Session/otp
-  /session/password/create:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to create a new password.
-      parameters:
-      - description: request reset password body
-        in: body
-        name: domain.CreateNewPasswordRequest
-        required: true
-        schema:
-          $ref: '#/definitions/CreateNewPasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/APIResponseWithoutToken'
-      summary: Create Password
-      tags:
-      - Session/password
-  /session/password/forgot:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to request for password reset
-      parameters:
-      - description: request forgot password body
-        in: body
-        name: domain.EmailRequestBody
-        required: true
-        schema:
-          $ref: '#/definitions/EmailRequestBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-      summary: Forgot Password
-      tags:
-      - Session/password
-  /session/signing/admin/up:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows admins to sign up
-      parameters:
-      - description: admin sign up request body
-        in: body
-        name: domain.AdminSignUpRequest
-        required: true
-        schema:
-          $ref: '#/definitions/AdminSignUpRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultSigningResponse'
-      summary: Admin Sign Up
-      tags:
-      - Session/signing
-  /session/signing/in:
+      - Session
+  /session/signin:
     post:
       consumes:
       - application/json
@@ -1933,8 +1871,8 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign In
       tags:
-      - Session/signing
-  /session/signing/up:
+      - Session
+  /session/signup:
     post:
       consumes:
       - application/json
@@ -1955,7 +1893,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign Up
       tags:
-      - Session/signing
+      - Session
   /state:
     get:
       consumes:
