@@ -8,7 +8,7 @@ const (
 	ProductCollectionName       = "products"
 	OrderCollectionName         = "orders"
 	UsersCollectionName         = "users"
-	RefillCollectionName        = "refills"
+	CheckoutCollectionName      = "checkout"
 	CartsCollectionName         = "carts"
 	FeesCollectionName          = "fees"
 	GuestsCollectionName        = "guests"

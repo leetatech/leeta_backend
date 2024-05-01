@@ -318,7 +318,7 @@ func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*
 		}
 	}
 
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestRecord.ID, models.GuestCatergory)
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestRecord.ID, request.DeviceID, models.GuestCatergory)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error building token response %w", err))
 	}

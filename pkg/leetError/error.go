@@ -52,6 +52,8 @@ const (
 	InvalidRequestError          ErrorCode = 1039 // generic
 	InternalError                ErrorCode = 1040
 	InvalidProductIdError        ErrorCode = 1041
+	InvalidDeliveryFeeError      ErrorCode = 1042
+	InvalidServiceFeeError       ErrorCode = 1043
 )
 
 var (
@@ -97,6 +99,8 @@ var (
 		InvalidRequestError:          "InvalidRequestError",
 		InternalError:                "InternalError",
 		InvalidProductIdError:        "InvalidProductIdError",
+		InvalidDeliveryFeeError:      "InvalidDeliveryFeeError",
+		InvalidServiceFeeError:       "InvalidServiceFeeError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -141,6 +145,8 @@ var (
 		InvalidRequestError:          "An error occurred because the request is invalid",
 		InternalError:                "An error has occurred in the server",
 		InvalidProductIdError:        "An error occurred because the product id is invalid",
+		InvalidDeliveryFeeError:      "An error occurred because the delivery fee is invalid",
+		InvalidServiceFeeError:       "An error occurred because the service fee is invalid",
 	}
 )
 
@@ -152,8 +158,8 @@ type ErrorResponse struct {
 	Message        string    `json:"message"`
 	Err            any       `json:"internal_error_message"`
 	StackTrace     string    `json:"-"`
-	File           string    `json:"-"`
-	Line           int       `json:"-"`
+	File           string    `json:"file"`
+	Line           int       `json:"line"`
 	TimeStamp      string    `json:"-"`
 }
 

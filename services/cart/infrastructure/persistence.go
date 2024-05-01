@@ -128,14 +128,14 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 	filterQuery["customer_id"] = userID
 
 	var pipelineResp struct {
-		ID         string       `json:"id" bson:"id"`
-		CustomerID string       `json:"customer_id" bson:"customer_id"`
-		CartItems  []models.CartItem   `json:"cart_items" bson:"cart_items"`
-		Total      float64      `json:"total" bson:"total"`
-		Status     models.CartStatuses `json:"status" bson:"status"`
-		StatusTs   int64        `json:"status_ts" bson:"status_ts"`
-		Ts         int64        `json:"ts" bson:"ts"`
-		TotalRecords int               `bson:"total_records"`
+		ID           string              `json:"id" bson:"id"`
+		CustomerID   string              `json:"customer_id" bson:"customer_id"`
+		CartItems    []models.CartItem   `json:"cart_items" bson:"cart_items"`
+		Total        float64             `json:"total" bson:"total"`
+		Status       models.CartStatuses `json:"status" bson:"status"`
+		StatusTs     int64               `json:"status_ts" bson:"status_ts"`
+		Ts           int64               `json:"ts" bson:"ts"`
+		TotalRecords int                 `bson:"total_records"`
 	}
 	pipeline := mongo.Pipeline{
 		{
@@ -143,12 +143,12 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 		},
 		{
 			{Key: "$project", Value: bson.M{
-				"id":    1,
-				"total": 1,
+				"id":          1,
+				"total":       1,
 				"customer_id": 1,
-				"status": 1,
-				"status_ts": 1,
-				"ts": 1,
+				"status":      1,
+				"status_ts":   1,
+				"ts":          1,
 				"total_records": bson.M{
 					"$cond": bson.M{
 						"if":   bson.M{"$isArray": "$cart_items"},
@@ -173,12 +173,31 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 		}
 	}
 	return models.Cart{
-		ID:        pipelineResp.ID,
+		ID:         pipelineResp.ID,
 		CustomerID: pipelineResp.CustomerID,
-		CartItems: pipelineResp.CartItems,
-		Total:     pipelineResp.Total,
-		Status:   pipelineResp.Status,
-		StatusTs: pipelineResp.StatusTs,
-		Ts:       pipelineResp.Ts,
+		CartItems:  pipelineResp.CartItems,
+		Total:      pipelineResp.Total,
+		Status:     pipelineResp.Status,
+		StatusTs:   pipelineResp.StatusTs,
+		Ts:         pipelineResp.Ts,
 	}, uint64(pipelineResp.TotalRecords), nil
+}
+
+func (c *CartStoreHandler) ClearCart(ctx context.Context, cartID string) error {
+	filter := bson.M{"id": cartID}
+
+	update := bson.M{
+		"$set": bson.M{
+			"cart_items": []models.CartItem{},
+			"total":      0,
+			"status_ts":  time.Now().Unix(),
+		},
+	}
+
+	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -58,9 +58,10 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 			}
 
 			identity := models.Identity{
-				ID:     a.idGenerator.Generate(),
-				UserID: vendor.ID,
-				Role:   models.VendorCategory,
+				ID:       a.idGenerator.Generate(),
+				UserID:   vendor.ID,
+				Role:     models.VendorCategory,
+				DeviceID: request.DeviceID,
 				Credentials: []models.Credentials{
 					{
 						Type:            models.CredentialsTypeLogin,
@@ -76,7 +77,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 			}
 
-			response, err := a.tokenHandler.BuildAuthResponse(request.Email, vendor.ID, request.UserType)
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, vendor.ID, request.DeviceID, request.UserType)
 			if err != nil {
 				a.logger.Error("SignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
@@ -122,9 +123,10 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 			}
 
 			identity := models.Identity{
-				ID:     a.idGenerator.Generate(),
-				UserID: customer.ID,
-				Role:   models.BuyerCategory,
+				ID:       a.idGenerator.Generate(),
+				UserID:   customer.ID,
+				Role:     models.BuyerCategory,
+				DeviceID: request.DeviceID,
 				Credentials: []models.Credentials{
 					{
 						Type:            models.CredentialsTypeLogin,
@@ -140,7 +142,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, err
 			}
 
-			response, err := a.tokenHandler.BuildAuthResponse(request.Email, customer.ID, request.UserType)
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, customer.ID, request.DeviceID, request.UserType)
 			if err != nil {
 				a.logger.Error("SignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
@@ -209,7 +211,7 @@ func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, statu
 		return nil, leetError.ErrorResponseBody(leetError.UserLockedError, err)
 	}
 
-	response, err := a.tokenHandler.BuildAuthResponse(request.Email, user.ID, request.UserType)
+	response, err := a.tokenHandler.BuildAuthResponse(request.Email, user.ID, request.DeviceID, request.UserType)
 	if err != nil {
 		a.logger.Error("SignIn", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 		return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
@@ -359,9 +361,10 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 			}
 
 			identity := models.Identity{
-				ID:     a.idGenerator.Generate(),
-				UserID: admin.ID,
-				Role:   models.AdminCategory,
+				ID:       a.idGenerator.Generate(),
+				UserID:   admin.ID,
+				Role:     models.AdminCategory,
+				DeviceID: request.DeviceID,
 				Credentials: []models.Credentials{
 					{
 						Type:            models.CredentialsTypeLogin,
@@ -377,7 +380,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, err
 			}
 
-			response, err := a.tokenHandler.BuildAuthResponse(request.Email, admin.ID, models.AdminCategory)
+			response, err := a.tokenHandler.BuildAuthResponse(request.Email, admin.ID, request.DeviceID, models.AdminCategory)
 			if err != nil {
 				a.logger.Error("AdminSignUp", zap.Any("BuildAuthResponse", leetError.ErrorResponseBody(leetError.TokenGenerationError, err)))
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)

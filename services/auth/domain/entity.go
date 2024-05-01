@@ -9,12 +9,14 @@ type SignupRequest struct {
 	FullName string              `json:"full_name"`
 	Email    string              `json:"email"`
 	Password string              `json:"password"`
+	DeviceID string              `json:"device_id"`
 	UserType models.UserCategory `json:"user_type"`
 } // @name SignupRequest
 
 type SigningRequest struct {
 	Email    string              `json:"email"`
 	Password string              `json:"password"`
+	DeviceID string              `json:"device_id"`
 	UserType models.UserCategory `json:"user_type"`
 } // @name SigningRequest
 
@@ -59,6 +61,7 @@ type AdminSignUpRequest struct {
 	Phone      string         `json:"phone" bson:"phone"`
 	Department string         `json:"department"`
 	Role       string         `json:"role"`
+	DeviceID   string         `json:"device_id"`
 } // @name AdminSignUpRequest
 
 type ReceiveGuestRequest struct {

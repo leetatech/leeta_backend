@@ -3,42 +3,42 @@ package interfaces
 import (
 	"encoding/json"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/services/gasrefill/application"
-	"github.com/leetatech/leeta_backend/services/gasrefill/domain"
+	"github.com/leetatech/leeta_backend/services/checkout/application"
+	"github.com/leetatech/leeta_backend/services/checkout/domain"
 	"net/http"
 )
 
-type GasRefillHttpHandler struct {
-	GasRefillApplication application.GasRefillApplication
+type CheckoutHttpHandler struct {
+	CheckoutApplication application.CheckoutApplication
 }
 
-func NewGasRefillHTTPHandler(refillApplication application.GasRefillApplication) *GasRefillHttpHandler {
-	return &GasRefillHttpHandler{
-		GasRefillApplication: refillApplication,
+func NewCheckoutHTTPHandler(checkoutApplication application.CheckoutApplication) *CheckoutHttpHandler {
+	return &CheckoutHttpHandler{
+		CheckoutApplication: checkoutApplication,
 	}
 }
 
-// RequestRefill is the endpoint to handle gas refill
-// @Summary Request gas refill
-// @Description The endpoint to request for a gas refill
-// @Tags Gas Refill
+// Checkout is the endpoint to check out from cart
+// @Summary Check out from cart
+// @Description The endpoint to allows the user to check out from the cart
+// @Tags Checkout
 // @Accept json
 // @Produce json
-// @Param domain.GasRefillRequest body domain.GasRefillRequest true "Gas refill request body"
+// @Param domain.CheckoutRequest body domain.CheckoutRequest true "Check out request body"
 // @Security BearerToken
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /gas-refill/ [post]
-func (handler *GasRefillHttpHandler) RequestRefill(w http.ResponseWriter, r *http.Request) {
-	var request domain.GasRefillRequest
+// @Router /checkout/ [post]
+func (handler *CheckoutHttpHandler) Checkout(w http.ResponseWriter, r *http.Request) {
+	var request domain.CheckoutRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
 	}
 
-	response, err := handler.GasRefillApplication.RequestRefill(r.Context(), request)
+	response, err := handler.CheckoutApplication.Checkout(r.Context(), request)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)
 		return
@@ -58,7 +58,7 @@ func (handler *GasRefillHttpHandler) RequestRefill(w http.ResponseWriter, r *htt
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/ [put]
-func (handler *GasRefillHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter, r *http.Request) {
+func (handler *CheckoutHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -74,7 +74,7 @@ func (handler *GasRefillHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/{refill_id} [get]
-func (handler *GasRefillHttpHandler) GetGasRefill(w http.ResponseWriter, r *http.Request) {
+func (handler *CheckoutHttpHandler) GetGasRefill(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -90,5 +90,5 @@ func (handler *GasRefillHttpHandler) GetGasRefill(w http.ResponseWriter, r *http
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /gas-refill/list [POST]
-func (handler *GasRefillHttpHandler) ListRefill(w http.ResponseWriter, r *http.Request) {
+func (handler *CheckoutHttpHandler) ListRefill(w http.ResponseWriter, r *http.Request) {
 }

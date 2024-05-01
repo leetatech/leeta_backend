@@ -314,6 +314,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/checkout/": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to allows the user to check out from the cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Check out from cart",
+                "parameters": [
+                    {
+                        "description": "Check out request body",
+                        "name": "domain.CheckoutRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/fees/": {
             "post": {
                 "security": [
@@ -482,55 +533,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/UpdateRefillRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to request for a gas refill",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Request gas refill",
-                "parameters": [
-                    {
-                        "description": "Gas refill request body",
-                        "name": "domain.GasRefillRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/GasRefillRequest"
                         }
                     }
                 ],
@@ -2116,6 +2118,9 @@ const docTemplate = `{
                 "department": {
                     "type": "string"
                 },
+                "device_id": {
+                    "type": "string"
+                },
                 "dob": {
                     "type": "string"
                 },
@@ -2152,6 +2157,29 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "CheckoutRequest": {
+            "type": "object",
+            "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
+                "cart_id": {
+                    "type": "string"
+                },
+                "delivery_details": {
+                    "$ref": "#/definitions/ShippingInfo"
+                },
+                "delivery_fee": {
+                    "type": "number"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "service_fee": {
                     "type": "number"
                 }
             }
@@ -2303,28 +2331,6 @@ const docTemplate = `{
                 }
             }
         },
-        "GasRefillRequest": {
-            "type": "object",
-            "properties": {
-                "amount_paid": {
-                    "type": "number"
-                },
-                "guest": {
-                    "type": "boolean"
-                },
-                "guest_bio_data": {
-                    "$ref": "#/definitions/GuestBioData"
-                },
-                "shipping_info": {
-                    "description": "This object is to be sent when the customer is done with their order and payment",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ShippingInfo"
-                        }
-                    ]
-                }
-            }
-        },
         "GetCustomerOrdersRequest": {
             "type": "object",
             "properties": {
@@ -2362,29 +2368,6 @@ const docTemplate = `{
                 }
             }
         },
-        "GuestBioData": {
-            "type": "object",
-            "properties": {
-                "device_id": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "session_id": {
-                    "type": "string"
-                }
-            }
-        },
         "ListRefillFilter": {
             "type": "object",
             "properties": {
@@ -2409,7 +2392,7 @@ const docTemplate = `{
                 "status": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.RefillRequestStatus"
+                        "$ref": "#/definitions/models.CheckoutStatus"
                     }
                 }
             }
@@ -2633,6 +2616,9 @@ const docTemplate = `{
         "SigningRequest": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2647,6 +2633,9 @@ const docTemplate = `{
         "SignupRequest": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2731,7 +2720,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "request_status": {
-                    "$ref": "#/definitions/models.RefillRequestStatus"
+                    "$ref": "#/definitions/models.CheckoutStatus"
                 }
             }
         },
@@ -2913,7 +2902,9 @@ const docTemplate = `{
                 1038,
                 1039,
                 1040,
-                1041
+                1041,
+                1042,
+                1043
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2959,7 +2950,9 @@ const docTemplate = `{
                 "CartItemRequestQuantityError",
                 "InvalidRequestError",
                 "InternalError",
-                "InvalidProductIdError"
+                "InvalidProductIdError",
+                "InvalidDeliveryFeeError",
+                "InvalidServiceFeeError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -2974,7 +2967,13 @@ const docTemplate = `{
                 "error_type": {
                     "type": "string"
                 },
+                "file": {
+                    "type": "string"
+                },
                 "internal_error_message": {},
+                "line": {
+                    "type": "integer"
+                },
                 "message": {
                     "type": "string"
                 }
@@ -3048,6 +3047,23 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "CartActive",
                 "CartInactive"
+            ]
+        },
+        "models.CheckoutStatus": {
+            "type": "string",
+            "enum": [
+                "cancelled",
+                "accepted",
+                "rejected",
+                "pending",
+                "fulfilled"
+            ],
+            "x-enum-varnames": [
+                "CheckoutCancelled",
+                "CheckoutAccepted",
+                "CheckoutRejected",
+                "CheckoutPending",
+                "CheckoutFulFilled"
             ]
         },
         "models.Cost": {
@@ -3186,23 +3202,6 @@ const docTemplate = `{
                 "CylinderSubCategory",
                 "CookerSubCategory",
                 "AccessoriesSubCategory"
-            ]
-        },
-        "models.RefillRequestStatus": {
-            "type": "string",
-            "enum": [
-                "cancelled",
-                "accepted",
-                "rejected",
-                "pending",
-                "fulfilled"
-            ],
-            "x-enum-varnames": [
-                "RefillCancelled",
-                "RefillAccepted",
-                "RefillRejected",
-                "RefillPending",
-                "RefillFulFilled"
             ]
         },
         "models.Statuses": {

@@ -69,11 +69,12 @@ func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (st
 }
 
 // BuildAuthResponse Set user details and generate token
-func (handler *TokenHandler) BuildAuthResponse(email, userID string, role models.UserCategory) (string, error) {
+func (handler *TokenHandler) BuildAuthResponse(email, userID, deviceID string, role models.UserCategory) (string, error) {
 	claims := UserClaims{
-		Email:  email,
-		UserID: userID,
-		Role:   role,
+		Email:    email,
+		UserID:   userID,
+		DeviceID: deviceID,
+		Role:     role,
 	}
 	return handler.GenerateTokenWithExpiration(&claims)
 }
