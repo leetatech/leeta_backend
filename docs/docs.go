@@ -1238,6 +1238,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/session/admin/signup": {
+            "post": {
+                "description": "The endpoint allows admins to sign up",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Admin Sign Up",
+                "parameters": [
+                    {
+                        "description": "admin sign up request body",
+                        "name": "domain.AdminSignUpRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AdminSignUpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultSigningResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/session/early_access/": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
@@ -1282,7 +1316,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/guest"
+                    "Guest Authentication"
                 ],
                 "summary": "Request accept guests",
                 "parameters": [
@@ -1328,7 +1362,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/guest"
+                    "Guest Management"
                 ],
                 "summary": "Update guest record",
                 "parameters": [
@@ -1362,7 +1396,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/guest"
+                    "Guest Management"
                 ],
                 "summary": "Get guest record",
                 "parameters": [
@@ -1394,7 +1428,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/otp"
+                    "OTP Management"
                 ],
                 "summary": "Request for new OTP for target email",
                 "parameters": [
@@ -1428,7 +1462,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/otp"
+                    "OTP Management"
                 ],
                 "summary": "Validate OTP",
                 "parameters": [
@@ -1462,7 +1496,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/password"
+                    "Password Management"
                 ],
                 "summary": "Create Password",
                 "parameters": [
@@ -1496,7 +1530,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/password"
+                    "Password Management"
                 ],
                 "summary": "Forgot Password",
                 "parameters": [
@@ -1520,41 +1554,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/signing/admin/up": {
-            "post": {
-                "description": "The endpoint allows admins to sign up",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Session/signing"
-                ],
-                "summary": "Admin Sign Up",
-                "parameters": [
-                    {
-                        "description": "admin sign up request body",
-                        "name": "domain.AdminSignUpRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/AdminSignUpRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultSigningResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/signing/in": {
+        "/session/signin": {
             "post": {
                 "description": "The endpoint allows users, both vendors and buyers to sign in",
                 "consumes": [
@@ -1564,7 +1564,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/signing"
+                    "Authentication"
                 ],
                 "summary": "User Sign In",
                 "parameters": [
@@ -1588,7 +1588,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/signing/up": {
+        "/session/signup": {
             "post": {
                 "description": "The endpoint allows users, both vendors and buyers to sign up",
                 "consumes": [
@@ -1598,7 +1598,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session/signing"
+                    "Authentication"
                 ],
                 "summary": "User Sign Up",
                 "parameters": [

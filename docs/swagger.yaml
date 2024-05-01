@@ -1708,6 +1708,28 @@ paths:
       summary: Get Product filter options
       tags:
       - Product
+  /session/admin/signup:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows admins to sign up
+      parameters:
+      - description: admin sign up request body
+        in: body
+        name: domain.AdminSignUpRequest
+        required: true
+        schema:
+          $ref: '#/definitions/AdminSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultSigningResponse'
+      summary: Admin Sign Up
+      tags:
+      - Admin
   /session/early_access/:
     post:
       consumes:
@@ -1759,7 +1781,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       summary: Request accept guests
       tags:
-      - Session/guest
+      - Guest Authentication
   /session/guest/:
     put:
       consumes:
@@ -1781,7 +1803,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Update guest record
       tags:
-      - Session/guest
+      - Guest Management
   /session/guest/{device_id}:
     get:
       consumes:
@@ -1802,7 +1824,7 @@ paths:
             $ref: '#/definitions/models.Guest'
       summary: Get guest record
       tags:
-      - Session/guest
+      - Guest Management
   /session/otp/request:
     post:
       consumes:
@@ -1824,7 +1846,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Request for new OTP for target email
       tags:
-      - Session/otp
+      - OTP Management
   /session/otp/validate:
     post:
       consumes:
@@ -1846,7 +1868,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Validate OTP
       tags:
-      - Session/otp
+      - OTP Management
   /session/password/create:
     post:
       consumes:
@@ -1868,7 +1890,7 @@ paths:
             $ref: '#/definitions/APIResponseWithoutToken'
       summary: Create Password
       tags:
-      - Session/password
+      - Password Management
   /session/password/forgot:
     post:
       consumes:
@@ -1890,30 +1912,8 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Forgot Password
       tags:
-      - Session/password
-  /session/signing/admin/up:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows admins to sign up
-      parameters:
-      - description: admin sign up request body
-        in: body
-        name: domain.AdminSignUpRequest
-        required: true
-        schema:
-          $ref: '#/definitions/AdminSignUpRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultSigningResponse'
-      summary: Admin Sign Up
-      tags:
-      - Session/signing
-  /session/signing/in:
+      - Password Management
+  /session/signin:
     post:
       consumes:
       - application/json
@@ -1934,8 +1934,8 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign In
       tags:
-      - Session/signing
-  /session/signing/up:
+      - Authentication
+  /session/signup:
     post:
       consumes:
       - application/json
@@ -1956,7 +1956,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign Up
       tags:
-      - Session/signing
+      - Authentication
   /state:
     get:
       consumes:
