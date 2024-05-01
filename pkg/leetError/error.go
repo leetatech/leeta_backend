@@ -158,8 +158,8 @@ type ErrorResponse struct {
 	Message        string    `json:"message"`
 	Err            any       `json:"internal_error_message"`
 	StackTrace     string    `json:"-"`
-	File           string    `json:"file"`
-	Line           int       `json:"line"`
+	File           string    `json:"-"`
+	Line           int       `json:"-"`
 	TimeStamp      string    `json:"-"`
 }
 
