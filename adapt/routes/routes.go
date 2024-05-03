@@ -154,8 +154,7 @@ func buildCheckoutEndpoints(handler checkoutInterfaces.CheckoutHttpHandler, toke
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/", handler.Checkout)
-	router.Put("/", handler.UpdateGasRefillStatus)
-	router.Get("/{refill_id}", handler.GetGasRefill)
+	router.Put("/", handler.UpdateCheckout)
 	router.Post("/list", handler.ListRefill)
 
 	return router

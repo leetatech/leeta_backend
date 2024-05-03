@@ -315,6 +315,55 @@ const docTemplate = `{
             }
         },
         "/checkout/": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "This endpoint is used to update the status of a checkout (Cancel, Accept, Reject or Fulfill) by customers, vendor and admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Checkout"
+                ],
+                "summary": "Update checkout status",
+                "parameters": [
+                    {
+                        "description": "update checkout request body",
+                        "name": "domain.UpdateCheckoutRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UpdateCheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -507,57 +556,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/gas-refill/": {
-            "put": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Update Gas refill request status",
-                "parameters": [
-                    {
-                        "description": "update gas refill by status request body",
-                        "name": "domain.UpdateRefillRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/UpdateRefillRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/gas-refill/list": {
             "post": {
                 "security": [
@@ -595,55 +593,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/DefaultResponse"
                             }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/{refill_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "This is the endpoint to get the details of a single gas refill by refill-id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Gets a single gas refill",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "refill id",
-                        "name": "refill-id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -2184,6 +2133,30 @@ const docTemplate = `{
                 }
             }
         },
+        "CheckoutStatus": {
+            "type": "string",
+            "enum": [
+                "cancelled",
+                "accepted",
+                "rejected",
+                "pending",
+                "fulfilled"
+            ],
+            "x-enum-comments": {
+                "CheckoutAccepted": "@name CheckoutAccepted",
+                "CheckoutCancelled": "@name CheckoutCancelled",
+                "CheckoutFulFilled": "@name CheckoutFulFilled",
+                "CheckoutPending": "@name CheckoutPending",
+                "CheckoutRejected": "@name CheckoutRejected"
+            },
+            "x-enum-varnames": [
+                "CheckoutCancelled",
+                "CheckoutAccepted",
+                "CheckoutRejected",
+                "CheckoutPending",
+                "CheckoutFulFilled"
+            ]
+        },
         "CompareOperator": {
             "type": "string",
             "enum": [
@@ -2392,7 +2365,7 @@ const docTemplate = `{
                 "status": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.CheckoutStatus"
+                        "$ref": "#/definitions/CheckoutStatus"
                     }
                 }
             }
@@ -2699,6 +2672,17 @@ const docTemplate = `{
                 }
             }
         },
+        "UpdateCheckoutRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/CheckoutStatus"
+                }
+            }
+        },
         "UpdateOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2707,20 +2691,6 @@ const docTemplate = `{
                 },
                 "order_status": {
                     "$ref": "#/definitions/models.OrderStatuses"
-                }
-            }
-        },
-        "UpdateRefillRequest": {
-            "type": "object",
-            "properties": {
-                "reason": {
-                    "type": "string"
-                },
-                "refill_id": {
-                    "type": "string"
-                },
-                "request_status": {
-                    "$ref": "#/definitions/models.CheckoutStatus"
                 }
             }
         },
@@ -2904,7 +2874,8 @@ const docTemplate = `{
                 1040,
                 1041,
                 1042,
-                1043
+                1043,
+                1044
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2952,7 +2923,8 @@ const docTemplate = `{
                 "InternalError",
                 "InvalidProductIdError",
                 "InvalidDeliveryFeeError",
-                "InvalidServiceFeeError"
+                "InvalidServiceFeeError",
+                "CheckoutStatusError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -2967,13 +2939,7 @@ const docTemplate = `{
                 "error_type": {
                     "type": "string"
                 },
-                "file": {
-                    "type": "string"
-                },
                 "internal_error_message": {},
-                "line": {
-                    "type": "integer"
-                },
                 "message": {
                     "type": "string"
                 }
@@ -3047,23 +3013,6 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "CartActive",
                 "CartInactive"
-            ]
-        },
-        "models.CheckoutStatus": {
-            "type": "string",
-            "enum": [
-                "cancelled",
-                "accepted",
-                "rejected",
-                "pending",
-                "fulfilled"
-            ],
-            "x-enum-varnames": [
-                "CheckoutCancelled",
-                "CheckoutAccepted",
-                "CheckoutRejected",
-                "CheckoutPending",
-                "CheckoutFulFilled"
             ]
         },
         "models.Cost": {

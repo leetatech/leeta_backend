@@ -7,4 +7,5 @@ import (
 
 type CheckoutRepository interface {
 	RequestCheckout(ctx context.Context, request models.Checkout) error
+	UpdateCheckoutStatus(ctx context.Context, id string, status models.CheckoutStatus) error
 }

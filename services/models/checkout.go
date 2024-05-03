@@ -1,5 +1,10 @@
 package models
 
+import (
+	"errors"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+)
+
 type Checkout struct {
 	ID              string          `json:"id" bson:"id"`
 	CustomerID      string          `json:"customer_id" bson:"customer_id"`
@@ -31,12 +36,25 @@ type CheckoutDetails struct {
 	Ts        int64          `json:"ts" bson:"ts"`
 } // @name CheckoutDetails
 
-type CheckoutStatus string
+type CheckoutStatus string // @name CheckoutStatus
 
 const (
-	CheckoutCancelled CheckoutStatus = "cancelled"
-	CheckoutAccepted  CheckoutStatus = "accepted"
-	CheckoutRejected  CheckoutStatus = "rejected"
-	CheckoutPending   CheckoutStatus = "pending"
-	CheckoutFulFilled CheckoutStatus = "fulfilled"
+	CheckoutCancelled CheckoutStatus = "cancelled" // @name CheckoutCancelled
+	CheckoutAccepted  CheckoutStatus = "accepted"  // @name CheckoutAccepted
+	CheckoutRejected  CheckoutStatus = "rejected"  // @name CheckoutRejected
+	CheckoutPending   CheckoutStatus = "pending"   // @name CheckoutPending
+	CheckoutFulFilled CheckoutStatus = "fulfilled" // @name CheckoutFulFilled
 )
+
+func IsValidCheckoutStatus(status CheckoutStatus) bool {
+	return status == CheckoutCancelled || status == CheckoutAccepted || status == CheckoutRejected || status == CheckoutPending || status == CheckoutFulFilled
+}
+
+func SetCheckoutStatus(status CheckoutStatus) (CheckoutStatus, error) {
+	switch IsValidCheckoutStatus(status) {
+	case true:
+		return status, nil
+	default:
+		return "", leetError.ErrorResponseBody(leetError.CheckoutStatusError, errors.New("invalid status provided"))
+	}
+}

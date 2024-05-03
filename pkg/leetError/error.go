@@ -54,6 +54,7 @@ const (
 	InvalidProductIdError        ErrorCode = 1041
 	InvalidDeliveryFeeError      ErrorCode = 1042
 	InvalidServiceFeeError       ErrorCode = 1043
+	CheckoutStatusError          ErrorCode = 1044
 )
 
 var (
@@ -101,6 +102,7 @@ var (
 		InvalidProductIdError:        "InvalidProductIdError",
 		InvalidDeliveryFeeError:      "InvalidDeliveryFeeError",
 		InvalidServiceFeeError:       "InvalidServiceFeeError",
+		CheckoutStatusError:          "CheckoutStatusError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -147,6 +149,7 @@ var (
 		InvalidProductIdError:        "An error occurred because the product id is invalid",
 		InvalidDeliveryFeeError:      "An error occurred because the delivery fee is invalid",
 		InvalidServiceFeeError:       "An error occurred because the service fee is invalid",
+		CheckoutStatusError:          "An error occurred because the checkout status is invalid",
 	}
 )
 

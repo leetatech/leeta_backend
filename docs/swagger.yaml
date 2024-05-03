@@ -105,6 +105,26 @@ definitions:
       service_fee:
         type: number
     type: object
+  CheckoutStatus:
+    enum:
+    - cancelled
+    - accepted
+    - rejected
+    - pending
+    - fulfilled
+    type: string
+    x-enum-comments:
+      CheckoutAccepted: '@name CheckoutAccepted'
+      CheckoutCancelled: '@name CheckoutCancelled'
+      CheckoutFulFilled: '@name CheckoutFulFilled'
+      CheckoutPending: '@name CheckoutPending'
+      CheckoutRejected: '@name CheckoutRejected'
+    x-enum-varnames:
+    - CheckoutCancelled
+    - CheckoutAccepted
+    - CheckoutRejected
+    - CheckoutPending
+    - CheckoutFulFilled
   CompareOperator:
     enum:
     - isEqualTo
@@ -240,7 +260,7 @@ definitions:
         type: integer
       status:
         items:
-          $ref: '#/definitions/models.CheckoutStatus'
+          $ref: '#/definitions/CheckoutStatus'
         type: array
     type: object
   OTPValidationRequest:
@@ -440,21 +460,19 @@ definitions:
       quantity:
         type: integer
     type: object
+  UpdateCheckoutRequest:
+    properties:
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/CheckoutStatus'
+    type: object
   UpdateOrderStatusRequest:
     properties:
       order_id:
         type: string
       order_status:
         $ref: '#/definitions/models.OrderStatuses'
-    type: object
-  UpdateRefillRequest:
-    properties:
-      reason:
-        type: string
-      refill_id:
-        type: string
-      request_status:
-        $ref: '#/definitions/models.CheckoutStatus'
     type: object
   domain.GasProductRequest:
     properties:
@@ -588,6 +606,7 @@ definitions:
     - 1041
     - 1042
     - 1043
+    - 1044
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -635,6 +654,7 @@ definitions:
     - InvalidProductIdError
     - InvalidDeliveryFeeError
     - InvalidServiceFeeError
+    - CheckoutStatusError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -643,11 +663,7 @@ definitions:
         type: string
       error_type:
         type: string
-      file:
-        type: string
       internal_error_message: {}
-      line:
-        type: integer
       message:
         type: string
     type: object
@@ -699,20 +715,6 @@ definitions:
     x-enum-varnames:
     - CartActive
     - CartInactive
-  models.CheckoutStatus:
-    enum:
-    - cancelled
-    - accepted
-    - rejected
-    - pending
-    - fulfilled
-    type: string
-    x-enum-varnames:
-    - CheckoutCancelled
-    - CheckoutAccepted
-    - CheckoutRejected
-    - CheckoutPending
-    - CheckoutFulFilled
   models.Cost:
     properties:
       cost_per_kg:
@@ -1138,6 +1140,38 @@ paths:
       summary: Check out from cart
       tags:
       - Checkout
+    put:
+      consumes:
+      - application/json
+      description: This endpoint is used to update the status of a checkout (Cancel,
+        Accept, Reject or Fulfill) by customers, vendor and admin
+      parameters:
+      - description: update checkout request body
+        in: body
+        name: domain.UpdateCheckoutRequest
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateCheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Update checkout status
+      tags:
+      - Checkout
   /fees/:
     post:
       consumes:
@@ -1227,71 +1261,6 @@ paths:
       summary: Get fees
       tags:
       - Fees
-  /gas-refill/:
-    put:
-      consumes:
-      - application/json
-      description: This endpoint is used to update the status of a gas refill (Cancel,
-        Accept, Reject or Fulfill) request
-      parameters:
-      - description: update gas refill by status request body
-        in: body
-        name: domain.UpdateRefillRequest
-        required: true
-        schema:
-          $ref: '#/definitions/UpdateRefillRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Update Gas refill request status
-      tags:
-      - Gas Refill
-  /gas-refill/{refill_id}:
-    get:
-      consumes:
-      - application/json
-      description: This is the endpoint to get the details of a single gas refill
-        by refill-id
-      parameters:
-      - description: refill id
-        in: path
-        name: refill-id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Gets a single gas refill
-      tags:
-      - Gas Refill
   /gas-refill/list:
     post:
       consumes:

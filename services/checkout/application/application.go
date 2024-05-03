@@ -29,6 +29,7 @@ type CheckoutHandler struct {
 
 type CheckoutApplication interface {
 	Checkout(ctx context.Context, request domain.CheckoutRequest) (*pkg.DefaultResponse, error)
+	UpdateCheckout(ctx context.Context, request domain.UpdateCheckoutRequest) (*pkg.DefaultResponse, error)
 }
 
 func NewCheckoutApplication(request pkg.DefaultApplicationRequest) CheckoutApplication {
@@ -189,7 +190,39 @@ func (c *CheckoutHandler) validateFees(ctx context.Context, address models.Addre
 				return leetError.ErrorResponseBody(leetError.InvalidServiceFeeError, errors.New("invalid service fee"))
 			}
 		}
-
 	}
 	return nil
+}
+
+func (c *CheckoutHandler) UpdateCheckout(ctx context.Context, request domain.UpdateCheckoutRequest) (*pkg.DefaultResponse, error) {
+	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	if claims.Role == models.VendorCategory || claims.Role == models.AdminCategory {
+
+		err = c.allRepository.CheckoutRepository.UpdateCheckoutStatus(ctx, request.ID, request.Status)
+		if err != nil {
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		}
+
+		return &pkg.DefaultResponse{Success: "success", Message: "Checkout status updated successfully"}, nil
+	}
+
+	status, err := models.SetCheckoutStatus(request.Status)
+	if err != nil {
+		return nil, err
+	}
+
+	if status != models.CheckoutCancelled {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("you cannot update this status"))
+	}
+
+	err = c.allRepository.CheckoutRepository.UpdateCheckoutStatus(ctx, request.ID, status)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return &pkg.DefaultResponse{Success: "success", Message: "Checkout status updated successfully"}, nil
 }

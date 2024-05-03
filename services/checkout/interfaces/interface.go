@@ -46,36 +46,32 @@ func (handler *CheckoutHttpHandler) Checkout(w http.ResponseWriter, r *http.Requ
 	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
-// UpdateGasRefillStatus is the endpoint used to update the status of a gas refill
-// @Summary Update Gas refill request status
-// @Description This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request
-// @Tags Gas Refill
+// UpdateCheckout is the endpoint used to update the status of the checkout
+// @Summary Update checkout status
+// @Description This endpoint is used to update the status of a checkout (Cancel, Accept, Reject or Fulfill) by customers, vendor and admin
+// @Tags Checkout
 // @Accept json
 // @Produce json
-// @Param domain.UpdateRefillRequest body domain.UpdateRefillRequest true "update gas refill by status request body"
+// @Param domain.UpdateCheckoutRequest body domain.UpdateCheckoutRequest true "update checkout request body"
 // @Security BearerToken
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /gas-refill/ [put]
-func (handler *CheckoutHttpHandler) UpdateGasRefillStatus(w http.ResponseWriter, r *http.Request) {
+// @Router /checkout/ [put]
+func (handler *CheckoutHttpHandler) UpdateCheckout(w http.ResponseWriter, r *http.Request) {
+	var request domain.UpdateCheckoutRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
 
-}
-
-// GetGasRefill is the endpoint to get a single gas refill by id
-// @Summary Gets a single gas refill
-// @Description This is the endpoint to get the details of a single gas refill by refill-id
-// @Tags Gas Refill
-// @Accept json
-// @produce json
-// @Param			refill-id	path		string	true	"refill id"
-// @Security BearerToken
-// @success 200 {object} pkg.DefaultResponse
-// @Failure 401 {object} pkg.DefaultErrorResponse
-// @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /gas-refill/{refill_id} [get]
-func (handler *CheckoutHttpHandler) GetGasRefill(w http.ResponseWriter, r *http.Request) {
-
+	response, err := handler.CheckoutApplication.UpdateCheckout(r.Context(), request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	pkg.EncodeResult(w, response, http.StatusOK)
 }
 
 // ListRefill handles listing all refill requests

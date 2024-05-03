@@ -11,11 +11,10 @@ type CheckoutRequest struct {
 	ServiceFee      float64             `json:"service_fee" bson:"service_fee"`
 } // @name CheckoutRequest
 
-type UpdateRefillRequest struct {
-	RefillID      string                `json:"refill_id" bson:"refill_id"`
-	RequestStatus models.CheckoutStatus `json:"request_status" bson:"request_status"`
-	Reason        string                `json:"reason" bson:"reason"`
-} // @name UpdateRefillRequest
+type UpdateCheckoutRequest struct {
+	ID     string                `json:"id" bson:"id"`
+	Status models.CheckoutStatus `json:"status" bson:"status"`
+} // @name UpdateCheckoutRequest
 
 type ListRefillFilter struct {
 	Status     []models.CheckoutStatus  `json:"status" bson:"status"`
