@@ -126,7 +126,7 @@ func (c *CheckoutHandler) setDefaultDeliveryDetails(ctx context.Context, claims 
 				return models.ShippingInfo{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 			}
 
-			deliveryDetails.RecipientName = guest.Name
+			deliveryDetails.RecipientName = fmt.Sprintf("%s %s", guest.FirstName, guest.LastName)
 			deliveryDetails.RecipientPhone = guest.Number
 			deliveryDetails.RecipientEmail = guest.Email
 			deliveryDetails.RecipientAddress = guest.Address
