@@ -229,7 +229,7 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 // ReceiveGuestTokenHandler godoc
 // @Summary Request accept guests
 // @Description The endpoint to allow guests to shop
-// @Tags Guest Authentication
+// @Tags Guest Management
 // @Accept json
 // @Produce json
 // @Param domain.ReceiveGuestRequest body domain.ReceiveGuestRequest true "receive guest request body"
@@ -263,7 +263,7 @@ func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, 
 // @Success 200 {object} pkg.DefaultResponse
 // @error 400 {object} pkg.DefaultErrorResponse
 // @error 401 {object} pkg.DefaultErrorResponse
-// @Router /session/guest/ [put]
+// @Router /session/guest [put]
 func (handler *AuthHttpHandler) UpdateGuestRecordHandler(w http.ResponseWriter, r *http.Request) {
 	var request models.Guest
 	err := json.NewDecoder(r.Body).Decode(&request)

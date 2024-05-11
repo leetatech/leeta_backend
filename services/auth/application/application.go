@@ -338,18 +338,17 @@ func (a authAppHandler) UpdateGuestRecord(ctx context.Context, request models.Gu
 		}
 	}
 
-	guestRecord.Name = request.Name
+	guestRecord.FirstName = request.FirstName
+	guestRecord.LastName = request.LastName
 	guestRecord.Number = request.Number
 	guestRecord.Email = request.Email
-	guestRecord.Address = models.Address{
-		State:           request.Address.State,
-		City:            request.Address.City,
-		LGA:             request.Address.LGA,
-		FullAddress:     request.Address.FullAddress,
-		ClosestLandmark: request.Address.ClosestLandmark,
-		Coordinates:     request.Address.Coordinates,
-		Verified:        request.Address.Verified,
-	}
+	guestRecord.Address.State = request.Address.State
+	guestRecord.Address.City = request.Address.City
+	guestRecord.Address.LGA = request.Address.LGA
+	guestRecord.Address.FullAddress = request.Address.FullAddress
+	guestRecord.Address.ClosestLandmark = request.Address.ClosestLandmark
+	guestRecord.Address.Coordinates = request.Address.Coordinates
+	guestRecord.Address.Verified = request.Address.Verified
 
 	err = a.allRepository.AuthRepository.UpdateGuestRecord(ctx, guestRecord)
 	if err != nil {

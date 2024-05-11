@@ -1373,6 +1373,38 @@ const docTemplate = `{
             }
         },
         "/session/guest": {
+            "put": {
+                "description": "The endpoint to update guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guest Management"
+                ],
+                "summary": "Update guest record",
+                "parameters": [
+                    {
+                        "description": "update guest request body",
+                        "name": "models.Guest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "The endpoint to allow guests to shop",
                 "consumes": [
@@ -1382,7 +1414,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Guest Authentication"
+                    "Guest Management"
                 ],
                 "summary": "Request accept guests",
                 "parameters": [
@@ -1413,40 +1445,6 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/guest/": {
-            "put": {
-                "description": "The endpoint to update guest record",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Guest Management"
-                ],
-                "summary": "Update guest record",
-                "parameters": [
-                    {
-                        "description": "update guest request body",
-                        "name": "models.Guest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Guest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
                         }
                     }
                 }
@@ -3107,14 +3105,17 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "last_name": {
                     "type": "string"
                 },
                 "location": {
                     "$ref": "#/definitions/Coordinates"
-                },
-                "name": {
-                    "type": "string"
                 },
                 "number": {
                     "type": "string"
