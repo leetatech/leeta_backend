@@ -35,6 +35,8 @@ type AuthApplication interface {
 	CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error)
 	AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error)
 	ReceiveGuestToken(request domain.ReceiveGuestRequest) (*domain.ReceiveGuestResponse, error)
+	UpdateGuestRecord(ctx context.Context, request models.Guest) (*pkg.DefaultResponse, error)
+	GetGuestRecord(ctx context.Context, deviceId string) (models.Guest, error)
 }
 
 func NewAuthApplication(request pkg.DefaultApplicationRequest) AuthApplication {
@@ -326,4 +328,35 @@ func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*
 		DeviceID:  request.DeviceID,
 		Token:     tokenString,
 	}, nil
+}
+
+func (a authAppHandler) UpdateGuestRecord(ctx context.Context, request models.Guest) (*pkg.DefaultResponse, error) {
+	guestRecord, err := a.allRepository.AuthRepository.GetGuestRecord(ctx, request.DeviceID)
+	if err != nil {
+		if !errors.Is(err, infrastructure.ErrItemNotFound) {
+			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error when searching for guest record %w", err))
+		}
+	}
+
+	guestRecord.FirstName = request.FirstName
+	guestRecord.LastName = request.LastName
+	guestRecord.Number = request.Number
+	guestRecord.Email = request.Email
+	guestRecord.Address.State = request.Address.State
+	guestRecord.Address.City = request.Address.City
+	guestRecord.Address.LGA = request.Address.LGA
+	guestRecord.Address.FullAddress = request.Address.FullAddress
+	guestRecord.Address.ClosestLandmark = request.Address.ClosestLandmark
+	guestRecord.Address.Coordinates = request.Address.Coordinates
+	guestRecord.Address.Verified = request.Address.Verified
+
+	err = a.allRepository.AuthRepository.UpdateGuestRecord(ctx, guestRecord)
+	if err != nil {
+		return nil, err
+	}
+	return &pkg.DefaultResponse{Success: "success", Message: "Guest record updated"}, nil
+}
+
+func (a authAppHandler) GetGuestRecord(ctx context.Context, deviceId string) (models.Guest, error) {
+	return a.allRepository.AuthRepository.GetGuestRecord(ctx, deviceId)
 }

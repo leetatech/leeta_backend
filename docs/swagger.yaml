@@ -729,6 +729,27 @@ definitions:
     x-enum-varnames:
     - FeesActive
     - FeesInactive
+  models.Guest:
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      default_delivery_address:
+        type: boolean
+      device_id:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      location:
+        $ref: '#/definitions/Coordinates'
+      number:
+        type: string
+    type: object
   models.LGA:
     properties:
       lga:
@@ -1709,7 +1730,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: Admin Sign Up
       tags:
-      - Session
+      - Admin
   /session/create_new_password:
     post:
       consumes:
@@ -1731,7 +1752,7 @@ paths:
             $ref: '#/definitions/APIResponseWithoutToken'
       summary: Create Password
       tags:
-      - Session
+      - Password Management
   /session/early_access:
     post:
       consumes:
@@ -1775,7 +1796,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Forgot Password
       tags:
-      - Session
+      - Password Management
   /session/guest:
     post:
       consumes:
@@ -1805,7 +1826,49 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       summary: Request accept guests
       tags:
-      - Session
+      - Guest Management
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to update guest record
+      parameters:
+      - description: update guest request body
+        in: body
+        name: models.Guest
+        required: true
+        schema:
+          $ref: '#/definitions/models.Guest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Update guest record
+      tags:
+      - Guest Management
+  /session/guest/{device_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint to get guest record
+      parameters:
+      - description: device id
+        in: path
+        name: device_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Guest'
+      summary: Get guest record
+      tags:
+      - Guest Management
   /session/otp/request:
     post:
       consumes:
@@ -1827,7 +1890,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Request for new OTP for target email
       tags:
-      - Session
+      - OTP Management
   /session/otp/validate:
     post:
       consumes:
@@ -1849,7 +1912,7 @@ paths:
             $ref: '#/definitions/DefaultResponse'
       summary: Validate OTP
       tags:
-      - Session
+      - OTP Management
   /session/signin:
     post:
       consumes:
@@ -1871,7 +1934,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign In
       tags:
-      - Session
+      - Authentication
   /session/signup:
     post:
       consumes:
@@ -1893,7 +1956,7 @@ paths:
             $ref: '#/definitions/DefaultSigningResponse'
       summary: User Sign Up
       tags:
-      - Session
+      - Authentication
   /state:
     get:
       consumes:

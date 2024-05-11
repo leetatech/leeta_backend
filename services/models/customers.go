@@ -80,12 +80,12 @@ type Email struct {
 // Address model
 type Address struct {
 	State           string      `json:"state" bson:"state"`
-	City            string      `json:"city" bson:"city"`
+	City            string      `json:"city,omitempty" bson:"city"`
 	LGA             string      `json:"lga" bson:"lga"`
 	FullAddress     string      `json:"full_address" bson:"full_address"`
-	ClosestLandmark string      `json:"closest_landmark" bson:"closest_landmark"`
+	ClosestLandmark string      `json:"closest_landmark,omitempty" bson:"closest_landmark"`
 	Coordinates     Coordinates `json:"coordinate" bson:"coordinate"`
-	Verified        bool        `json:"verified" bson:"verified"`
+	Verified        bool        `json:"verified,omitempty" bson:"verified"`
 } // @name Address
 
 // Coordinates model

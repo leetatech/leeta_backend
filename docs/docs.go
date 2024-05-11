@@ -1246,7 +1246,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Admin"
                 ],
                 "summary": "Admin Sign Up",
                 "parameters": [
@@ -1280,7 +1280,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Password Management"
                 ],
                 "summary": "Create Password",
                 "parameters": [
@@ -1348,7 +1348,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Password Management"
                 ],
                 "summary": "Forgot Password",
                 "parameters": [
@@ -1373,6 +1373,38 @@ const docTemplate = `{
             }
         },
         "/session/guest": {
+            "put": {
+                "description": "The endpoint to update guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guest Management"
+                ],
+                "summary": "Update guest record",
+                "parameters": [
+                    {
+                        "description": "update guest request body",
+                        "name": "models.Guest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "The endpoint to allow guests to shop",
                 "consumes": [
@@ -1382,7 +1414,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Guest Management"
                 ],
                 "summary": "Request accept guests",
                 "parameters": [
@@ -1418,6 +1450,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/session/guest/{device_id}": {
+            "get": {
+                "description": "The endpoint to get guest record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guest Management"
+                ],
+                "summary": "Get guest record",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "device id",
+                        "name": "device_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Guest"
+                        }
+                    }
+                }
+            }
+        },
         "/session/otp/request": {
             "post": {
                 "description": "The endpoint allows client side to request for new OTP for target",
@@ -1428,7 +1492,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "OTP Management"
                 ],
                 "summary": "Request for new OTP for target email",
                 "parameters": [
@@ -1462,7 +1526,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "OTP Management"
                 ],
                 "summary": "Validate OTP",
                 "parameters": [
@@ -1496,7 +1560,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Authentication"
                 ],
                 "summary": "User Sign In",
                 "parameters": [
@@ -1530,7 +1594,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Session"
+                    "Authentication"
                 ],
                 "summary": "User Sign Up",
                 "parameters": [
@@ -3025,6 +3089,38 @@ const docTemplate = `{
                 "FeesActive",
                 "FeesInactive"
             ]
+        },
+        "models.Guest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "default_delivery_address": {
+                    "type": "boolean"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/Coordinates"
+                },
+                "number": {
+                    "type": "string"
+                }
+            }
         },
         "models.LGA": {
             "type": "object",

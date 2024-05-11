@@ -77,7 +77,11 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router.Post("/signup", session.SignUpHandler)
 	router.Post("/signin", session.SignInHandler)
 	router.Post("/admin/signup", session.AdminSignUpHandler)
+
+	// guest session management
 	router.Post("/guest", session.ReceiveGuestTokenHandler)
+	router.Get("/guest/{device_id}", session.GetGuestRecordHandler)
+	router.Put("/guest", session.UpdateGuestRecordHandler)
 
 	// otp
 	router.Post("/otp/request", session.RequestOTPHandler)

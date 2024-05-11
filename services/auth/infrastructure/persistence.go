@@ -194,3 +194,20 @@ func (a authStoreHandler) GetGuestRecord(ctx context.Context, deviceId string) (
 
 	return
 }
+
+func (a authStoreHandler) UpdateGuestRecord(ctx context.Context, guest models.Guest) error {
+	filter := bson.M{
+		dtos.DeviceId: guest.DeviceID,
+	}
+
+	update := bson.M{
+		"$set": guest,
+	}
+
+	_, err := a.col(models.GuestsCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
