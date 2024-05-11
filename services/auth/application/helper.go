@@ -245,7 +245,7 @@ func (a authAppHandler) customerSignIN(ctx context.Context, request domain.Signi
 	}
 
 	if validateErr := a.validateUserRole(ctx, &request, &customer.User); validateErr != nil {
-		return nil, leetError.ErrorResponseBody(leetError.InvalidUserRoleError, err)
+		return nil, leetError.ErrorResponseBody(leetError.InvalidUserRoleError, validateErr)
 	}
 
 	return a.buildSignIn(ctx, customer.User, customer.Status, request)

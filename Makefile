@@ -42,10 +42,6 @@ stop_app:
 	@pkill -f "main" || true
 
 
-#stop_app:
-#	@echo "Stopping the application..."
-#	@pkill -INT -f "go run main.go" || true
-
 check_docker:
 	@echo "Checking if Docker is installed..."
 	@if ! command -v $(DOCKER); then \

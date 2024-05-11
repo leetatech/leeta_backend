@@ -74,16 +74,14 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router := chi.NewRouter()
 
 	// Signing
-	router.Post("/up", session.SignUpHandler)
-	router.Post("/in", session.SignInHandler)
-	router.Post("/admin/up", session.AdminSignUpHandler)
+	router.Post("/signup", session.SignUpHandler)
+	router.Post("/signin", session.SignInHandler)
+	router.Post("/admin/signup", session.AdminSignUpHandler)
 
-	// Guest
-	router.Route("/guest", func(r chi.Router) {
-		r.Post("/", session.ReceiveGuestTokenHandler)
-		r.Put("/", session.UpdateGuestRecordHandler)
-		r.Get("/{device_id}", session.GetGuestRecordHandler)
-	})
+	// guest session management
+	router.Post("/guest", session.ReceiveGuestTokenHandler)
+	router.Get("/guest/{device_id}", session.GetGuestRecordHandler)
+	router.Put("/guest", session.UpdateGuestRecordHandler)
 
 	// otp
 	router.Route("/otp", func(r chi.Router) {
