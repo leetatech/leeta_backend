@@ -1270,7 +1270,41 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/early_access/": {
+        "/session/create_new_password": {
+            "post": {
+                "description": "The endpoint allows users to create a new password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password Management"
+                ],
+                "summary": "Create Password",
+                "parameters": [
+                    {
+                        "description": "request reset password body",
+                        "name": "domain.CreateNewPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateNewPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/APIResponseWithoutToken"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/early_access": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
                 "consumes": [
@@ -1291,6 +1325,40 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/EarlyAccess"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/forgot_password": {
+            "post": {
+                "description": "The endpoint allows users to request for password reset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password Management"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "request forgot password body",
+                        "name": "domain.EmailRequestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EmailRequestBody"
                         }
                     }
                 ],
@@ -1471,74 +1539,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/OTPValidationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/password/create": {
-            "post": {
-                "description": "The endpoint allows users to create a new password.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password Management"
-                ],
-                "summary": "Create Password",
-                "parameters": [
-                    {
-                        "description": "request reset password body",
-                        "name": "domain.CreateNewPasswordRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/CreateNewPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/APIResponseWithoutToken"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/password/forgot": {
-            "post": {
-                "description": "The endpoint allows users to request for password reset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password Management"
-                ],
-                "summary": "Forgot Password",
-                "parameters": [
-                    {
-                        "description": "request forgot password body",
-                        "name": "domain.EmailRequestBody",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/EmailRequestBody"
                         }
                     }
                 ],

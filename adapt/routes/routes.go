@@ -74,33 +74,21 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router := chi.NewRouter()
 
 	// Signing
-	router.Post("/up", session.SignUpHandler)
-	router.Post("/in", session.SignInHandler)
-	router.Post("/admin/up", session.AdminSignUpHandler)
-
-	// Guest
-	router.Route("/guest", func(r chi.Router) {
-		r.Post("/", session.ReceiveGuestTokenHandler)
-		r.Put("/", session.UpdateGuestRecordHandler)
-		r.Get("/{device_id}", session.GetGuestRecordHandler)
-	})
+	router.Post("/signup", session.SignUpHandler)
+	router.Post("/signin", session.SignInHandler)
+	router.Post("/admin/signup", session.AdminSignUpHandler)
+	router.Post("/guest", session.ReceiveGuestTokenHandler)
 
 	// otp
-	router.Route("/otp", func(r chi.Router) {
-		r.Post("/request", session.RequestOTPHandler)
-		r.Post("/validate", session.ValidateOTPHandler)
-	})
+	router.Post("/otp/request", session.RequestOTPHandler)
+	router.Post("/otp/validate", session.ValidateOTPHandler)
 
 	// password
-	router.Route("/password", func(r chi.Router) {
-		r.Post("/forgot", session.ForgotPasswordHandler)
-		r.Post("/create", session.CreateNewPasswordHandler)
-	})
+	router.Post("/forgot_password", session.ForgotPasswordHandler)
+	router.Post("/create_new_password", session.CreateNewPasswordHandler)
 
 	// earlyAccess
-	router.Route("/early_access", func(r chi.Router) {
-		r.Post("/", session.EarlyAccessHandler)
-	})
+	router.Post("/early_access", session.EarlyAccessHandler)
 
 	return router
 }

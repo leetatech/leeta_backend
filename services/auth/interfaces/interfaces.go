@@ -81,7 +81,7 @@ func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http
 // @Produce json
 // @Param models.EarlyAccess body models.EarlyAccess true "request early access body"
 // @Success 200 {object} pkg.DefaultResponse
-// @Router /session/early_access/ [post]
+// @Router /session/early_access [post]
 func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *http.Request) {
 	var request models.EarlyAccess
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -131,7 +131,7 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request forgot password body"
 // @Success 200 {object} pkg.DefaultResponse
-// @Router /session/password/forgot [post]
+// @Router /session/forgot_password [post]
 func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -183,7 +183,7 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 // @Produce json
 // @Param domain.CreateNewPasswordRequest body domain.CreateNewPasswordRequest true "request reset password body"
 // @Success 200 {object} domain.APIResponseWithoutToken
-// @Router /session/password/create [post]
+// @Router /session/create_new_password [post]
 func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.CreateNewPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)

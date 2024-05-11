@@ -1729,7 +1729,29 @@ paths:
       summary: Admin Sign Up
       tags:
       - Admin
-  /session/early_access/:
+  /session/create_new_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to create a new password.
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.CreateNewPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CreateNewPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/APIResponseWithoutToken'
+      summary: Create Password
+      tags:
+      - Password Management
+  /session/early_access:
     post:
       consumes:
       - application/json
@@ -1751,6 +1773,28 @@ paths:
       summary: Early Access
       tags:
       - Early Access
+  /session/forgot_password:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for password reset
+      parameters:
+      - description: request forgot password body
+        in: body
+        name: domain.EmailRequestBody
+        required: true
+        schema:
+          $ref: '#/definitions/EmailRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Forgot Password
+      tags:
+      - Password Management
   /session/guest:
     post:
       consumes:
@@ -1868,50 +1912,6 @@ paths:
       summary: Validate OTP
       tags:
       - OTP Management
-  /session/password/create:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to create a new password.
-      parameters:
-      - description: request reset password body
-        in: body
-        name: domain.CreateNewPasswordRequest
-        required: true
-        schema:
-          $ref: '#/definitions/CreateNewPasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/APIResponseWithoutToken'
-      summary: Create Password
-      tags:
-      - Password Management
-  /session/password/forgot:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to request for password reset
-      parameters:
-      - description: request forgot password body
-        in: body
-        name: domain.EmailRequestBody
-        required: true
-        schema:
-          $ref: '#/definitions/EmailRequestBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-      summary: Forgot Password
-      tags:
-      - Password Management
   /session/signin:
     post:
       consumes:
