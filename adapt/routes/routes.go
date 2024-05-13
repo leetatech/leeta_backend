@@ -8,7 +8,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg"
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	cartInterfaces "github.com/leetatech/leeta_backend/services/cart/interfaces"
-	checkoutInterfaces "github.com/leetatech/leeta_backend/services/checkout/interfaces"
 	feesInterfaces "github.com/leetatech/leeta_backend/services/fees/interfaces"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
 	productInterfaces "github.com/leetatech/leeta_backend/services/product/interfaces"
@@ -19,18 +18,25 @@ import (
 )
 
 type AllHTTPHandlers struct {
-	Order    *orderInterfaces.OrderHttpHandler
-	Auth     *authInterfaces.AuthHttpHandler
-	User     *userInterfaces.UserHttpHandler
-	Product  *productInterfaces.ProductHttpHandler
-	Checkout *checkoutInterfaces.CheckoutHttpHandler
-	Cart     *cartInterfaces.CartHttpHandler
-	Fees     *feesInterfaces.FeesHttpHandler
-	State    *stateInterfaces.StateHttpHandler
+	Order   *orderInterfaces.OrderHttpHandler
+	Auth    *authInterfaces.AuthHttpHandler
+	User    *userInterfaces.UserHttpHandler
+	Product *productInterfaces.ProductHttpHandler
+	Cart    *cartInterfaces.CartHttpHandler
+	Fees    *feesInterfaces.FeesHttpHandler
+	State   *stateInterfaces.StateHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product, Checkout: interfaces.Checkout, Cart: interfaces.Cart, Fees: interfaces.Fees, State: interfaces.State}
+	return &AllHTTPHandlers{
+		Order:   interfaces.Order,
+		Auth:    interfaces.Auth,
+		User:    interfaces.User,
+		Product: interfaces.Product,
+		Cart:    interfaces.Cart,
+		Fees:    interfaces.Fees,
+		State:   interfaces.State,
+	}
 }
 
 func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *pkg.TokenHandler, error) {
@@ -50,7 +56,6 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
 	productRouter := buildProductEndpoints(*interfaces.Product, tokenHandler)
-	checkoutRouter := buildCheckoutEndpoints(*interfaces.Checkout, tokenHandler)
 	cartRouter := buildCartEndpoints(*interfaces.Cart, tokenHandler)
 	feesRouter := buildFeesEndpoints(*interfaces.Fees, tokenHandler)
 	stateRouter := buildStatesEndpoints(*interfaces.State, tokenHandler)
@@ -61,7 +66,6 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 		r.Mount("/order", orderRouter)
 		r.Mount("/user", userRouter)
 		r.Mount("/product", productRouter)
-		r.Mount("/checkout", checkoutRouter)
 		r.Mount("/cart", cartRouter)
 		r.Mount("/fees", feesRouter)
 		r.Mount("/state", stateRouter)
@@ -148,28 +152,25 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	return router
 }
 
-func buildCheckoutEndpoints(handler checkoutInterfaces.CheckoutHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
-	router := chi.NewRouter()
-	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", handler.Checkout)
-	router.Put("/", handler.UpdateGasRefillStatus)
-	router.Get("/{refill_id}", handler.GetGasRefill)
-	router.Post("/list", handler.ListRefill)
-
-	return router
-}
-
 func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
+		// post endpoints
 		r.Post("/add", handler.AddToCart)
+		r.Post("/", handler.ListCart)
+		r.Post("/checkout", handler.Checkout)
+
+		// get endpoints
+		r.Get("/options", handler.ListCartOptions)
+
+		// update endpoints
+		r.Put("/item/quantity", handler.UpdateCartItemQuantity)
+
+		// delete endpoints
 		r.Delete("/{cart_id}", handler.DeleteCart)
 		r.Delete("/item/{cart_item_id}", handler.DeleteCartItem)
-		r.Put("/item/quantity", handler.UpdateCartItemQuantity)
-		r.Post("/", handler.ListCart)
-		r.Get("/options", handler.ListCartOptions)
 	})
 
 	return router

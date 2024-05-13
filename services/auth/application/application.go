@@ -73,7 +73,7 @@ func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest
 	case models.VendorCategory:
 		return a.vendorSignUP(ctx, request)
 
-	case models.BuyerCategory:
+	case models.CustomerCategory:
 		return a.customerSignUP(ctx, request)
 	}
 
@@ -140,7 +140,7 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 		return a.vendorSignIN(ctx, request)
 	case models.AdminCategory:
 		return a.adminSignIN(ctx, request)
-	case models.BuyerCategory:
+	case models.CustomerCategory:
 		return a.customerSignIN(ctx, request)
 	}
 
@@ -318,7 +318,7 @@ func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*
 		}
 	}
 
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestRecord.ID, request.DeviceID, models.GuestCatergory)
+	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestRecord.ID, request.DeviceID, models.GuestCategory)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error building token response %w", err))
 	}

@@ -62,6 +62,8 @@ definitions:
         $ref: '#/definitions/Address'
       department:
         type: string
+      device_id:
+        type: string
       dob:
         type: string
       email:
@@ -77,6 +79,21 @@ definitions:
       role:
         type: string
     type: object
+  CartCheckoutRequest:
+    properties:
+      cart_id:
+        type: string
+      delivery_details:
+        $ref: '#/definitions/ShippingInfo'
+      delivery_fee:
+        type: number
+      payment_method:
+        type: string
+      service_fee:
+        type: number
+      total_fee:
+        type: number
+    type: object
   CartRefillDetails:
     properties:
       cost:
@@ -86,6 +103,21 @@ definitions:
       quantity:
         type: integer
       weight:
+        type: number
+    type: object
+  CheckoutRequest:
+    properties:
+      amount_paid:
+        type: number
+      cart_id:
+        type: string
+      delivery_details:
+        $ref: '#/definitions/ShippingInfo'
+      delivery_fee:
+        type: number
+      payment_method:
+        type: string
+      service_fee:
         type: number
     type: object
   CompareOperator:
@@ -183,20 +215,6 @@ definitions:
       product_id:
         type: string
     type: object
-  GasRefillRequest:
-    properties:
-      amount_paid:
-        type: number
-      guest:
-        type: boolean
-      guest_bio_data:
-        $ref: '#/definitions/GuestBioData'
-      shipping_info:
-        allOf:
-        - $ref: '#/definitions/ShippingInfo'
-        description: This object is to be sent when the customer is done with their
-          order and payment
-    type: object
   GetCustomerOrdersRequest:
     properties:
       limit:
@@ -221,21 +239,6 @@ definitions:
       vendor_id:
         type: string
     type: object
-  GuestBioData:
-    properties:
-      device_id:
-        type: string
-      email:
-        type: string
-      first_name:
-        type: string
-      last_name:
-        type: string
-      phone:
-        type: string
-      session_id:
-        type: string
-    type: object
   ListRefillFilter:
     properties:
       customer_id:
@@ -252,7 +255,7 @@ definitions:
         type: integer
       status:
         items:
-          $ref: '#/definitions/models.RefillRequestStatus'
+          $ref: '#/definitions/models.CheckoutStatus'
         type: array
     type: object
   OTPValidationRequest:
@@ -266,12 +269,22 @@ definitions:
     properties:
       customer_id:
         type: string
+      delivery_details:
+        $ref: '#/definitions/ShippingInfo'
       delivery_fee:
+        description: VendorID        string        `json:"vendor_id" bson:"vendor_id"`
+          // uncomment vendor id when sure how vendors affects individual orders
         type: number
       id:
         type: string
-      product_id:
+      orders:
+        items:
+          $ref: '#/definitions/models.CartItem'
+        type: array
+      payment_method:
         type: string
+      service_fee:
+        type: number
       status:
         $ref: '#/definitions/models.OrderStatuses'
       status_ts:
@@ -280,10 +293,6 @@ definitions:
         type: number
       ts:
         type: integer
-      vat:
-        type: number
-      vendor_id:
-        type: string
     type: object
   OrderRequest:
     properties:
@@ -385,19 +394,19 @@ definitions:
     type: object
   ShippingInfo:
     properties:
-      for_me:
-        type: boolean
-      recipient_address:
+      address:
         $ref: '#/definitions/Address'
-      recipient_email:
+      email:
         type: string
-      recipient_name:
+      name:
         type: string
-      recipient_phone:
+      phone:
         type: string
     type: object
   SigningRequest:
     properties:
+      device_id:
+        type: string
       email:
         type: string
       password:
@@ -407,6 +416,8 @@ definitions:
     type: object
   SignupRequest:
     properties:
+      device_id:
+        type: string
       email:
         type: string
       full_name:
@@ -462,7 +473,7 @@ definitions:
       refill_id:
         type: string
       request_status:
-        $ref: '#/definitions/models.RefillRequestStatus'
+        $ref: '#/definitions/models.CheckoutStatus'
     type: object
   domain.GasProductRequest:
     properties:
@@ -594,6 +605,8 @@ definitions:
     - 1039
     - 1040
     - 1041
+    - 1042
+    - 1043
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -639,6 +652,8 @@ definitions:
     - InvalidRequestError
     - InternalError
     - InvalidProductIdError
+    - InvalidDeliveryFeeError
+    - InvalidServiceFeeError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -691,14 +706,31 @@ definitions:
     enum:
     - ACTIVE
     - INACTIVE
+    - CHECKED_OUT
     type: string
     x-enum-comments:
       CartActive: cart has been created and active
+      CartCheckedOut: cart has been paid and checked out
       CartInactive: cart has been inactivated and no longer active due to check out
         or session expiry
     x-enum-varnames:
     - CartActive
     - CartInactive
+    - CartCheckedOut
+  models.CheckoutStatus:
+    enum:
+    - cancelled
+    - accepted
+    - rejected
+    - pending
+    - fulfilled
+    type: string
+    x-enum-varnames:
+    - CheckoutCancelled
+    - CheckoutAccepted
+    - CheckoutRejected
+    - CheckoutPending
+    - CheckoutFulFilled
   models.Cost:
     properties:
       cost_per_kg:
@@ -801,20 +833,6 @@ definitions:
     - CylinderSubCategory
     - CookerSubCategory
     - AccessoriesSubCategory
-  models.RefillRequestStatus:
-    enum:
-    - cancelled
-    - accepted
-    - rejected
-    - pending
-    - fulfilled
-    type: string
-    x-enum-varnames:
-    - RefillCancelled
-    - RefillAccepted
-    - RefillRejected
-    - RefillPending
-    - RefillFulFilled
   models.Statuses:
     enum:
     - SIGNEDUP
@@ -838,15 +856,15 @@ definitions:
   models.UserCategory:
     enum:
     - vendor
-    - buyer
+    - customer
     - admin_leeta
     - guest
     type: string
     x-enum-varnames:
     - VendorCategory
-    - BuyerCategory
+    - CustomerCategory
     - AdminCategory
-    - GuestCatergory
+    - GuestCategory
   paging.Request:
     properties:
       index:
@@ -1019,6 +1037,38 @@ paths:
       summary: Add items to cart
       tags:
       - Cart
+  /cart/checkout:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allows the user to check out from the cart
+      parameters:
+      - description: Cart checkout request body
+        in: body
+        name: domain.CartCheckoutRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CartCheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Check out from cart
+      tags:
+      - Cart
   /cart/item/{cart_item_id}:
     delete:
       consumes:
@@ -1108,6 +1158,38 @@ paths:
       summary: Get cart filter options
       tags:
       - Cart
+  /checkout/:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint to allows the user to check out from the cart
+      parameters:
+      - description: Check out request body
+        in: body
+        name: domain.CheckoutRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Check out from cart
+      tags:
+      - Checkout
   /fees/:
     post:
       consumes:
@@ -1198,37 +1280,6 @@ paths:
       tags:
       - Fees
   /gas-refill/:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to request for a gas refill
-      parameters:
-      - description: Gas refill request body
-        in: body
-        name: domain.GasRefillRequest
-        required: true
-        schema:
-          $ref: '#/definitions/GasRefillRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Request gas refill
-      tags:
-      - Gas Refill
     put:
       consumes:
       - application/json
@@ -1731,29 +1782,7 @@ paths:
       summary: Admin Sign Up
       tags:
       - Admin
-  /session/create_new_password:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to create a new password.
-      parameters:
-      - description: request reset password body
-        in: body
-        name: domain.CreateNewPasswordRequest
-        required: true
-        schema:
-          $ref: '#/definitions/CreateNewPasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/APIResponseWithoutToken'
-      summary: Create Password
-      tags:
-      - Password Management
-  /session/early_access:
+  /session/early_access/:
     post:
       consumes:
       - application/json
@@ -1775,28 +1804,6 @@ paths:
       summary: Early Access
       tags:
       - Early Access
-  /session/forgot_password:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint allows users to request for password reset
-      parameters:
-      - description: request forgot password body
-        in: body
-        name: domain.EmailRequestBody
-        required: true
-        schema:
-          $ref: '#/definitions/EmailRequestBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-      summary: Forgot Password
-      tags:
-      - Password Management
   /session/guest:
     post:
       consumes:
@@ -1913,11 +1920,55 @@ paths:
       summary: Validate OTP
       tags:
       - OTP Management
+  /session/password/create:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to create a new password.
+      parameters:
+      - description: request reset password body
+        in: body
+        name: domain.CreateNewPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/CreateNewPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/APIResponseWithoutToken'
+      summary: Create Password
+      tags:
+      - Password Management
+  /session/password/forgot:
+    post:
+      consumes:
+      - application/json
+      description: The endpoint allows users to request for password reset
+      parameters:
+      - description: request forgot password body
+        in: body
+        name: domain.EmailRequestBody
+        required: true
+        schema:
+          $ref: '#/definitions/EmailRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+      summary: Forgot Password
+      tags:
+      - Password Management
   /session/signin:
     post:
       consumes:
       - application/json
-      description: The endpoint allows users, both vendors and buyers to sign in
+      description: The endpoint allows users, both vendors and customers to sign in
       parameters:
       - description: user sign in request body
         in: body
@@ -1939,7 +1990,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: The endpoint allows users, both vendors and buyers to sign up
+      description: The endpoint allows users, both vendors and customers to sign up
       parameters:
       - description: user sign up request body
         in: body

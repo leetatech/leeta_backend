@@ -23,7 +23,7 @@ func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHa
 
 // SignUpHandler godoc
 // @Summary User Sign Up
-// @Description The endpoint allows users, both vendors and buyers to sign up
+// @Description The endpoint allows users, both vendors and customers to sign up
 // @Tags Authentication
 // @Accept json
 // @Produce json
@@ -100,7 +100,7 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 
 // SignInHandler godoc
 // @Summary User Sign In
-// @Description The endpoint allows users, both vendors and buyers to sign in
+// @Description The endpoint allows users, both vendors and customers to sign in
 // @Tags Authentication
 // @Accept json
 // @Produce json

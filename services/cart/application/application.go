@@ -4,7 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/query"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
+	"github.com/leetatech/leeta_backend/pkg/query/paging"
+	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/bson"
+	"strings"
 	"time"
 
 	"github.com/leetatech/leeta_backend/pkg"
@@ -30,6 +36,7 @@ type CartApplication interface {
 	AddToCart(ctx context.Context, request domain.CartItem) (models.Cart, error)
 	UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (models.Cart, error)
 	ListCart(ctx context.Context, request query.ResultSelector) (models.Cart, uint64, error)
+	CartCheckout(ctx context.Context, request domain.CartCheckoutRequest) (*pkg.DefaultResponse, error)
 }
 
 func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
@@ -42,7 +49,7 @@ func NewCartApplication(request pkg.DefaultApplicationRequest) CartApplication {
 	}
 }
 
-func (c CartAppHandler) DeleteCart(ctx context.Context, cartId string) error {
+func (c *CartAppHandler) DeleteCart(ctx context.Context, cartId string) error {
 	err := c.allRepository.CartRepository.DeleteCart(ctx, cartId)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error deleting cart: %w", err))
@@ -50,7 +57,7 @@ func (c CartAppHandler) DeleteCart(ctx context.Context, cartId string) error {
 	return nil
 }
 
-func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) (cart models.Cart, err error) {
+func (c *CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) (cart models.Cart, err error) {
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return cart, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, fmt.Errorf("error getting user claims %w", err))
@@ -72,6 +79,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 	if err != nil {
 		return cart, leetError.ErrorResponseBody(leetError.InvalidProductIdError, fmt.Errorf("error getting fee %w", err))
 	}
+	log.Debug().Msgf("fee %+v", fee)
 
 	cartItem := models.CartItem{
 		ID:              c.idGenerator.Generate(),
@@ -83,7 +91,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 	}
 
 	cartItem.Cost, err = cartItem.CalculateCartItemFee(fee)
-	if cartItem.Cost == 0 {
+	if cartItem.Cost == 0 || err != nil {
 		return cart, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("unable to calculate cart fee %w", err))
 	}
 
@@ -125,7 +133,7 @@ func (c CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem) 
 	return cart, nil
 }
 
-func (c CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []models.CartItem) (float64, error) {
+func (c *CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []models.CartItem) (float64, error) {
 	var total float64
 
 	fees, err := c.allRepository.FeesRepository.GetActiveFees(ctx, models.FeesActive)
@@ -147,7 +155,7 @@ func (c CartAppHandler) calculateCartItemTotalCost(ctx context.Context, items []
 
 	return total, nil
 }
-func (c CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (updatedCart models.Cart, err error) {
+func (c *CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request domain.UpdateCartItemQuantityRequest) (updatedCart models.Cart, err error) {
 	_, err = c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return updatedCart, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -177,7 +185,7 @@ func (c CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request doma
 
 	return cart, nil
 }
-func (c CartAppHandler) retrieveCartItemFromUpdateRequest(ctx context.Context, request domain.UpdateCartItemQuantityRequest, cart models.Cart) (cartItem models.CartItem, index int, err error) {
+func (c *CartAppHandler) retrieveCartItemFromUpdateRequest(ctx context.Context, request domain.UpdateCartItemQuantityRequest, cart models.Cart) (cartItem models.CartItem, index int, err error) {
 	for i, item := range cart.CartItems {
 		if item.ID == request.CartItemID {
 			index = i
@@ -199,7 +207,7 @@ func (c CartAppHandler) retrieveCartItemFromUpdateRequest(ctx context.Context, r
 	return
 }
 
-func (c CartAppHandler) retrieveProductFee(ctx context.Context, productID string) (*models.Fee, error) {
+func (c *CartAppHandler) retrieveProductFee(ctx context.Context, productID string) (*models.Fee, error) {
 	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, productID, models.FeesActive)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving fee for product with id '%s': %w", productID, err)
@@ -208,7 +216,7 @@ func (c CartAppHandler) retrieveProductFee(ctx context.Context, productID string
 	return fee, nil
 }
 
-func (c CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item models.CartItem) (cartItem models.CartItem, err error) {
+func (c *CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item models.CartItem) (cartItem models.CartItem, err error) {
 	fee, err := c.retrieveProductFee(ctx, item.ProductID)
 	if err != nil {
 		err = fmt.Errorf("error retriving cart item product fee %w", err)
@@ -229,7 +237,7 @@ func (c CartAppHandler) adjustCartItemAndCalculateCost(ctx context.Context, item
 	return item, nil
 }
 
-func (c CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) error {
+func (c *CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) error {
 	_, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -255,7 +263,7 @@ func (c CartAppHandler) DeleteCartItem(ctx context.Context, itemId string) error
 	return nil
 }
 
-func (c CartAppHandler) ListCart(ctx context.Context, request query.ResultSelector) (models.Cart, uint64, error) {
+func (c *CartAppHandler) ListCart(ctx context.Context, request query.ResultSelector) (models.Cart, uint64, error) {
 	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return models.Cart{}, 0, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -267,4 +275,107 @@ func (c CartAppHandler) ListCart(ctx context.Context, request query.ResultSelect
 	}
 
 	return cart, totalResults, nil
+}
+
+func (c *CartAppHandler) CartCheckout(ctx context.Context, request domain.CartCheckoutRequest) (*pkg.DefaultResponse, error) {
+	claims, err := c.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	cart, err := c.allRepository.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+	}
+
+	err = c.validateFees(ctx, request.DeliveryDetails.Address, request.DeliveryFee, request.ServiceFee)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.performCheckout(ctx, claims.UserID, request, cart)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pkg.DefaultResponse{Success: "success", Message: "Checkout successful"}, nil
+}
+
+func (c *CartAppHandler) performCheckout(ctx context.Context, userID string, request domain.CartCheckoutRequest, cart models.Cart) (err error) {
+
+	totalCost := cart.Total + request.DeliveryFee + request.ServiceFee
+
+	if helpers.RoundToTwoDecimalPlaces(request.TotalFee) < helpers.RoundToTwoDecimalPlaces(totalCost) {
+		return leetError.ErrorResponseBody(leetError.AmountPaidError, errors.New("amount paid does not match total cost"))
+	}
+
+	order := models.Order{
+		ID:              c.idGenerator.Generate(),
+		Orders:          cart.CartItems,
+		CustomerID:      userID,
+		DeliveryDetails: request.DeliveryDetails,
+		PaymentMethod:   request.PaymentMethod,
+		DeliveryFee:     request.DeliveryFee,
+		ServiceFee:      request.ServiceFee,
+		Total:           request.TotalFee,
+		Status:          models.OrderPending,
+		StatusTs:        time.Now().Unix(),
+		Ts:              time.Now().Unix(),
+	}
+
+	err = c.allRepository.OrderRepository.CreateOrder(ctx, order)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error creating order when checking out of cart %w", err))
+	}
+
+	err = c.allRepository.CartRepository.ClearCart(ctx, cart.ID)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error clearing cart %w", err))
+	}
+
+	return nil
+}
+
+func (c *CartAppHandler) validateFees(ctx context.Context, address models.Address, deliveryFee, serviceFee float64) error {
+	// get delivery fee from database
+	getRequest := query.ResultSelector{
+		Filter: &filter.Request{
+			Operator: "and",
+			Fields: []filter.RequestField{
+				{
+					Name:  "lga",
+					Value: models.LGA{LGA: address.LGA, State: strings.ToUpper(address.State)},
+				},
+				{
+					Name:  "fee_type",
+					Value: bson.M{"$in": []models.FeeType{models.DeliveryFee, models.ServiceFee}},
+				},
+				{
+					Name:  "status",
+					Value: models.FeesActive,
+				},
+			},
+		},
+		Paging: &paging.Request{},
+	}
+	fees, _, err := c.allRepository.FeesRepository.FetchFees(ctx, getRequest)
+	if err != nil {
+		return err
+	}
+	// validate delivery fee
+	for _, fee := range fees {
+		switch fee.FeeType {
+		case models.DeliveryFee:
+			if fee.Cost.CostPerType != deliveryFee {
+				return leetError.ErrorResponseBody(leetError.InvalidDeliveryFeeError, errors.New("invalid delivery fee"))
+			}
+
+		case models.ServiceFee:
+			if fee.Cost.CostPerType != serviceFee {
+				return leetError.ErrorResponseBody(leetError.InvalidServiceFeeError, errors.New("invalid service fee"))
+			}
+		}
+
+	}
+	return nil
 }

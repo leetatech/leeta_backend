@@ -125,7 +125,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 			identity := models.Identity{
 				ID:       a.idGenerator.Generate(),
 				UserID:   customer.ID,
-				Role:     models.BuyerCategory,
+				Role:     models.CustomerCategory,
 				DeviceID: request.DeviceID,
 				Credentials: []models.Credentials{
 					{
@@ -148,7 +148,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.BuyerCategory)
+			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.CustomerCategory)
 			if err != nil {
 				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 			}

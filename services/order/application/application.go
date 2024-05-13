@@ -56,21 +56,13 @@ func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRe
 		return nil, err
 	}
 
-	vendor, err := o.allRepository.UserRepository.GetVendorByID(product.VendorID)
-	if err != nil {
-		return nil, err
-	}
-
 	//TODO delivery fees based on location
 	deliveryFee := 1000.00
 	totalCost := deliveryFee + product.Vat
 
 	order := models.Order{
 		ID:          o.idGenerator.Generate(),
-		ProductID:   request.ProductID,
 		CustomerID:  claims.UserID,
-		VendorID:    vendor.ID,
-		VAT:         product.Vat,
 		DeliveryFee: deliveryFee,
 		Total:       totalCost,
 		Status:      models.OrderPending,

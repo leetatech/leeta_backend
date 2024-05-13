@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/rs/zerolog/log"
 )
 
 type Cart struct {
@@ -29,21 +30,25 @@ func (c *CartItem) CalculateCartItemFee(fee *Fee) (float64, error) {
 
 	// Check if the product IDs match
 	if fee.ProductID != c.ProductID {
+		log.Debug().Msg("product id no match")
 		return 0, fmt.Errorf("cart product id: %s does not match fee's product id: %s", c.ProductID, fee.ProductID)
 	}
 
 	// check for quantity
 	if c.Quantity == 0 {
+		log.Debug().Msg("nil quantity")
 		return 0, fmt.Errorf("invalid cart item, cart quantity cannot be zero %d", c.Quantity)
 	}
 
 	// Calculate cost based on weight or quantity
 	if c.Weight != 0 {
+		log.Debug().Msg("multiplying weight")
 		totalCost = float64(c.Weight) * fee.Cost.CostPerKG
 	} else {
 		totalCost = fee.Cost.CostPerQt
 	}
 
+	log.Debug().Msgf("mulitplying coset totalCost: %v  quantity: %v", totalCost, c.Quantity)
 	// Multiply cost by quantity
 	totalCost *= float64(c.Quantity)
 
