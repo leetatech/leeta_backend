@@ -125,6 +125,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/cart/checkout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to allows the user to check out from the cart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Check out from cart",
+                "parameters": [
+                    {
+                        "description": "Cart checkout request body",
+                        "name": "domain.CartCheckoutRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CartCheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cart/item/quantity": {
             "put": {
                 "security": [
@@ -439,209 +490,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/query.ResponseListWithMetadata-Fee"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/": {
-            "put": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Update Gas refill request status",
-                "parameters": [
-                    {
-                        "description": "update gas refill by status request body",
-                        "name": "domain.UpdateRefillRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/UpdateRefillRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to request for a gas refill",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Request gas refill",
-                "parameters": [
-                    {
-                        "description": "Gas refill request body",
-                        "name": "domain.GasRefillRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/GasRefillRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/list": {
-            "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint takes the order status, pages and limit and then returns the requested orders",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "List all gas refill requests",
-                "parameters": [
-                    {
-                        "description": "get refill by status, use filter for filtering responses (not implemented)",
-                        "name": "domain.ListRefillFilter",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ListRefillFilter"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/DefaultResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/{refill_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "This is the endpoint to get the details of a single gas refill by refill-id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Gets a single gas refill",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "refill id",
-                        "name": "refill-id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -1270,40 +1118,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/create_new_password": {
-            "post": {
-                "description": "The endpoint allows users to create a new password.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password Management"
-                ],
-                "summary": "Create Password",
-                "parameters": [
-                    {
-                        "description": "request reset password body",
-                        "name": "domain.CreateNewPasswordRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/CreateNewPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/APIResponseWithoutToken"
-                        }
-                    }
-                }
-            }
-        },
         "/session/early_access": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
@@ -1325,40 +1139,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/EarlyAccess"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/session/forgot_password": {
-            "post": {
-                "description": "The endpoint allows users to request for password reset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Password Management"
-                ],
-                "summary": "Forgot Password",
-                "parameters": [
-                    {
-                        "description": "request forgot password body",
-                        "name": "domain.EmailRequestBody",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/EmailRequestBody"
                         }
                     }
                 ],
@@ -1550,9 +1330,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/session/password/create": {
+            "post": {
+                "description": "The endpoint allows users to create a new password.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password Management"
+                ],
+                "summary": "Create Password",
+                "parameters": [
+                    {
+                        "description": "request reset password body",
+                        "name": "domain.CreateNewPasswordRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CreateNewPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/APIResponseWithoutToken"
+                        }
+                    }
+                }
+            }
+        },
+        "/session/password/forgot": {
+            "post": {
+                "description": "The endpoint allows users to request for password reset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Password Management"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "request forgot password body",
+                        "name": "domain.EmailRequestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EmailRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/session/signin": {
             "post": {
-                "description": "The endpoint allows users, both vendors and buyers to sign in",
+                "description": "The endpoint allows users, both vendors and customers to sign in",
                 "consumes": [
                     "application/json"
                 ],
@@ -1586,7 +1434,7 @@ const docTemplate = `{
         },
         "/session/signup": {
             "post": {
-                "description": "The endpoint allows users, both vendors and buyers to sign up",
+                "description": "The endpoint allows users, both vendors and customers to sign up",
                 "consumes": [
                     "application/json"
                 ],
@@ -2114,6 +1962,9 @@ const docTemplate = `{
                 "department": {
                     "type": "string"
                 },
+                "device_id": {
+                    "type": "string"
+                },
                 "dob": {
                     "type": "string"
                 },
@@ -2134,6 +1985,29 @@ const docTemplate = `{
                 },
                 "role": {
                     "type": "string"
+                }
+            }
+        },
+        "CartCheckoutRequest": {
+            "type": "object",
+            "properties": {
+                "cart_id": {
+                    "type": "string"
+                },
+                "delivery_details": {
+                    "$ref": "#/definitions/ShippingInfo"
+                },
+                "delivery_fee": {
+                    "type": "number"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "service_fee": {
+                    "type": "number"
+                },
+                "total_fee": {
+                    "type": "number"
                 }
             }
         },
@@ -2301,28 +2175,6 @@ const docTemplate = `{
                 }
             }
         },
-        "GasRefillRequest": {
-            "type": "object",
-            "properties": {
-                "amount_paid": {
-                    "type": "number"
-                },
-                "guest": {
-                    "type": "boolean"
-                },
-                "guest_bio_data": {
-                    "$ref": "#/definitions/GuestBioData"
-                },
-                "shipping_info": {
-                    "description": "This object is to be sent when the customer is done with their order and payment",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/ShippingInfo"
-                        }
-                    ]
-                }
-            }
-        },
         "GetCustomerOrdersRequest": {
             "type": "object",
             "properties": {
@@ -2360,58 +2212,6 @@ const docTemplate = `{
                 }
             }
         },
-        "GuestBioData": {
-            "type": "object",
-            "properties": {
-                "device_id": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "session_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "ListRefillFilter": {
-            "type": "object",
-            "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
-                "gas_type": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ProductCategory"
-                    }
-                },
-                "guest_email": {
-                    "type": "string"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RefillRequestStatus"
-                    }
-                }
-            }
-        },
         "OTPValidationRequest": {
             "type": "object",
             "properties": {
@@ -2429,14 +2229,27 @@ const docTemplate = `{
                 "customer_id": {
                     "type": "string"
                 },
+                "delivery_details": {
+                    "$ref": "#/definitions/ShippingInfo"
+                },
                 "delivery_fee": {
+                    "description": "VendorID        string        ` + "`" + `json:\"vendor_id\" bson:\"vendor_id\"` + "`" + ` // uncomment vendor id when sure how vendors affects individual orders",
                     "type": "number"
                 },
                 "id": {
                     "type": "string"
                 },
-                "product_id": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CartItem"
+                    }
+                },
+                "payment_method": {
                     "type": "string"
+                },
+                "service_fee": {
+                    "type": "number"
                 },
                 "status": {
                     "$ref": "#/definitions/models.OrderStatuses"
@@ -2449,12 +2262,6 @@ const docTemplate = `{
                 },
                 "ts": {
                     "type": "integer"
-                },
-                "vat": {
-                    "type": "number"
-                },
-                "vendor_id": {
-                    "type": "string"
                 }
             }
         },
@@ -2611,19 +2418,16 @@ const docTemplate = `{
         "ShippingInfo": {
             "type": "object",
             "properties": {
-                "for_me": {
-                    "type": "boolean"
-                },
-                "recipient_address": {
+                "address": {
                     "$ref": "#/definitions/Address"
                 },
-                "recipient_email": {
+                "email": {
                     "type": "string"
                 },
-                "recipient_name": {
+                "name": {
                     "type": "string"
                 },
-                "recipient_phone": {
+                "phone": {
                     "type": "string"
                 }
             }
@@ -2631,6 +2435,9 @@ const docTemplate = `{
         "SigningRequest": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2645,6 +2452,9 @@ const docTemplate = `{
         "SignupRequest": {
             "type": "object",
             "properties": {
+                "device_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2716,20 +2526,6 @@ const docTemplate = `{
                 },
                 "order_status": {
                     "$ref": "#/definitions/models.OrderStatuses"
-                }
-            }
-        },
-        "UpdateRefillRequest": {
-            "type": "object",
-            "properties": {
-                "reason": {
-                    "type": "string"
-                },
-                "refill_id": {
-                    "type": "string"
-                },
-                "request_status": {
-                    "$ref": "#/definitions/models.RefillRequestStatus"
                 }
             }
         },
@@ -2911,7 +2707,9 @@ const docTemplate = `{
                 1038,
                 1039,
                 1040,
-                1041
+                1041,
+                1042,
+                1043
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2957,7 +2755,9 @@ const docTemplate = `{
                 "CartItemRequestQuantityError",
                 "InvalidRequestError",
                 "InternalError",
-                "InvalidProductIdError"
+                "InvalidProductIdError",
+                "InvalidDeliveryFeeError",
+                "InvalidServiceFeeError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -3189,23 +2989,6 @@ const docTemplate = `{
                 "AccessoriesSubCategory"
             ]
         },
-        "models.RefillRequestStatus": {
-            "type": "string",
-            "enum": [
-                "cancelled",
-                "accepted",
-                "rejected",
-                "pending",
-                "fulfilled"
-            ],
-            "x-enum-varnames": [
-                "RefillCancelled",
-                "RefillAccepted",
-                "RefillRejected",
-                "RefillPending",
-                "RefillFulFilled"
-            ]
-        },
         "models.Statuses": {
             "type": "string",
             "enum": [
@@ -3234,15 +3017,15 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "vendor",
-                "buyer",
+                "customer",
                 "admin_leeta",
                 "guest"
             ],
             "x-enum-varnames": [
                 "VendorCategory",
-                "BuyerCategory",
+                "CustomerCategory",
                 "AdminCategory",
-                "GuestCatergory"
+                "GuestCategory"
             ]
         },
         "paging.Request": {

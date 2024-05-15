@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"github.com/leetatech/leeta_backend/services/models"
 )
 
 type CartItem struct {
@@ -25,3 +26,12 @@ func (u *UpdateCartItemQuantityRequest) IsValid() (bool, error) {
 	}
 	return true, nil
 }
+
+type CartCheckoutRequest struct {
+	CartID          string              `json:"cart_id" bson:"cart_id"`
+	DeliveryDetails models.ShippingInfo `json:"delivery_details" bson:"delivery_details"`
+	PaymentMethod   string              `json:"payment_method" bson:"payment_method"`
+	DeliveryFee     float64             `json:"delivery_fee" bson:"delivery_fee"`
+	ServiceFee      float64             `json:"service_fee" bson:"service_fee"`
+	TotalFee        float64             `json:"total_fee" bson:"total_fee"`
+} // @name CartCheckoutRequest

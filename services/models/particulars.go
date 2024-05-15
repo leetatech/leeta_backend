@@ -8,6 +8,7 @@ import (
 type Identity struct {
 	ID          string        `json:"id" bson:"id"`
 	UserID      string        `json:"user_id" bson:"user_id"`
+	DeviceID    string        `json:"device_id" bson:"device_id"`
 	Role        UserCategory  `json:"role" bson:"role"`
 	Credentials []Credentials `json:"credentials" bson:"credentials"`
 } // @name Identity
@@ -42,10 +43,10 @@ const (
 type UserCategory string
 
 const (
-	VendorCategory UserCategory = "vendor"
-	BuyerCategory  UserCategory = "buyer"
-	AdminCategory  UserCategory = "admin_leeta"
-	GuestCatergory UserCategory = "guest"
+	VendorCategory   UserCategory = "vendor"
+	CustomerCategory UserCategory = "customer"
+	AdminCategory    UserCategory = "admin_leeta"
+	GuestCategory    UserCategory = "guest"
 )
 
 func IsValidCredentialType(credentialType CredentialType) bool {
@@ -73,7 +74,7 @@ func SetCredentialStatus(status CredentialStatus) (CredentialStatus, error) {
 }
 
 func IsValidUserCategory(category UserCategory) bool {
-	return category == VendorCategory || category == BuyerCategory || category == AdminCategory || category == GuestCatergory
+	return category == VendorCategory || category == CustomerCategory || category == AdminCategory || category == GuestCategory
 }
 func SetUserCategory(category UserCategory) (UserCategory, error) {
 	switch IsValidUserCategory(category) {

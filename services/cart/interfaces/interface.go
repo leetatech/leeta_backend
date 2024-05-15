@@ -204,3 +204,31 @@ func (handler *CartHttpHandler) ListCartOptions(w http.ResponseWriter, r *http.R
 func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
 	return options
 }
+
+// Checkout is the endpoint to check out from cart
+// @Summary Check out from cart
+// @Description The endpoint to allows the user to check out from the cart
+// @Tags Cart
+// @Accept json
+// @Produce json
+// @Param domain.CartCheckoutRequest body domain.CartCheckoutRequest true "Cart checkout request body"
+// @Security BearerToken
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /cart/checkout [post]
+func (handler *CartHttpHandler) Checkout(w http.ResponseWriter, r *http.Request) {
+	var request domain.CartCheckoutRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response, err := handler.CartApplication.CartCheckout(r.Context(), request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+	pkg.EncodeResult(w, response, http.StatusOK)
+}

@@ -9,7 +9,6 @@ import (
 	authInterfaces "github.com/leetatech/leeta_backend/services/auth/interfaces"
 	cartInterfaces "github.com/leetatech/leeta_backend/services/cart/interfaces"
 	feesInterfaces "github.com/leetatech/leeta_backend/services/fees/interfaces"
-	gasRefillInterfaces "github.com/leetatech/leeta_backend/services/gasrefill/interfaces"
 	orderInterfaces "github.com/leetatech/leeta_backend/services/order/interfaces"
 	productInterfaces "github.com/leetatech/leeta_backend/services/product/interfaces"
 	stateInterfaces "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -19,18 +18,25 @@ import (
 )
 
 type AllHTTPHandlers struct {
-	Order     *orderInterfaces.OrderHttpHandler
-	Auth      *authInterfaces.AuthHttpHandler
-	User      *userInterfaces.UserHttpHandler
-	Product   *productInterfaces.ProductHttpHandler
-	GasRefill *gasRefillInterfaces.GasRefillHttpHandler
-	Cart      *cartInterfaces.CartHttpHandler
-	Fees      *feesInterfaces.FeesHttpHandler
-	State     *stateInterfaces.StateHttpHandler
+	Order   *orderInterfaces.OrderHttpHandler
+	Auth    *authInterfaces.AuthHttpHandler
+	User    *userInterfaces.UserHttpHandler
+	Product *productInterfaces.ProductHttpHandler
+	Cart    *cartInterfaces.CartHttpHandler
+	Fees    *feesInterfaces.FeesHttpHandler
+	State   *stateInterfaces.StateHttpHandler
 }
 
 func AllInterfaces(interfaces *AllHTTPHandlers) *AllHTTPHandlers {
-	return &AllHTTPHandlers{Order: interfaces.Order, Auth: interfaces.Auth, User: interfaces.User, Product: interfaces.Product, GasRefill: interfaces.GasRefill, Cart: interfaces.Cart, Fees: interfaces.Fees, State: interfaces.State}
+	return &AllHTTPHandlers{
+		Order:   interfaces.Order,
+		Auth:    interfaces.Auth,
+		User:    interfaces.User,
+		Product: interfaces.Product,
+		Cart:    interfaces.Cart,
+		Fees:    interfaces.Fees,
+		State:   interfaces.State,
+	}
 }
 
 func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*chi.Mux, *pkg.TokenHandler, error) {
@@ -50,7 +56,6 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 	authRouter := buildAuthEndpoints(*interfaces.Auth)
 	userRouter := buildUserEndpoints(*interfaces.User, tokenHandler)
 	productRouter := buildProductEndpoints(*interfaces.Product, tokenHandler)
-	gasRefillRouter := buildGasRefillEndpoints(*interfaces.GasRefill, tokenHandler)
 	cartRouter := buildCartEndpoints(*interfaces.Cart, tokenHandler)
 	feesRouter := buildFeesEndpoints(*interfaces.Fees, tokenHandler)
 	stateRouter := buildStatesEndpoints(*interfaces.State, tokenHandler)
@@ -61,7 +66,6 @@ func SetupRouter(tokenHandler *pkg.TokenHandler, interfaces *AllHTTPHandlers) (*
 		r.Mount("/order", orderRouter)
 		r.Mount("/user", userRouter)
 		r.Mount("/product", productRouter)
-		r.Mount("/gas-refill", gasRefillRouter)
 		r.Mount("/cart", cartRouter)
 		r.Mount("/fees", feesRouter)
 		r.Mount("/state", stateRouter)
@@ -84,15 +88,21 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 	router.Put("/guest", session.UpdateGuestRecordHandler)
 
 	// otp
-	router.Post("/otp/request", session.RequestOTPHandler)
-	router.Post("/otp/validate", session.ValidateOTPHandler)
+	router.Route("/otp", func(r chi.Router) {
+		r.Post("/request", session.RequestOTPHandler)
+		r.Post("/validate", session.ValidateOTPHandler)
+	})
 
 	// password
-	router.Post("/forgot_password", session.ForgotPasswordHandler)
-	router.Post("/create_new_password", session.CreateNewPasswordHandler)
+	router.Route("/password", func(r chi.Router) {
+		r.Post("/forgot", session.ForgotPasswordHandler)
+		r.Post("/create", session.CreateNewPasswordHandler)
+	})
 
 	// earlyAccess
-	router.Post("/early_access", session.EarlyAccessHandler)
+	router.Route("/early_access", func(r chi.Router) {
+		r.Post("/", session.EarlyAccessHandler)
+	})
 
 	return router
 }
@@ -142,28 +152,25 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	return router
 }
 
-func buildGasRefillEndpoints(handler gasRefillInterfaces.GasRefillHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
-	router := chi.NewRouter()
-	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", handler.RequestRefill)
-	router.Put("/", handler.UpdateGasRefillStatus)
-	router.Get("/{refill_id}", handler.GetGasRefill)
-	router.Post("/list", handler.ListRefill)
-
-	return router
-}
-
 func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
+		// post endpoints
 		r.Post("/add", handler.AddToCart)
+		r.Post("/", handler.ListCart)
+		r.Post("/checkout", handler.Checkout)
+
+		// get endpoints
+		r.Get("/options", handler.ListCartOptions)
+
+		// update endpoints
+		r.Put("/item/quantity", handler.UpdateCartItemQuantity)
+
+		// delete endpoints
 		r.Delete("/{cart_id}", handler.DeleteCart)
 		r.Delete("/item/{cart_item_id}", handler.DeleteCartItem)
-		r.Put("/item/quantity", handler.UpdateCartItemQuantity)
-		r.Post("/", handler.ListCart)
-		r.Get("/options", handler.ListCartOptions)
 	})
 
 	return router

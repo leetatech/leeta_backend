@@ -6,7 +6,6 @@ import (
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
-	gasrefillDomain "github.com/leetatech/leeta_backend/services/gasrefill/domain"
 	orderDomain "github.com/leetatech/leeta_backend/services/order/domain"
 	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
 	statesDomain "github.com/leetatech/leeta_backend/services/state/domain"
@@ -15,14 +14,13 @@ import (
 )
 
 type Repositories struct {
-	OrderRepository     orderDomain.OrderRepository
-	UserRepository      userDomain.UserRepository
-	AuthRepository      authDomain.AuthRepository
-	ProductRepository   productDomain.ProductRepository
-	GasRefillRepository gasrefillDomain.GasRefillRepository
-	CartRepository      cartDomain.CartRepository
-	FeesRepository      feesDomain.FeesRepository
-	StatesRepository    statesDomain.StateRepository
+	OrderRepository   orderDomain.OrderRepository
+	UserRepository    userDomain.UserRepository
+	AuthRepository    authDomain.AuthRepository
+	ProductRepository productDomain.ProductRepository
+	CartRepository    cartDomain.CartRepository
+	FeesRepository    feesDomain.FeesRepository
+	StatesRepository  statesDomain.StateRepository
 }
 
 type DefaultResponse struct {

@@ -43,9 +43,12 @@ func (c *CartItem) CalculateCartItemFee(fee *Fee) (float64, error) {
 	} else {
 		totalCost = fee.Cost.CostPerQt
 	}
-
 	// Multiply cost by quantity
 	totalCost *= float64(c.Quantity)
+
+	if totalCost == 0 {
+		return totalCost, fmt.Errorf("invalid cart total cost calculation, cart total cost cannot be zero %d", c.Quantity)
+	}
 
 	return totalCost, nil
 }

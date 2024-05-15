@@ -23,7 +23,7 @@ func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHa
 
 // SignUpHandler godoc
 // @Summary User Sign Up
-// @Description The endpoint allows users, both vendors and buyers to sign up
+// @Description The endpoint allows users, both vendors and customers to sign up
 // @Tags Authentication
 // @Accept json
 // @Produce json
@@ -100,7 +100,7 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 
 // SignInHandler godoc
 // @Summary User Sign In
-// @Description The endpoint allows users, both vendors and buyers to sign in
+// @Description The endpoint allows users, both vendors and customers to sign in
 // @Tags Authentication
 // @Accept json
 // @Produce json
@@ -131,7 +131,7 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 // @Produce json
 // @Param domain.EmailRequestBody body domain.EmailRequestBody true "request forgot password body"
 // @Success 200 {object} pkg.DefaultResponse
-// @Router /session/forgot_password [post]
+// @Router /session/password/forgot [post]
 func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -183,7 +183,7 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 // @Produce json
 // @Param domain.CreateNewPasswordRequest body domain.CreateNewPasswordRequest true "request reset password body"
 // @Success 200 {object} domain.APIResponseWithoutToken
-// @Router /session/create_new_password [post]
+// @Router /session/password/create [post]
 func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var request domain.CreateNewPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
