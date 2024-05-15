@@ -365,57 +365,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/checkout/": {
-            "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint to allows the user to check out from the cart",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Checkout"
-                ],
-                "summary": "Check out from cart",
-                "parameters": [
-                    {
-                        "description": "Check out request body",
-                        "name": "domain.CheckoutRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/CheckoutRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/fees/": {
             "post": {
                 "security": [
@@ -541,160 +490,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/query.ResponseListWithMetadata-Fee"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/": {
-            "put": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "This endpoint is used to update the status of a gas refill (Cancel, Accept, Reject or Fulfill) request",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Update Gas refill request status",
-                "parameters": [
-                    {
-                        "description": "update gas refill by status request body",
-                        "name": "domain.UpdateRefillRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/UpdateRefillRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/list": {
-            "post": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "The endpoint takes the order status, pages and limit and then returns the requested orders",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "List all gas refill requests",
-                "parameters": [
-                    {
-                        "description": "get refill by status, use filter for filtering responses (not implemented)",
-                        "name": "domain.ListRefillFilter",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ListRefillFilter"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/DefaultResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/gas-refill/{refill_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerToken": []
-                    }
-                ],
-                "description": "This is the endpoint to get the details of a single gas refill by refill-id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gas Refill"
-                ],
-                "summary": "Gets a single gas refill",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "refill id",
-                        "name": "refill-id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
                         }
                     },
                     "400": {
@@ -1323,7 +1118,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/session/early_access/": {
+        "/session/early_access": {
             "post": {
                 "description": "The endpoint allows users to request for early access",
                 "consumes": [
@@ -2233,29 +2028,6 @@ const docTemplate = `{
                 }
             }
         },
-        "CheckoutRequest": {
-            "type": "object",
-            "properties": {
-                "amount_paid": {
-                    "type": "number"
-                },
-                "cart_id": {
-                    "type": "string"
-                },
-                "delivery_details": {
-                    "$ref": "#/definitions/ShippingInfo"
-                },
-                "delivery_fee": {
-                    "type": "number"
-                },
-                "payment_method": {
-                    "type": "string"
-                },
-                "service_fee": {
-                    "type": "number"
-                }
-            }
-        },
         "CompareOperator": {
             "type": "string",
             "enum": [
@@ -2437,35 +2209,6 @@ const docTemplate = `{
                 },
                 "vendor_id": {
                     "type": "string"
-                }
-            }
-        },
-        "ListRefillFilter": {
-            "type": "object",
-            "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
-                "gas_type": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ProductCategory"
-                    }
-                },
-                "guest_email": {
-                    "type": "string"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.CheckoutStatus"
-                    }
                 }
             }
         },
@@ -2786,20 +2529,6 @@ const docTemplate = `{
                 }
             }
         },
-        "UpdateRefillRequest": {
-            "type": "object",
-            "properties": {
-                "reason": {
-                    "type": "string"
-                },
-                "refill_id": {
-                    "type": "string"
-                },
-                "request_status": {
-                    "$ref": "#/definitions/models.CheckoutStatus"
-                }
-            }
-        },
         "domain.GasProductRequest": {
             "type": "object",
             "properties": {
@@ -3108,35 +2837,15 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "ACTIVE",
-                "INACTIVE",
-                "CHECKED_OUT"
+                "INACTIVE"
             ],
             "x-enum-comments": {
                 "CartActive": "cart has been created and active",
-                "CartCheckedOut": "cart has been paid and checked out",
                 "CartInactive": "cart has been inactivated and no longer active due to check out or session expiry"
             },
             "x-enum-varnames": [
                 "CartActive",
-                "CartInactive",
-                "CartCheckedOut"
-            ]
-        },
-        "models.CheckoutStatus": {
-            "type": "string",
-            "enum": [
-                "cancelled",
-                "accepted",
-                "rejected",
-                "pending",
-                "fulfilled"
-            ],
-            "x-enum-varnames": [
-                "CheckoutCancelled",
-                "CheckoutAccepted",
-                "CheckoutRejected",
-                "CheckoutPending",
-                "CheckoutFulFilled"
+                "CartInactive"
             ]
         },
         "models.Cost": {

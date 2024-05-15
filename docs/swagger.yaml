@@ -105,21 +105,6 @@ definitions:
       weight:
         type: number
     type: object
-  CheckoutRequest:
-    properties:
-      amount_paid:
-        type: number
-      cart_id:
-        type: string
-      delivery_details:
-        $ref: '#/definitions/ShippingInfo'
-      delivery_fee:
-        type: number
-      payment_method:
-        type: string
-      service_fee:
-        type: number
-    type: object
   CompareOperator:
     enum:
     - isEqualTo
@@ -238,25 +223,6 @@ definitions:
         type: array
       vendor_id:
         type: string
-    type: object
-  ListRefillFilter:
-    properties:
-      customer_id:
-        type: string
-      gas_type:
-        items:
-          $ref: '#/definitions/models.ProductCategory'
-        type: array
-      guest_email:
-        type: string
-      limit:
-        type: integer
-      page:
-        type: integer
-      status:
-        items:
-          $ref: '#/definitions/models.CheckoutStatus'
-        type: array
     type: object
   OTPValidationRequest:
     properties:
@@ -465,15 +431,6 @@ definitions:
         type: string
       order_status:
         $ref: '#/definitions/models.OrderStatuses'
-    type: object
-  UpdateRefillRequest:
-    properties:
-      reason:
-        type: string
-      refill_id:
-        type: string
-      request_status:
-        $ref: '#/definitions/models.CheckoutStatus'
     type: object
   domain.GasProductRequest:
     properties:
@@ -706,31 +663,14 @@ definitions:
     enum:
     - ACTIVE
     - INACTIVE
-    - CHECKED_OUT
     type: string
     x-enum-comments:
       CartActive: cart has been created and active
-      CartCheckedOut: cart has been paid and checked out
       CartInactive: cart has been inactivated and no longer active due to check out
         or session expiry
     x-enum-varnames:
     - CartActive
     - CartInactive
-    - CartCheckedOut
-  models.CheckoutStatus:
-    enum:
-    - cancelled
-    - accepted
-    - rejected
-    - pending
-    - fulfilled
-    type: string
-    x-enum-varnames:
-    - CheckoutCancelled
-    - CheckoutAccepted
-    - CheckoutRejected
-    - CheckoutPending
-    - CheckoutFulFilled
   models.Cost:
     properties:
       cost_per_kg:
@@ -1158,38 +1098,6 @@ paths:
       summary: Get cart filter options
       tags:
       - Cart
-  /checkout/:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to allows the user to check out from the cart
-      parameters:
-      - description: Check out request body
-        in: body
-        name: domain.CheckoutRequest
-        required: true
-        schema:
-          $ref: '#/definitions/CheckoutRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Check out from cart
-      tags:
-      - Checkout
   /fees/:
     post:
       consumes:
@@ -1279,107 +1187,6 @@ paths:
       summary: Get fees
       tags:
       - Fees
-  /gas-refill/:
-    put:
-      consumes:
-      - application/json
-      description: This endpoint is used to update the status of a gas refill (Cancel,
-        Accept, Reject or Fulfill) request
-      parameters:
-      - description: update gas refill by status request body
-        in: body
-        name: domain.UpdateRefillRequest
-        required: true
-        schema:
-          $ref: '#/definitions/UpdateRefillRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Update Gas refill request status
-      tags:
-      - Gas Refill
-  /gas-refill/{refill_id}:
-    get:
-      consumes:
-      - application/json
-      description: This is the endpoint to get the details of a single gas refill
-        by refill-id
-      parameters:
-      - description: refill id
-        in: path
-        name: refill-id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/DefaultResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Gets a single gas refill
-      tags:
-      - Gas Refill
-  /gas-refill/list:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint takes the order status, pages and limit and then returns
-        the requested orders
-      parameters:
-      - description: get refill by status, use filter for filtering responses (not
-          implemented)
-        in: body
-        name: domain.ListRefillFilter
-        required: true
-        schema:
-          $ref: '#/definitions/ListRefillFilter'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/DefaultResponse'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: List all gas refill requests
-      tags:
-      - Gas Refill
   /order/:
     get:
       consumes:
@@ -1782,7 +1589,7 @@ paths:
       summary: Admin Sign Up
       tags:
       - Admin
-  /session/early_access/:
+  /session/early_access:
     post:
       consumes:
       - application/json

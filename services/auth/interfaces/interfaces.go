@@ -81,7 +81,7 @@ func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http
 // @Produce json
 // @Param models.EarlyAccess body models.EarlyAccess true "request early access body"
 // @Success 200 {object} pkg.DefaultResponse
-// @Router /session/early_access/ [post]
+// @Router /session/early_access [post]
 func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *http.Request) {
 	var request models.EarlyAccess
 	err := json.NewDecoder(r.Body).Decode(&request)

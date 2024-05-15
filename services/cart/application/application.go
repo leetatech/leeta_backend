@@ -8,7 +8,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg/query/paging"
-	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"strings"
 	"time"
@@ -79,7 +78,6 @@ func (c *CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem)
 	if err != nil {
 		return cart, leetError.ErrorResponseBody(leetError.InvalidProductIdError, fmt.Errorf("error getting fee %w", err))
 	}
-	log.Debug().Msgf("fee %+v", fee)
 
 	cartItem := models.CartItem{
 		ID:              c.idGenerator.Generate(),
