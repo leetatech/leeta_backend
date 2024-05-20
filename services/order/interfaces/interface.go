@@ -5,10 +5,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/query"
+	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"github.com/rs/zerolog/log"
+	"github.com/samber/lo"
 	"net/http"
 )
 
@@ -21,34 +25,6 @@ func NewOrderHTTPHandler(orderApplication application.OrderApplication) *OrderHt
 		OrderApplication: orderApplication,
 	}
 
-}
-
-// CreateOrderHandler godoc
-// @Summary Create Order
-// @Description The endpoint takes the order request and creates a new order
-// @Tags Order
-// @Accept json
-// @Produce json
-// @Param domain.OrderRequest body domain.OrderRequest true "create order request body"
-// @Security BearerToken
-// @Success 200 {object} pkg.DefaultResponse
-// @Failure 401 {object} pkg.DefaultErrorResponse
-// @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /order/make_order [post]
-func (handler *OrderHttpHandler) CreateOrderHandler(w http.ResponseWriter, r *http.Request) {
-	var newOrder domain.OrderRequest
-
-	err := json.NewDecoder(r.Body).Decode(&newOrder)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
-	resp, err := handler.OrderApplication.CreateOrder(r.Context(), newOrder)
-	if err != nil {
-		helpers.CheckErrorType(err, w)
-		return
-	}
-	pkg.EncodeResult(w, resp, http.StatusOK)
 }
 
 // UpdateOrderStatusHandler godoc
@@ -132,4 +108,63 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 		return
 	}
 	pkg.EncodeResult(w, orders, http.StatusOK)
+}
+
+// FetchOrdersHandler is the endpoint to all orders
+// @Summary Get orders
+// @Description The endpoint to get all orders using several filters
+// @Tags Order
+// @Accept json
+// @produce json
+// @param query.ResultSelector body query.ResultSelector true "list orders request body"
+// @Security BearerToken
+// @success 200 {object} query.ResponseListWithMetadata[models.Order]
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /order/ [POST]
+func (handler *OrderHttpHandler) FetchOrdersHandler(w http.ResponseWriter, r *http.Request) {
+	var request query.ResultSelector
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		return
+	}
+
+	request, err = helpers.ValidateResultSelector(request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	orders, totalRecord, err := handler.OrderApplication.ListOrders(r.Context(), request)
+	if err != nil {
+		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		return
+	}
+
+	response := query.ResponseListWithMetadata[models.Order]{
+		Metadata: query.NewMetadata(request, totalRecord),
+		Data:     orders,
+	}
+	pkg.EncodeResult(w, response, http.StatusOK)
+}
+
+// ListOrdersOptions is the endpoint to get orders filter options
+// @Summary Get orders filter options
+// @Description Retrieve orders filter options
+// @Tags Order
+// @Accept json
+// @Produce json
+// @Security BearerToken
+// @Success 200 {object} filter.RequestOption
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /order/options [get]
+func (handler *OrderHttpHandler) ListOrdersOptions(w http.ResponseWriter, r *http.Request) {
+	requestOptions := lo.Map(listOrdersOptions, toFilterOption)
+	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+}
+
+func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
+	return options
 }

@@ -559,6 +559,55 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get all orders using several filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get orders",
+                "parameters": [
+                    {
+                        "description": "list orders request body",
+                        "name": "query.ResultSelector",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/query.ResultSelector"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/query.ResponseListWithMetadata-Order"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/order/id/{order_id}": {
@@ -610,14 +659,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/order/make_order": {
-            "post": {
+        "/order/options": {
+            "get": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint takes the order request and creates a new order",
+                "description": "Retrieve orders filter options",
                 "consumes": [
                     "application/json"
                 ],
@@ -627,23 +676,12 @@ const docTemplate = `{
                 "tags": [
                     "Order"
                 ],
-                "summary": "Create Order",
-                "parameters": [
-                    {
-                        "description": "create order request body",
-                        "name": "domain.OrderRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/OrderRequest"
-                        }
-                    }
-                ],
+                "summary": "Get orders filter options",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/DefaultResponse"
+                            "$ref": "#/definitions/filter.RequestOption"
                         }
                     },
                     "400": {
@@ -2265,14 +2303,6 @@ const docTemplate = `{
                 }
             }
         },
-        "OrderRequest": {
-            "type": "object",
-            "properties": {
-                "product_id": {
-                    "type": "string"
-                }
-            }
-        },
         "OrderResponse": {
             "type": "object",
             "properties": {
@@ -2937,18 +2967,21 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "PENDING",
+                "CANCELLED",
                 "REJECTED",
                 "COMPLETED",
                 "APPROVED"
             ],
             "x-enum-comments": {
                 "OrderApproved": "order has been approved",
+                "OrderCancelled": "order has been cancelled by vendor or customer",
                 "OrderCompleted": "order has been processed and delivered, and verified by the customer",
                 "OrderPending": "order has been created and processing",
                 "OrderRejected": "order was rejected by vendor or customer"
             },
             "x-enum-varnames": [
                 "OrderPending",
+                "OrderCancelled",
                 "OrderRejected",
                 "OrderCompleted",
                 "OrderApproved"
@@ -3075,6 +3108,24 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Fee"
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/query.Metadata"
+                }
+            }
+        },
+        "query.ResponseListWithMetadata-Order": {
+            "type": "object",
+            "required": [
+                "data",
+                "metadata"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Order"
                     }
                 },
                 "metadata": {

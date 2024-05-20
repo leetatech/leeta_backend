@@ -33,13 +33,14 @@ type OrderStatuses string
 
 const (
 	OrderPending   OrderStatuses = "PENDING"   // order has been created and processing
+	OrderCancelled OrderStatuses = "CANCELLED" // order has been cancelled by vendor or customer
 	OrderRejected  OrderStatuses = "REJECTED"  // order was rejected by vendor or customer
 	OrderCompleted OrderStatuses = "COMPLETED" // order has been processed and delivered, and verified by the customer
 	OrderApproved  OrderStatuses = "APPROVED"  // order has been approved
 )
 
 func IsValidOrderStatus(status OrderStatuses) bool {
-	return status == OrderPending || status == OrderRejected || status == OrderCompleted || status == OrderApproved
+	return status == OrderPending || status == OrderCancelled || status == OrderRejected || status == OrderCompleted || status == OrderApproved
 }
 
 func SetOrderStatus(status OrderStatuses) (OrderStatuses, error) {
