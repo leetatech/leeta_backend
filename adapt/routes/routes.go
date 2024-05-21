@@ -126,14 +126,14 @@ func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.T
 	return router
 }
 
-func buildVendorEndpoints(vendor userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+func buildVendorEndpoints(handler userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	// authentication group here
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
-		r.Post("/verification", vendor.VendorVerificationHandler)
-		r.Post("/admin/vendor", vendor.AddVendorByAdminHandler)
+		r.Post("/verification", handler.VendorVerificationHandler)
+		r.Post("/admin/vendor", handler.AddVendorByAdminHandler)
 	})
 
 	// non-authentication group here
@@ -148,7 +148,7 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	router.Post("/", product.CreateGasProductHandler)
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
-	router.Post("/list", product.ListProductsHandler)
+	router.Put("/", product.ListProductsHandler)
 	router.Get("/options", product.ListProductOptions)
 	return router
 }
@@ -160,7 +160,7 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pk
 		r.Use(tokenHandler.ValidateMiddleware)
 		// post endpoints
 		r.Post("/add", handler.AddToCart)
-		r.Post("/", handler.ListCart)
+		r.Put("/", handler.ListCart)
 		r.Post("/checkout", handler.Checkout)
 
 		// get endpoints
@@ -182,7 +182,7 @@ func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pk
 
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/", handler.CreateFeeHandler)
-	router.Post("/type", handler.FetchFeesHandler)
+	router.Put("/", handler.FetchFeesHandler)
 	router.Get("/options", handler.ListFeesOptions)
 	return router
 }
