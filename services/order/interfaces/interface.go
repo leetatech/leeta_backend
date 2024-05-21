@@ -110,9 +110,9 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 	pkg.EncodeResult(w, orders, http.StatusOK)
 }
 
-// FetchOrdersHandler is the endpoint to all orders
-// @Summary Get orders
-// @Description The endpoint to get all orders using several filters
+// ListOrdersHandler is the endpoint to list all orders
+// @Summary List orders
+// @Description The endpoint to list all orders. List endpoint can be configured with the filters
 // @Tags Order
 // @Accept json
 // @produce json
@@ -121,8 +121,8 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 // @success 200 {object} query.ResponseListWithMetadata[models.Order]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /order/ [POST]
-func (handler *OrderHttpHandler) FetchOrdersHandler(w http.ResponseWriter, r *http.Request) {
+// @Router /order/ [PUT]
+func (handler *OrderHttpHandler) ListOrdersHandler(w http.ResponseWriter, r *http.Request) {
 	var request query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {

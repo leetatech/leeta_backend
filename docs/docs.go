@@ -558,13 +558,13 @@ const docTemplate = `{
                     }
                 }
             },
-            "post": {
+            "put": {
                 "security": [
                     {
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to get all orders using several filters",
+                "description": "The endpoint to list all orders. List endpoint can be configured with the filters",
                 "consumes": [
                     "application/json"
                 ],
@@ -574,7 +574,7 @@ const docTemplate = `{
                 "tags": [
                     "Order"
                 ],
-                "summary": "Get orders",
+                "summary": "List orders",
                 "parameters": [
                     {
                         "description": "list orders request body",

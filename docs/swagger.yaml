@@ -1231,10 +1231,11 @@ paths:
       summary: Get Customer Order By Status
       tags:
       - Order
-    post:
+    put:
       consumes:
       - application/json
-      description: The endpoint to get all orders using several filters
+      description: The endpoint to list all orders. List endpoint can be configured
+        with the filters
       parameters:
       - description: list orders request body
         in: body
@@ -1259,7 +1260,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Get orders
+      summary: List orders
       tags:
       - Order
   /order/id/{order_id}:
