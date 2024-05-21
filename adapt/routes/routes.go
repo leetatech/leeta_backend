@@ -153,47 +153,47 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	return router
 }
 
-func buildCartEndpoints(cart cartInterfaces.CartHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
 		// post endpoints
-		r.Post("/add", cart.AddToCart)
-		r.Post("/", cart.ListCart)
-		r.Post("/checkout", cart.Checkout)
+		r.Post("/add", handler.AddToCart)
+		r.Post("/", handler.ListCart)
+		r.Post("/checkout", handler.Checkout)
 
 		// get endpoints
-		r.Get("/options", cart.ListCartOptions)
+		r.Get("/options", handler.ListCartOptions)
 
 		// update endpoints
-		r.Put("/item/quantity", cart.UpdateCartItemQuantity)
+		r.Put("/item/quantity", handler.UpdateCartItemQuantity)
 
 		// delete endpoints
-		r.Delete("/{cart_id}", cart.DeleteCart)
-		r.Delete("/item/{cart_item_id}", cart.DeleteCartItem)
+		r.Delete("/{cart_id}", handler.DeleteCart)
+		r.Delete("/item/{cart_item_id}", handler.DeleteCartItem)
 	})
 
 	return router
 }
 
-func buildFeesEndpoints(fees feesInterfaces.FeesHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", fees.CreateFeeHandler)
-	router.Post("/type", fees.FetchFeesHandler)
-	router.Get("/options", fees.ListFeesOptions)
+	router.Post("/", handler.CreateFeeHandler)
+	router.Post("/type", handler.FetchFeesHandler)
+	router.Get("/options", handler.ListFeesOptions)
 	return router
 }
 
-func buildStatesEndpoints(states stateInterfaces.StateHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+func buildStatesEndpoints(handler stateInterfaces.StateHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", states.RetrieveNGNStatesData)
-	router.Get("/{name}", states.GetState)
-	router.Get("/", states.ListStates)
+	router.Post("/", handler.RetrieveNGNStatesData)
+	router.Get("/{name}", handler.GetState)
+	router.Get("/", handler.ListStates)
 
 	return router
 }

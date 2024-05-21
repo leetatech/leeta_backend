@@ -162,7 +162,7 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Success 200 {object} query.ResponseListWithMetadata[models.Product]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /product/list [post]
+// @Router /product/ [put]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	var request query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)
