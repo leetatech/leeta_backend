@@ -58,8 +58,8 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 }
 
 // FetchFeesHandler is the endpoint to all fees
-// @Summary Get fees
-// @Description The endpoint to get all types of fees
+// @Summary List fees.
+// @Description The endpoint to get all list fees. Use filter t filter by type
 // @Tags Fees
 // @Accept json
 // @produce json
@@ -68,7 +68,7 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 // @success 200 {object} query.ResponseListWithMetadata[models.Fee]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /fees/type [POST]
+// @Router /fees/ [PUT]
 func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.Request) {
 	var request query.ResultSelector
 	err := json.NewDecoder(r.Body).Decode(&request)

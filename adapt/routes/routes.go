@@ -147,7 +147,7 @@ func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHa
 	router.Post("/", product.CreateGasProductHandler)
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
-	router.Post("/list", product.ListProductsHandler)
+	router.Put("/", product.ListProductsHandler)
 	router.Get("/options", product.ListProductOptions)
 	return router
 }
@@ -159,7 +159,7 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pk
 		r.Use(tokenHandler.ValidateMiddleware)
 		// post endpoints
 		r.Post("/add", handler.AddToCart)
-		r.Post("/", handler.ListCart)
+		r.Put("/", handler.ListCart)
 		r.Post("/checkout", handler.Checkout)
 
 		// get endpoints
@@ -181,7 +181,7 @@ func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pk
 
 	router.Use(tokenHandler.ValidateMiddleware)
 	router.Post("/", handler.CreateFeeHandler)
-	router.Post("/type", handler.FetchFeesHandler)
+	router.Put("/", handler.FetchFeesHandler)
 	router.Get("/options", handler.ListFeesOptions)
 	return router
 }
