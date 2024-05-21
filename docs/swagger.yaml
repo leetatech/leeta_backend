@@ -882,7 +882,7 @@ info:
   version: "1.0"
 paths:
   /cart:
-    post:
+    put:
       consumes:
       - application/json
       description: The endpoint to get a user cart, and the items in the cart
@@ -910,8 +910,8 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Get a user cart and list the cart items. Use result selector to filter
-        results and manage pagination
+      summary: List cart and items. Use result selector to filter results and manage
+        pagination
       tags:
       - Cart
   /cart/{cart_id}:
@@ -1130,36 +1130,10 @@ paths:
       summary: Create fees
       tags:
       - Fees
-  /fees/options:
-    get:
+    put:
       consumes:
       - application/json
-      description: Retrieve fees filter options
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/filter.RequestOption'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: Get fees filter options
-      tags:
-      - Fees
-  /fees/type:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint to get all types of fees
+      description: The endpoint to get all list fees. Use filter t filter by type
       parameters:
       - description: list fees request body
         in: body
@@ -1184,7 +1158,32 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Get fees
+      summary: List fees.
+      tags:
+      - Fees
+  /fees/options:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve fees filter options
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/filter.RequestOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get fees filter options
       tags:
       - Fees
   /order/:
@@ -1385,6 +1384,38 @@ paths:
       summary: Create Gas Product
       tags:
       - Product
+    put:
+      consumes:
+      - application/json
+      description: The endpoint takes in the limit, page and product status and returns
+        the requested products
+      parameters:
+      - description: list products request body
+        in: body
+        name: query.ResultSelector
+        required: true
+        schema:
+          $ref: '#/definitions/query.ResultSelector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.ResponseListWithMetadata-Product'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: List Products
+      tags:
+      - Product
   /product/create:
     post:
       consumes:
@@ -1508,39 +1539,6 @@ paths:
       security:
       - BearerToken: []
       summary: Get Vendor Product By id
-      tags:
-      - Product
-  /product/list:
-    post:
-      consumes:
-      - application/json
-      description: The endpoint takes in the limit, page and product status and returns
-        the requested products
-      parameters:
-      - description: list products request body
-        in: body
-        name: query.ResultSelector
-        required: true
-        schema:
-          $ref: '#/definitions/query.ResultSelector'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/query.ResponseListWithMetadata-Product'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/DefaultErrorResponse'
-      security:
-      - BearerToken: []
-      summary: List Products
       tags:
       - Product
   /product/options:

@@ -145,7 +145,7 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 }
 
 // ListCart is the endpoint to list cart.
-// @Summary Get a user cart and list the cart items. Use result selector to filter results and manage pagination
+// @Summary List cart and items. Use result selector to filter results and manage pagination
 // @Description The endpoint to get a user cart, and the items in the cart
 // @Tags Cart
 // @Accept json
@@ -155,7 +155,7 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 // @Success 200 {object} query.ResponseWithMetadata[models.Cart]
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
-// @Router /cart [post]
+// @Router /cart [put]
 func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request) {
 	var request query.ResultSelector
 
