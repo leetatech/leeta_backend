@@ -260,11 +260,6 @@ definitions:
       ts:
         type: integer
     type: object
-  OrderRequest:
-    properties:
-      product_id:
-        type: string
-    type: object
   OrderResponse:
     properties:
       customer:
@@ -732,18 +727,21 @@ definitions:
   models.OrderStatuses:
     enum:
     - PENDING
+    - CANCELLED
     - REJECTED
     - COMPLETED
     - APPROVED
     type: string
     x-enum-comments:
       OrderApproved: order has been approved
+      OrderCancelled: order has been cancelled by vendor or customer
       OrderCompleted: order has been processed and delivered, and verified by the
         customer
       OrderPending: order has been created and processing
       OrderRejected: order was rejected by vendor or customer
     x-enum-varnames:
     - OrderPending
+    - OrderCancelled
     - OrderRejected
     - OrderCompleted
     - OrderApproved
@@ -833,6 +831,18 @@ definitions:
       data:
         items:
           $ref: '#/definitions/Fee'
+        type: array
+      metadata:
+        $ref: '#/definitions/query.Metadata'
+    required:
+    - data
+    - metadata
+    type: object
+  query.ResponseListWithMetadata-Order:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/Order'
         type: array
       metadata:
         $ref: '#/definitions/query.Metadata'
@@ -1221,6 +1231,38 @@ paths:
       summary: Get Customer Order By Status
       tags:
       - Order
+    put:
+      consumes:
+      - application/json
+      description: The endpoint to list all orders. List endpoint can be configured
+        with the filters
+      parameters:
+      - description: list orders request body
+        in: body
+        name: query.ResultSelector
+        required: true
+        schema:
+          $ref: '#/definitions/query.ResultSelector'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/query.ResponseListWithMetadata-Order'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: List orders
+      tags:
+      - Order
   /order/id/{order_id}:
     get:
       consumes:
@@ -1253,25 +1295,18 @@ paths:
       summary: Get Customer Order By id
       tags:
       - Order
-  /order/make_order:
-    post:
+  /order/options:
+    get:
       consumes:
       - application/json
-      description: The endpoint takes the order request and creates a new order
-      parameters:
-      - description: create order request body
-        in: body
-        name: domain.OrderRequest
-        required: true
-        schema:
-          $ref: '#/definitions/OrderRequest'
+      description: Retrieve orders filter options
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/DefaultResponse'
+            $ref: '#/definitions/filter.RequestOption'
         "400":
           description: Bad Request
           schema:
@@ -1282,7 +1317,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Create Order
+      summary: Get orders filter options
       tags:
       - Order
   /order/status:

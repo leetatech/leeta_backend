@@ -2,13 +2,14 @@ package application
 
 import (
 	"context"
+	"errors"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"go.uber.org/zap"
-	"time"
 )
 
 type orderAppHandler struct {
@@ -22,10 +23,10 @@ type orderAppHandler struct {
 }
 
 type OrderApplication interface {
-	CreateOrder(ctx context.Context, request domain.OrderRequest) (*pkg.DefaultResponse, error)
 	UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*pkg.DefaultResponse, error)
 	GetOrderByID(ctx context.Context, id string) (*models.Order, error)
 	GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error)
+	ListOrders(ctx context.Context, request query.ResultSelector) ([]models.Order, uint64, error)
 }
 
 func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication {
@@ -40,67 +41,37 @@ func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication
 	}
 }
 
-func (o orderAppHandler) CreateOrder(ctx context.Context, request domain.OrderRequest) (*pkg.DefaultResponse, error) {
-	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
-	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
-	}
-
-	_, err = o.allRepository.AuthRepository.GetUserByEmail(ctx, claims.Email)
-	if err != nil {
-		return nil, err
-	}
-
-	product, err := o.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
-	if err != nil {
-		return nil, err
-	}
-
-	//TODO delivery fees based on location
-	deliveryFee := 1000.00
-	totalCost := deliveryFee + product.Vat
-
-	order := models.Order{
-		ID:          o.idGenerator.Generate(),
-		CustomerID:  claims.UserID,
-		DeliveryFee: deliveryFee,
-		Total:       totalCost,
-		Status:      models.OrderPending,
-		StatusTs:    time.Now().Unix(),
-		Ts:          time.Now().Unix(),
-	}
-	err = o.allRepository.OrderRepository.CreateOrder(ctx, order)
-	if err != nil {
-		return nil, err
-	}
-	return &pkg.DefaultResponse{Success: "success", Message: "Order successfully created"}, nil
-}
-
 func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*pkg.DefaultResponse, error) {
 	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	if claims.Role != models.AdminCategory {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	if claims.Role == models.VendorCategory || claims.Role == models.AdminCategory {
+
+		err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, request)
+		if err != nil {
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		}
+
+		return &pkg.DefaultResponse{Success: "success", Message: "Order status updated successfully"}, nil
 	}
-	_, err = o.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
+
+	status, err := models.SetOrderStatus(request.OrderStatus)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = models.SetOrderStatus(request.OrderStatus)
-	if err != nil {
-		return nil, err
+	if status != models.OrderCancelled {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("you cannot update this status"))
 	}
 
 	err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, request)
 	if err != nil {
-		return nil, err
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	return &pkg.DefaultResponse{Success: "success", Message: "Order status successfully updated"}, nil
+	return &pkg.DefaultResponse{Success: "success", Message: "Order status updated successfully"}, nil
 }
 
 func (o orderAppHandler) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {
@@ -129,4 +100,18 @@ func (o orderAppHandler) GetCustomerOrdersByStatus(ctx context.Context, request 
 	}
 
 	return orders, nil
+}
+
+func (o *orderAppHandler) ListOrders(ctx context.Context, request query.ResultSelector) ([]models.Order, uint64, error) {
+	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, 0, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	orders, totalRecord, err := o.allRepository.OrderRepository.ListOrders(ctx, request, claims.UserID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return orders, totalRecord, nil
 }

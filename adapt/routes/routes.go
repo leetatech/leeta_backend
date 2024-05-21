@@ -110,10 +110,11 @@ func buildAuthEndpoints(session authInterfaces.AuthHttpHandler) http.Handler {
 func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/make_order", order.CreateOrderHandler)
 	router.Put("/status", order.UpdateOrderStatusHandler)
 	router.Get("/id/{order_id}", order.GetOrderByIDHandler)
 	router.Get("/", order.GetCustomerOrdersByStatusHandler)
+	router.Put("/", order.ListOrdersHandler)
+	router.Get("/options", order.ListOrdersOptions)
 	return router
 }
 
@@ -125,14 +126,14 @@ func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.T
 	return router
 }
 
-func buildVendorEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
+func buildVendorEndpoints(handler userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
 
 	// authentication group here
 	router.Group(func(r chi.Router) {
 		r.Use(tokenHandler.ValidateMiddleware)
-		r.Post("/verification", user.VendorVerificationHandler)
-		r.Post("/admin/vendor", user.AddVendorByAdminHandler)
+		r.Post("/verification", handler.VendorVerificationHandler)
+		r.Post("/admin/vendor", handler.AddVendorByAdminHandler)
 	})
 
 	// non-authentication group here
