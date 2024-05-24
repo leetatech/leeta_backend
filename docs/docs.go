@@ -2282,11 +2282,20 @@ const docTemplate = `{
                 "payment_method": {
                     "type": "string"
                 },
+                "reason": {
+                    "type": "string"
+                },
                 "service_fee": {
                     "type": "number"
                 },
                 "status": {
                     "$ref": "#/definitions/models.OrderStatuses"
+                },
+                "status_history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.StatusHistory"
+                    }
                 },
                 "status_ts": {
                     "type": "integer"
@@ -2552,6 +2561,9 @@ const docTemplate = `{
                 },
                 "order_status": {
                     "$ref": "#/definitions/models.OrderStatuses"
+                },
+                "reason": {
+                    "type": "string"
                 }
             }
         },
@@ -2963,24 +2975,27 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "PENDING",
-                "CANCELLED",
-                "REJECTED",
+                "APPROVED",
+                "SHIPPED",
                 "COMPLETED",
-                "APPROVED"
+                "CANCELLED",
+                "REJECTED"
             ],
             "x-enum-comments": {
-                "OrderApproved": "order has been approved",
-                "OrderCancelled": "order has been cancelled by vendor or customer",
-                "OrderCompleted": "order has been processed and delivered, and verified by the customer",
-                "OrderPending": "order has been created and processing",
-                "OrderRejected": "order was rejected by vendor or customer"
+                "OrderApproved": "@name APPROVED  // order has been approved",
+                "OrderCancelled": "@name CANCELLED // order has been cancelled by vendor or customer",
+                "OrderCompleted": "@name COMPLETED // order has been processed and delivered, and verified by the customer",
+                "OrderPending": "@name PENDING    // order has been created and processing",
+                "OrderRejected": "@name REJECTED // order was rejected by vendor or customer",
+                "OrderShipped": "@name SHIPPED  // order has been shipped"
             },
             "x-enum-varnames": [
                 "OrderPending",
-                "OrderCancelled",
-                "OrderRejected",
+                "OrderApproved",
+                "OrderShipped",
                 "OrderCompleted",
-                "OrderApproved"
+                "OrderCancelled",
+                "OrderRejected"
             ]
         },
         "models.ProductCategory": {
@@ -3017,6 +3032,20 @@ const docTemplate = `{
                 "CookerSubCategory",
                 "AccessoriesSubCategory"
             ]
+        },
+        "models.StatusHistory": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.OrderStatuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                }
+            }
         },
         "models.Statuses": {
             "type": "string",

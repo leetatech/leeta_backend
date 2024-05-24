@@ -12,12 +12,14 @@ type Order struct {
 	DeliveryDetails ShippingInfo `json:"delivery_details" bson:"delivery_details"`
 	PaymentMethod   string       `json:"payment_method" bson:"payment_method"`
 	//VendorID        string        `json:"vendor_id" bson:"vendor_id"` // uncomment vendor id when sure how vendors affects individual orders
-	DeliveryFee float64       `json:"delivery_fee" bson:"delivery_fee"`
-	ServiceFee  float64       `json:"service_fee" bson:"service_fee"`
-	Total       float64       `json:"total" bson:"total"`
-	Status      OrderStatuses `json:"status" bson:"status"`
-	StatusTs    int64         `json:"status_ts" bson:"status_ts"`
-	Ts          int64         `json:"ts" bson:"ts"`
+	DeliveryFee   float64         `json:"delivery_fee" bson:"delivery_fee"`
+	ServiceFee    float64         `json:"service_fee" bson:"service_fee"`
+	Total         float64         `json:"total" bson:"total"`
+	Status        OrderStatuses   `json:"status" bson:"status"`
+	StatusHistory []StatusHistory `json:"status_history" bson:"status_history"`
+	Reason        string          `json:"reason" bson:"reason"`
+	StatusTs      int64           `json:"status_ts" bson:"status_ts"`
+	Ts            int64           `json:"ts" bson:"ts"`
 } // @name Order
 
 // ShippingInfo is the object required for shipping details of an order
@@ -32,15 +34,22 @@ type ShippingInfo struct {
 type OrderStatuses string
 
 const (
-	OrderPending   OrderStatuses = "PENDING"   // order has been created and processing
-	OrderCancelled OrderStatuses = "CANCELLED" // order has been cancelled by vendor or customer
-	OrderRejected  OrderStatuses = "REJECTED"  // order was rejected by vendor or customer
-	OrderCompleted OrderStatuses = "COMPLETED" // order has been processed and delivered, and verified by the customer
-	OrderApproved  OrderStatuses = "APPROVED"  // order has been approved
+	OrderPending   OrderStatuses = "PENDING"   // @name PENDING    // order has been created and processing
+	OrderApproved  OrderStatuses = "APPROVED"  // @name APPROVED  // order has been approved
+	OrderShipped   OrderStatuses = "SHIPPED"   // @name SHIPPED  // order has been shipped
+	OrderCompleted OrderStatuses = "COMPLETED" // @name COMPLETED // order has been processed and delivered, and verified by the customer
+	OrderCancelled OrderStatuses = "CANCELLED" // @name CANCELLED // order has been cancelled by vendor or customer
+	OrderRejected  OrderStatuses = "REJECTED"  // @name REJECTED // order was rejected by vendor or customer
 )
 
+type StatusHistory struct {
+	Status   OrderStatuses `json:"status" bson:"status"`
+	Reason   string        `json:"reason" bson:"reason"`
+	StatusTs int64         `json:"status_ts" bson:"status_ts"`
+}
+
 func IsValidOrderStatus(status OrderStatuses) bool {
-	return status == OrderPending || status == OrderCancelled || status == OrderRejected || status == OrderCompleted || status == OrderApproved
+	return status == OrderPending || status == OrderCancelled || status == OrderRejected || status == OrderCompleted || status == OrderApproved || status == OrderShipped
 }
 
 func SetOrderStatus(status OrderStatuses) (OrderStatuses, error) {

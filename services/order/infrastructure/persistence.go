@@ -42,14 +42,18 @@ func (o orderStoreHandler) CreateOrder(ctx context.Context, request models.Order
 	return nil
 }
 
-func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) error {
+func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain.PersistOrderUpdate) error {
 	filter := bson.M{
 		"id": request.OrderId,
 	}
 	update := bson.M{
 		"$set": bson.M{
 			"status":    request.OrderStatus,
+			"reason":    request.Reason,
 			"status_ts": time.Now().Unix(),
+		},
+		"$push": bson.M{
+			"status_history": request.StatusHistory,
 		},
 	}
 
