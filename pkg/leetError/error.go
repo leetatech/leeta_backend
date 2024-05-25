@@ -54,6 +54,7 @@ const (
 	InvalidProductIdError        ErrorCode = 1041
 	InvalidDeliveryFeeError      ErrorCode = 1042
 	InvalidServiceFeeError       ErrorCode = 1043
+	RestrictedAccessError        ErrorCode = 1044
 )
 
 var (
@@ -101,6 +102,7 @@ var (
 		InvalidProductIdError:        "InvalidProductIdError",
 		InvalidDeliveryFeeError:      "InvalidDeliveryFeeError",
 		InvalidServiceFeeError:       "InvalidServiceFeeError",
+		RestrictedAccessError:        "RestrictedAccessError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -147,6 +149,7 @@ var (
 		InvalidProductIdError:        "An error occurred because the product id is invalid",
 		InvalidDeliveryFeeError:      "An error occurred because the delivery fee is invalid",
 		InvalidServiceFeeError:       "An error occurred because the service fee is invalid",
+		RestrictedAccessError:        "User do not have authorization to access this endpoint",
 	}
 )
 
@@ -178,14 +181,13 @@ func ErrorResponseBody(code ErrorCode, err error) error {
 		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
 		Message:        errorMessages[code],
-		Err:            err.Error(),
 		File:           file,
 		Line:           line,
 		TimeStamp:      time.Now().Format(time.RFC3339),
 	}
 
 	// Capture stack trace if available
-	errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err).Error())
+	errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err))
 
 	return errorResponse
 }

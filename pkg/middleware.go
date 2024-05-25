@@ -108,6 +108,7 @@ func (handler *TokenHandler) putClaimsOnContext(ctx context.Context, claims *Use
 	if err != nil {
 		return nil, err
 	}
+
 	return metadata.AppendToOutgoingContext(ctx, AuthenticatedUserMetadataKey, string(jsonClaims)), nil
 }
 
@@ -116,7 +117,7 @@ func (handler *TokenHandler) ValidateMiddleware(next http.Handler) http.Handler 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorizationHeader := r.Header.Get("authorization")
 		if authorizationHeader != "" {
-			handler.validateHeaderToken(authorizationHeader, next, w, r)
+			handler.validateHeaderToken(authorizationHeader, next, w, r, false)
 		} else {
 			handler.logger.Error("ParseToken", zap.Error(errors.New("no token supplied")))
 			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
@@ -126,7 +127,24 @@ func (handler *TokenHandler) ValidateMiddleware(next http.Handler) http.Handler 
 	})
 }
 
-func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, next http.Handler, w http.ResponseWriter, r *http.Request) {
+// ValidateRestrictedAccessMiddleware middleware required endpoints: verify claims
+// extensively check if they have superior access to these endpoints
+// and put claims on context
+func (handler *TokenHandler) ValidateRestrictedAccessMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authorizationHeader := r.Header.Get("authorization")
+		if authorizationHeader != "" {
+			handler.validateHeaderToken(authorizationHeader, next, w, r, true)
+		} else {
+			handler.logger.Error("ParseToken", zap.Error(errors.New("no token supplied")))
+			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
+			return
+		}
+
+	})
+}
+
+func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, next http.Handler, w http.ResponseWriter, r *http.Request, isAdminPrivileged bool) {
 	bearerToken := strings.Split(authorizationHeader, " ")
 	if len(bearerToken) == 1 {
 		handler.logger.Error("bearerToken", zap.Error(errors.New("no token supplied")))
@@ -140,7 +158,7 @@ func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, nex
 			return
 		}
 
-		token, err := handler.ParseToken(bearerToken[1])
+		claims, err := handler.ParseToken(bearerToken[1])
 		if err != nil {
 
 			handler.logger.Error("ParseToken", zap.Error(err))
@@ -148,7 +166,14 @@ func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, nex
 
 			return
 		}
-		ctx, _ := handler.putClaimsOnContext(r.Context(), token)
+
+		// validate that user if user has permission to access the endpoint
+		if claims.Role == models.CustomerCategory {
+			EncodeResult(w, leetError.ErrorResponseBody(leetError.RestrictedAccessError, err), http.StatusUnauthorized)
+			return
+		}
+
+		ctx, _ := handler.putClaimsOnContext(r.Context(), claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 	}

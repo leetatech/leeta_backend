@@ -143,7 +143,7 @@ func buildVendorEndpoints(handler userInterfaces.UserHttpHandler, tokenHandler *
 
 func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
-	router.Use(tokenHandler.ValidateMiddleware)
+	router.Use(tokenHandler.ValidateRestrictedAccessMiddleware)
 	router.Post("/create", product.CreateProductHandler)
 	router.Post("/", product.CreateGasProductHandler)
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
