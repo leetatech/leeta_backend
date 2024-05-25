@@ -167,10 +167,12 @@ func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, nex
 			return
 		}
 
-		// validate that user if user has permission to access the endpoint
-		if claims.Role == models.CustomerCategory {
-			EncodeResult(w, leetError.ErrorResponseBody(leetError.RestrictedAccessError, err), http.StatusUnauthorized)
-			return
+		if isAdminPrivileged {
+			// validate that user if user has permission to access the endpoint
+			if claims.Role == models.CustomerCategory {
+				EncodeResult(w, leetError.ErrorResponseBody(leetError.RestrictedAccessError, err), http.StatusUnauthorized)
+				return
+			}
 		}
 
 		ctx, _ := handler.putClaimsOnContext(r.Context(), claims)

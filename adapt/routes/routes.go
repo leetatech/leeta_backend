@@ -128,6 +128,7 @@ func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.T
 
 func buildVendorEndpoints(handler userInterfaces.UserHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
+	router.Use(tokenHandler.ValidateRestrictedAccessMiddleware)
 
 	// authentication group here
 	router.Group(func(r chi.Router) {
@@ -143,13 +144,21 @@ func buildVendorEndpoints(handler userInterfaces.UserHttpHandler, tokenHandler *
 
 func buildProductEndpoints(product productInterfaces.ProductHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
-	router.Use(tokenHandler.ValidateRestrictedAccessMiddleware)
-	router.Post("/create", product.CreateProductHandler)
-	router.Post("/", product.CreateGasProductHandler)
+	router.Use(tokenHandler.ValidateMiddleware)
+
+	// Restricted route group
+	router.Route("/", func(r chi.Router) {
+		r.Use(tokenHandler.ValidateRestrictedAccessMiddleware)
+		r.Post("/", product.CreateGasProductHandler)
+	})
+
+	// Unrestricted routes
 	router.Get("/id/{product_id}", product.GetProductByIDHandler)
 	router.Get("/", product.GetAllVendorProductsHandler)
 	router.Put("/", product.ListProductsHandler)
 	router.Get("/options", product.ListProductOptions)
+	router.Post("/create", product.CreateProductHandler)
+
 	return router
 }
 
@@ -179,9 +188,13 @@ func buildCartEndpoints(handler cartInterfaces.CartHttpHandler, tokenHandler *pk
 
 func buildFeesEndpoints(handler feesInterfaces.FeesHttpHandler, tokenHandler *pkg.TokenHandler) http.Handler {
 	router := chi.NewRouter()
-
 	router.Use(tokenHandler.ValidateMiddleware)
-	router.Post("/", handler.CreateFeeHandler)
+
+	// Restricted route group
+	router.Route("/", func(r chi.Router) {
+		r.Use(tokenHandler.ValidateRestrictedAccessMiddleware)
+		router.Post("/", handler.CreateFeeHandler)
+	})
 	router.Put("/", handler.FetchFeesHandler)
 	router.Get("/options", handler.ListFeesOptions)
 	return router
