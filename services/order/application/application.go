@@ -28,6 +28,7 @@ type OrderApplication interface {
 	GetOrderByID(ctx context.Context, id string) (*models.Order, error)
 	GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error)
 	ListOrders(ctx context.Context, request query.ResultSelector) ([]models.Order, uint64, error)
+	ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error)
 }
 
 func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication {
@@ -127,4 +128,18 @@ func (o *orderAppHandler) ListOrders(ctx context.Context, request query.ResultSe
 	}
 
 	return orders, totalRecord, nil
+}
+
+func (o orderAppHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
+	_, err := o.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	statusHistory, err := o.allRepository.OrderRepository.ListOrderStatusHistory(ctx, orderId)
+	if err != nil {
+		return nil, err
+	}
+
+	return statusHistory, nil
 }

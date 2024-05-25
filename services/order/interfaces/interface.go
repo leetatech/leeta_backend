@@ -165,6 +165,29 @@ func (handler *OrderHttpHandler) ListOrdersOptions(w http.ResponseWriter, r *htt
 	pkg.EncodeResult(w, requestOptions, http.StatusOK)
 }
 
+// ListOrderStatusHistoryHandler godoc
+// @Summary Get Order Status History
+// @Description The endpoint takes the order id and then returns the requested order status history
+// @Tags Order
+// @Accept json
+// @produce json
+// @Param			order_id	path		string	true	"order id"
+// @Security BearerToken
+// @success 200 {object} []models.StatusHistory
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /order/status/history/{order_id} [get]
+func (handler *OrderHttpHandler) ListOrderStatusHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	orderID := chi.URLParam(r, "order_id")
+	statusHistory, err := handler.OrderApplication.ListOrderStatusHistory(r.Context(), orderID)
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+
+	pkg.EncodeResult(w, statusHistory, http.StatusOK)
+}
+
 func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
 	return options
 }

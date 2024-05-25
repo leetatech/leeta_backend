@@ -219,3 +219,20 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 
 	return orders, uint64(totalRecord), nil
 }
+
+func (o orderStoreHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
+	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"id": orderId,
+	}
+
+	order := &models.Order{}
+	err := o.col(models.OrderCollectionName).FindOne(updatedCtx, filter).Decode(order)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return order.StatusHistory, nil
+}
