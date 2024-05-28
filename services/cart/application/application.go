@@ -76,7 +76,7 @@ func (c *CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem)
 
 	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, product.ID, models.FeesActive)
 	if err != nil {
-		return cart, leetError.ErrorResponseBody(leetError.InvalidProductIdError, fmt.Errorf("error getting fee %w", err))
+		return cart, leetError.ErrorResponseBody(leetError.FeesError, fmt.Errorf("error getting fee %w", err))
 	}
 
 	cartItem := models.CartItem{
@@ -97,7 +97,7 @@ func (c *CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem)
 	if err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNoDocuments):
-			addToCartErr := c.allRepository.CartRepository.AddToCart(ctx, models.Cart{
+			cart = models.Cart{
 				ID:         c.idGenerator.Generate(),
 				CustomerID: claims.UserID,
 				CartItems:  []models.CartItem{cartItem},
@@ -105,7 +105,9 @@ func (c *CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem)
 				Status:     models.CartActive,
 				StatusTs:   time.Now().Unix(),
 				Ts:         time.Now().Unix(),
-			})
+			}
+
+			addToCartErr := c.allRepository.CartRepository.AddToCart(ctx, cart)
 			if addToCartErr != nil {
 				return cart, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error when adding item to cart store %w", addToCartErr))
 			}
@@ -167,6 +169,7 @@ func (c *CartAppHandler) UpdateCartItemQuantity(ctx context.Context, request dom
 	if err != nil {
 		return updatedCart, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error retrieving cartItem: %w", err))
 	}
+
 	adjustedCartItem, err := c.adjustCartItemAndCalculateCost(ctx, cartItem)
 	if err != nil {
 		return updatedCart, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error adjust cart item and calculating cost: %w", err))
