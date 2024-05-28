@@ -37,7 +37,7 @@ func BuildMongoFilterQuery(requestFilter *filter.Request) bson.M {
 	switch requestFilter.Operator {
 	case "and":
 		for _, field := range requestFilter.Fields {
-			if field.Operator == "in" {
+			if field.Operator == filter.CompareOperatorLike {
 				query[field.Name] = bson.M{"$in": field.Value}
 			} else {
 				query[field.Name] = field.Value
