@@ -2,6 +2,8 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/query"
@@ -231,6 +233,9 @@ func (o orderStoreHandler) ListOrderStatusHistory(ctx context.Context, orderId s
 	order := &models.Order{}
 	err := o.col(models.OrderCollectionName).FindOne(updatedCtx, filter).Decode(order)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, fmt.Errorf("order with id %s not found", orderId))
+		}
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
