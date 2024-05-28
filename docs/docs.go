@@ -2117,10 +2117,12 @@ const docTemplate = `{
         "CompareOperator": {
             "type": "string",
             "enum": [
-                "isEqualTo"
+                "isEqualTo",
+                "like"
             ],
             "x-enum-varnames": [
-                "CompareOperatorIsEqualTo"
+                "CompareOperatorIsEqualTo",
+                "CompareOperatorLike"
             ]
         },
         "ControlType": {
@@ -2339,9 +2341,6 @@ const docTemplate = `{
                 },
                 "service_fee": {
                     "type": "number"
-                },
-                "status": {
-                    "$ref": "#/definitions/models.OrderStatuses"
                 },
                 "status_history": {
                     "type": "array",
@@ -2799,7 +2798,9 @@ const docTemplate = `{
                 1040,
                 1041,
                 1042,
-                1043
+                1043,
+                1044,
+                1045
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2847,7 +2848,9 @@ const docTemplate = `{
                 "InternalError",
                 "InvalidProductIdError",
                 "InvalidDeliveryFeeError",
-                "InvalidServiceFeeError"
+                "InvalidServiceFeeError",
+                "RestrictedAccessError",
+                "FeesError"
             ]
         },
         "leetError.ErrorResponse": {

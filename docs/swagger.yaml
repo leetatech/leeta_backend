@@ -108,9 +108,11 @@ definitions:
   CompareOperator:
     enum:
     - isEqualTo
+    - like
     type: string
     x-enum-varnames:
     - CompareOperatorIsEqualTo
+    - CompareOperatorLike
   ControlType:
     enum:
     - string
@@ -253,8 +255,6 @@ definitions:
         type: string
       service_fee:
         type: number
-      status:
-        $ref: '#/definitions/models.OrderStatuses'
       status_history:
         items:
           $ref: '#/definitions/models.StatusHistory'
@@ -567,6 +567,8 @@ definitions:
     - 1041
     - 1042
     - 1043
+    - 1044
+    - 1045
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -614,6 +616,8 @@ definitions:
     - InvalidProductIdError
     - InvalidDeliveryFeeError
     - InvalidServiceFeeError
+    - RestrictedAccessError
+    - FeesError
   leetError.ErrorResponse:
     properties:
       error_code:
