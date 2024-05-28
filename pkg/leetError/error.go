@@ -55,6 +55,7 @@ const (
 	InvalidDeliveryFeeError      ErrorCode = 1042
 	InvalidServiceFeeError       ErrorCode = 1043
 	RestrictedAccessError        ErrorCode = 1044
+	FeesError                    ErrorCode = 1045
 )
 
 var (
@@ -103,6 +104,7 @@ var (
 		InvalidDeliveryFeeError:      "InvalidDeliveryFeeError",
 		InvalidServiceFeeError:       "InvalidServiceFeeError",
 		RestrictedAccessError:        "RestrictedAccessError",
+		FeesError:                    "FeesError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -150,6 +152,7 @@ var (
 		InvalidDeliveryFeeError:      "An error occurred because the delivery fee is invalid",
 		InvalidServiceFeeError:       "An error occurred because the service fee is invalid",
 		RestrictedAccessError:        "User do not have authorization to access this endpoint",
+		FeesError:                    "There is an error with the application fees",
 	}
 )
 
