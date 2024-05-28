@@ -41,15 +41,17 @@ func (p productStoreHandler) CreateProduct(ctx context.Context, request models.P
 	return nil
 }
 
-func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (product models.Product, err error) {
+func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (models.Product, error) {
 	filter := bson.M{
 		"id": id,
 	}
 
+	product := models.Product{}
+
 	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	err = p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(&product)
+	err := p.col(models.ProductCollectionName).FindOne(updatedCtx, filter).Decode(&product)
 	if err != nil {
 		return product, err
 	}
