@@ -129,7 +129,7 @@ func (f *FeesHandler) validateFeeRequest(ctx context.Context, request domain.Fee
 		if err != nil {
 			f.logger.Error("get product by id", zap.Error(err))
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				return leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+				return leetError.ErrorResponseBody(leetError.InvalidProductIdError, err)
 			}
 			return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 		}

@@ -76,7 +76,7 @@ func (c *CartAppHandler) AddToCart(ctx context.Context, request domain.CartItem)
 
 	fee, err := c.allRepository.FeesRepository.GetFeeByProductID(ctx, product.ID, models.FeesActive)
 	if err != nil {
-		return cart, leetError.ErrorResponseBody(leetError.InvalidProductIdError, fmt.Errorf("error getting fee %w", err))
+		return cart, leetError.ErrorResponseBody(leetError.FeesError, fmt.Errorf("error getting fee %w", err))
 	}
 
 	cartItem := models.CartItem{
