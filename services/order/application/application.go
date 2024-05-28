@@ -10,6 +10,7 @@ import (
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"go.uber.org/zap"
+	"time"
 )
 
 type orderAppHandler struct {
@@ -27,6 +28,7 @@ type OrderApplication interface {
 	GetOrderByID(ctx context.Context, id string) (*models.Order, error)
 	GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error)
 	ListOrders(ctx context.Context, request query.ResultSelector) ([]models.Order, uint64, error)
+	ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error)
 }
 
 func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication {
@@ -47,14 +49,17 @@ func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.U
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
 	}
 
-	if claims.Role == models.VendorCategory || claims.Role == models.AdminCategory {
+	if request.Reason == "" {
+		return nil, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("reason is required"))
+	}
 
-		err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, request)
-		if err != nil {
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
-		}
-
-		return &pkg.DefaultResponse{Success: "success", Message: "Order status updated successfully"}, nil
+	persistUpdate := domain.PersistOrderUpdate{
+		UpdateOrderStatusRequest: request,
+		StatusHistory: models.StatusHistory{
+			Status:   request.OrderStatus,
+			Reason:   request.Reason,
+			StatusTs: time.Now().Unix(),
+		},
 	}
 
 	status, err := models.SetOrderStatus(request.OrderStatus)
@@ -62,11 +67,20 @@ func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.U
 		return nil, err
 	}
 
+	if claims.Role == models.VendorCategory || claims.Role == models.AdminCategory {
+		err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, persistUpdate)
+		if err != nil {
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		}
+
+		return &pkg.DefaultResponse{Success: "success", Message: "Order status updated successfully"}, nil
+	}
+
 	if status != models.OrderCancelled {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("you cannot update this status"))
 	}
 
-	err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, request)
+	err = o.allRepository.OrderRepository.UpdateOrderStatus(ctx, persistUpdate)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
@@ -114,4 +128,18 @@ func (o *orderAppHandler) ListOrders(ctx context.Context, request query.ResultSe
 	}
 
 	return orders, totalRecord, nil
+}
+
+func (o orderAppHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
+	_, err := o.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	statusHistory, err := o.allRepository.OrderRepository.ListOrderStatusHistory(ctx, orderId)
+	if err != nil {
+		return nil, err
+	}
+
+	return statusHistory, nil
 }

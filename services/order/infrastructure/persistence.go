@@ -2,6 +2,8 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/query"
@@ -42,14 +44,18 @@ func (o orderStoreHandler) CreateOrder(ctx context.Context, request models.Order
 	return nil
 }
 
-func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) error {
+func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain.PersistOrderUpdate) error {
 	filter := bson.M{
 		"id": request.OrderId,
 	}
 	update := bson.M{
 		"$set": bson.M{
 			"status":    request.OrderStatus,
+			"reason":    request.Reason,
 			"status_ts": time.Now().Unix(),
+		},
+		"$push": bson.M{
+			"status_history": request.StatusHistory,
 		},
 	}
 
@@ -214,4 +220,24 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 	}
 
 	return orders, uint64(totalRecord), nil
+}
+
+func (o orderStoreHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
+	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"id": orderId,
+	}
+
+	order := &models.Order{}
+	err := o.col(models.OrderCollectionName).FindOne(updatedCtx, filter).Decode(order)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, fmt.Errorf("order with id %s not found", orderId))
+		}
+		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+
+	return order.StatusHistory, nil
 }
