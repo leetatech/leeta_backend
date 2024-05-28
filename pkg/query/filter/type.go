@@ -30,8 +30,9 @@ const (
 )
 
 const (
-	CompareOperatorIsEqualTo CompareOperator = "isEqualTo"
-	CompareOperatorLike      CompareOperator = "like"
+	CompareOperatorIsEqualTo      CompareOperator = "isEqualTo"
+	CompareOperatorIsEqualToArray CompareOperator = "isEqualToArray"
+	CompareOperatorLike           CompareOperator = "like"
 )
 
 type ControlType string // @name ControlType
@@ -40,6 +41,8 @@ type ControlType string // @name ControlType
 CompareOperator ENUM(
 
 	isEqualTo
+	isEqualToArray
+	like
 
 )
 */

@@ -13,7 +13,11 @@ type Request struct {
 // Field Operator: The comparison operator for the field
 // Field Value: The value of the field, which can be a list of values or a single value
 type RequestField struct {
-	Name     string          `json:"name" binding:"required"`
+	Name string `json:"name" binding:"required"`
+	// Operator can be isEqualTo, isEqualToArray, or like
+	// * isEqualTo - value = ["1234"], array is expected to be length of 1 and comparison will be value = "1234".
+	// * isEqualToArray - value = ["1234", "5678"], array can be any length and comparison will be value = ["1234", "5678"].
+	// * like - value = ["1234", "5678"],  array can be any length and comparison can either be value = "1234" or value = "5678" or both.
 	Operator CompareOperator `json:"operator" binding:"required"`
 	// Value can be a list of values or a value
 	Value any `json:"value" binding:"required"`

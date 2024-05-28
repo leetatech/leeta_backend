@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"reflect"
 )
 
 func MongoDBClient(ctx context.Context, config *config.ServerConfig) (*mongo.Client, error) {
@@ -37,23 +38,49 @@ func BuildMongoFilterQuery(requestFilter *filter.Request) bson.M {
 	switch requestFilter.Operator {
 	case "and":
 		for _, field := range requestFilter.Fields {
-			if field.Operator == filter.CompareOperatorLike {
-				query[field.Name] = bson.M{"$in": field.Value}
-			} else {
-				query[field.Name] = field.Value
-			}
+			query = andLogicOperator(query, field)
 		}
 	case "or":
 		var orConditions []bson.M
 		for _, field := range requestFilter.Fields {
-			if field.Operator == filter.CompareOperatorLike {
-				orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
-			} else {
-				orConditions = append(orConditions, bson.M{field.Name: field.Value})
-			}
+			orConditions = orLogicOperator(field)
 		}
 		query["$or"] = orConditions
 	}
+	return query
+}
+
+func andLogicOperator(query bson.M, field filter.RequestField) bson.M {
+	if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
+		switch field.Operator {
+		case filter.CompareOperatorLike:
+			query[field.Name] = bson.M{"$in": field.Value}
+		case filter.CompareOperatorIsEqualToArray:
+			query[field.Name] = bson.M{"eq": field.Value}
+		case filter.CompareOperatorIsEqualTo:
+			query[field.Name] = field.Value.([]interface{})[0]
+		}
+	} else {
+		query[field.Name] = field.Value
+	}
 
 	return query
+}
+
+func orLogicOperator(field filter.RequestField) []bson.M {
+	var orConditions []bson.M
+	if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
+		switch field.Operator {
+		case filter.CompareOperatorLike:
+			orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
+		case filter.CompareOperatorIsEqualToArray:
+			orConditions = append(orConditions, bson.M{field.Name: bson.M{"$eq": field.Value}})
+		case filter.CompareOperatorIsEqualTo:
+			orConditions = append(orConditions, bson.M{field.Name: field.Value.([]interface{})[0]})
+		}
+	} else {
+		orConditions = append(orConditions, bson.M{field.Name: field.Value})
+	}
+
+	return orConditions
 }
