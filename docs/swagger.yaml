@@ -108,9 +108,11 @@ definitions:
   CompareOperator:
     enum:
     - isEqualTo
+    - like
     type: string
     x-enum-varnames:
     - CompareOperatorIsEqualTo
+    - CompareOperatorLike
   ControlType:
     enum:
     - string
@@ -249,10 +251,14 @@ definitions:
         type: array
       payment_method:
         type: string
+      reason:
+        type: string
       service_fee:
         type: number
-      status:
-        $ref: '#/definitions/models.OrderStatuses'
+      status_history:
+        items:
+          $ref: '#/definitions/models.StatusHistory'
+        type: array
       status_ts:
         type: integer
       total:
@@ -426,6 +432,8 @@ definitions:
         type: string
       order_status:
         $ref: '#/definitions/models.OrderStatuses'
+      reason:
+        type: string
     type: object
   domain.GasProductRequest:
     properties:
@@ -559,6 +567,8 @@ definitions:
     - 1041
     - 1042
     - 1043
+    - 1044
+    - 1045
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -606,6 +616,8 @@ definitions:
     - InvalidProductIdError
     - InvalidDeliveryFeeError
     - InvalidServiceFeeError
+    - RestrictedAccessError
+    - FeesError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -727,24 +739,27 @@ definitions:
   models.OrderStatuses:
     enum:
     - PENDING
+    - APPROVED
+    - SHIPPED
+    - COMPLETED
     - CANCELLED
     - REJECTED
-    - COMPLETED
-    - APPROVED
     type: string
     x-enum-comments:
-      OrderApproved: order has been approved
-      OrderCancelled: order has been cancelled by vendor or customer
-      OrderCompleted: order has been processed and delivered, and verified by the
-        customer
-      OrderPending: order has been created and processing
-      OrderRejected: order was rejected by vendor or customer
+      OrderApproved: '@name APPROVED  // order has been approved'
+      OrderCancelled: '@name CANCELLED // order has been cancelled by vendor or customer'
+      OrderCompleted: '@name COMPLETED // order has been processed and delivered,
+        and verified by the customer'
+      OrderPending: '@name PENDING    // order has been created and processing'
+      OrderRejected: '@name REJECTED // order was rejected by vendor or customer'
+      OrderShipped: '@name SHIPPED  // order has been shipped'
     x-enum-varnames:
     - OrderPending
+    - OrderApproved
+    - OrderShipped
+    - OrderCompleted
     - OrderCancelled
     - OrderRejected
-    - OrderCompleted
-    - OrderApproved
   models.ProductCategory:
     enum:
     - LPG
@@ -771,6 +786,15 @@ definitions:
     - CylinderSubCategory
     - CookerSubCategory
     - AccessoriesSubCategory
+  models.StatusHistory:
+    properties:
+      reason:
+        type: string
+      status:
+        $ref: '#/definitions/models.OrderStatuses'
+      status_ts:
+        type: integer
+    type: object
   models.Statuses:
     enum:
     - SIGNEDUP
@@ -1351,6 +1375,40 @@ paths:
       security:
       - BearerToken: []
       summary: Update Order Status
+      tags:
+      - Order
+  /order/status/history/{order_id}:
+    get:
+      consumes:
+      - application/json
+      description: The endpoint takes the order id and then returns the requested
+        order status history
+      parameters:
+      - description: order id
+        in: path
+        name: order_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StatusHistory'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Get Order Status History
       tags:
       - Order
   /product/:

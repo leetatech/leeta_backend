@@ -24,7 +24,13 @@ type OrderResponse struct {
 type UpdateOrderStatusRequest struct {
 	OrderId     string               `json:"order_id" bson:"order_id"`
 	OrderStatus models.OrderStatuses `json:"order_status" bson:"order_status"`
+	Reason      string               `json:"reason" bson:"reason"`
 } // @name UpdateOrderStatusRequest
+
+type PersistOrderUpdate struct {
+	UpdateOrderStatusRequest
+	StatusHistory models.StatusHistory `json:"status_history" bson:"status_history"`
+}
 
 type GetCustomerOrders struct {
 	UserId string `json:"user_id" bson:"user_id"`

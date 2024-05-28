@@ -115,6 +115,7 @@ func buildOrderEndpoints(order orderInterfaces.OrderHttpHandler, tokenHandler *p
 	router.Get("/", order.GetCustomerOrdersByStatusHandler)
 	router.Put("/", order.ListOrdersHandler)
 	router.Get("/options", order.ListOrdersOptions)
+	router.Get("/status/history/{order_id}", order.ListOrderStatusHistoryHandler)
 	return router
 }
 

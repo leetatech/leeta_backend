@@ -310,6 +310,13 @@ func (c *CartAppHandler) performCheckout(ctx context.Context, userID string, req
 		return leetError.ErrorResponseBody(leetError.AmountPaidError, errors.New("amount paid does not match total cost"))
 	}
 
+	orderStatus := []models.StatusHistory{
+		{
+			Status:   models.OrderPending,
+			StatusTs: time.Now().Unix(),
+		},
+	}
+
 	order := models.Order{
 		ID:              c.idGenerator.Generate(),
 		Orders:          cart.CartItems,
@@ -319,7 +326,7 @@ func (c *CartAppHandler) performCheckout(ctx context.Context, userID string, req
 		DeliveryFee:     request.DeliveryFee,
 		ServiceFee:      request.ServiceFee,
 		Total:           request.TotalFee,
-		Status:          models.OrderPending,
+		StatusHistory:   orderStatus,
 		StatusTs:        time.Now().Unix(),
 		Ts:              time.Now().Unix(),
 	}
