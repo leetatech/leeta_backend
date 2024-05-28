@@ -15,7 +15,6 @@ type Order struct {
 	DeliveryFee   float64         `json:"delivery_fee" bson:"delivery_fee"`
 	ServiceFee    float64         `json:"service_fee" bson:"service_fee"`
 	Total         float64         `json:"total" bson:"total"`
-	Status        OrderStatuses   `json:"status" bson:"status"`
 	StatusHistory []StatusHistory `json:"status_history" bson:"status_history"`
 	Reason        string          `json:"reason" bson:"reason"`
 	StatusTs      int64           `json:"status_ts" bson:"status_ts"`
