@@ -27,22 +27,30 @@ func GetPaginatedOpts(limit, page int64) *options.FindOptions {
 	return &fOpt
 }
 
-func BuildMongoFilterQuery(filter *filter.Request) bson.M {
+func BuildMongoFilterQuery(requestFilter *filter.Request) bson.M {
 	query := bson.M{}
 
-	if filter == nil {
+	if requestFilter == nil {
 		return query
 	}
 
-	switch filter.Operator {
+	switch requestFilter.Operator {
 	case "and":
-		for _, field := range filter.Fields {
-			query[field.Name] = field.Value
+		for _, field := range requestFilter.Fields {
+			if field.Operator == filter.CompareOperatorLike {
+				query[field.Name] = bson.M{"$in": field.Value}
+			} else {
+				query[field.Name] = field.Value
+			}
 		}
 	case "or":
 		var orConditions []bson.M
-		for _, field := range filter.Fields {
-			orConditions = append(orConditions, bson.M{field.Name: field.Value})
+		for _, field := range requestFilter.Fields {
+			if field.Operator == filter.CompareOperatorLike {
+				orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
+			} else {
+				orConditions = append(orConditions, bson.M{field.Name: field.Value})
+			}
 		}
 		query["$or"] = orConditions
 	}
