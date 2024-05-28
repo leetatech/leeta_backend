@@ -31,6 +31,7 @@ const (
 
 const (
 	CompareOperatorIsEqualTo CompareOperator = "isEqualTo"
+	CompareOperatorLike      CompareOperator = "like"
 )
 
 type ControlType string // @name ControlType
