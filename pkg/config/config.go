@@ -26,6 +26,7 @@ type ServerConfig struct {
 	Postmark   PostmarkConfig
 	Leeta      LeetaConfig
 	NgnStates  NgnStatesConfig // configure resource API to retrieve NGN states
+	AWSConfig  AWSConfig
 }
 
 type DatabaseConfig struct {
@@ -44,11 +45,19 @@ type PostmarkConfig struct {
 }
 
 type LeetaConfig struct {
-	Domain string `env:"DOMAIN"`
+	Domain            string `env:"DOMAIN"`
+	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL" envDefault:"waire.tega@gmail.com"`
+	DoNotReplyEmail   string `env:"LEETA_DONOTREPLY_EMAIL"`
 }
 
 type NgnStatesConfig struct {
 	URL string `env:"URL" envDefault:"https://api.facts.ng/v1"`
+}
+
+type AWSConfig struct {
+	Region   string `env:"AWS_REGION"`
+	Endpoint string `env:"AWS_ENDPOINT"`
+	Secret   string `env:"AWS_SECRET"`
 }
 
 func LoadEnv(configFile string) error {
@@ -72,6 +81,7 @@ func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
 		&serverConfig.Postmark,
 		&serverConfig.Leeta,
 		&serverConfig.NgnStates,
+		&serverConfig.AWSConfig,
 	}
 
 	for _, target := range targets {

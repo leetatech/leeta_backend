@@ -5,7 +5,8 @@ import (
 	"errors"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
@@ -19,7 +20,8 @@ type orderAppHandler struct {
 	idGenerator   pkg.IDGenerator
 	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
-	EmailClient   mailer.MailerClient
+	EmailClient   postmarkClient.MailerClient
+	AWSClient     awsClient.AWSClient
 	allRepository pkg.Repositories
 }
 
@@ -39,6 +41,7 @@ func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication
 		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
+		AWSClient:     request.AWSClient,
 		allRepository: request.AllRepository,
 	}
 }

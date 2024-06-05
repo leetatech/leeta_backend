@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -20,8 +22,9 @@ type authAppHandler struct {
 	idGenerator   pkg.IDGenerator
 	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
-	EmailClient   mailer.MailerClient
-	Domain        string
+	EmailClient   postmarkClient.MailerClient
+	AWSClient     awsClient.AWSClient
+	LeetaConfig   config.LeetaConfig
 	allRepository pkg.Repositories
 }
 
@@ -47,7 +50,8 @@ func NewAuthApplication(request pkg.DefaultApplicationRequest) AuthApplication {
 		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
-		Domain:        request.Domain,
+		AWSClient:     request.AWSClient,
+		LeetaConfig:   request.LeetaConfig,
 		allRepository: request.AllRepository,
 	}
 }
@@ -277,7 +281,7 @@ func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSig
 		return nil, err
 	}
 
-	err = a.encryptor.IsLeetaDomain(request.Email, a.Domain)
+	err = a.encryptor.IsLeetaDomain(request.Email, a.LeetaConfig.Domain)
 	if err != nil {
 		a.logger.Error("AdminSignUp", zap.Error(err))
 		return nil, err

@@ -1,8 +1,10 @@
 package pkg
 
 import (
+	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
@@ -32,8 +34,9 @@ type DefaultApplicationRequest struct {
 	TokenHandler  TokenHandler
 	Logger        *zap.Logger
 	AllRepository Repositories
-	EmailClient   mailer.MailerClient
-	Domain        string
+	EmailClient   postmarkClient.MailerClient
+	AWSClient     awsClient.AWSClient
+	LeetaConfig   config.LeetaConfig
 }
 
 type DefaultErrorResponse struct {

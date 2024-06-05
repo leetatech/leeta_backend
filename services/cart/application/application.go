@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg/query/paging"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,7 +25,7 @@ type CartAppHandler struct {
 	idGenerator   pkg.IDGenerator
 	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
-	EmailClient   mailer.MailerClient
+	EmailClient   postmarkClient.MailerClient
 	allRepository pkg.Repositories
 }
 

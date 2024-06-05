@@ -1,4 +1,4 @@
-package mailer
+package postmarkClient
 
 type EmailWithTemplateResponse struct {
 	To          string `json:"To"`

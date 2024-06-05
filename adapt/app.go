@@ -8,6 +8,8 @@ import (
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
+	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -22,8 +24,6 @@ import (
 	cartInterface "github.com/leetatech/leeta_backend/services/cart/interfaces"
 
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
-
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
@@ -53,7 +53,8 @@ type Application struct {
 	Db           *mongo.Client
 	Ctx          context.Context
 	Router       *chi.Mux
-	EmailClient  mailer.MailerClient
+	EmailClient  postmarkClient.MailerClient
+	AWSClient    awsClient.AWSClient
 	Repositories pkg.Repositories
 }
 
@@ -85,7 +86,16 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 		return nil, errors.New("error pinging database")
 	}
 
-	app.EmailClient = mailer.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
+	app.EmailClient = postmarkClient.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
+
+	app.AWSClient = awsClient.AWSClient{
+		Config: app.Config,
+		Log:    app.Logger,
+	}
+	err = app.AWSClient.ConnectAWS()
+	if err != nil {
+		return nil, err
+	}
 
 	tokenHandler, err := pkg.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
 	if err != nil {
@@ -167,7 +177,8 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		Logger:        app.Logger,
 		AllRepository: allRepositories,
 		EmailClient:   app.EmailClient,
-		Domain:        app.Config.Leeta.Domain,
+		AWSClient:     app.AWSClient,
+		LeetaConfig:   app.Config.Leeta,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(request)

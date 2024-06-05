@@ -6,6 +6,7 @@ const (
 	EarlyAccessEmailTemplateID    = "EarlyAccess"
 	ForgotPasswordEmailTemplateID = "ForgotPassword"
 	AdminSignUpEmailTemplateID    = "AdminSignUp"
+	VerifySignUPTemplatePath      = "verify_signup.page.gohtml"
 )
 
 const (

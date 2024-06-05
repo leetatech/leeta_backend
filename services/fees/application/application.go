@@ -6,7 +6,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg/query/paging"
@@ -22,7 +22,7 @@ type FeesHandler struct {
 	idGenerator   pkg.IDGenerator
 	tokenHandler  pkg.TokenHandler
 	logger        *zap.Logger
-	EmailClient   mailer.MailerClient
+	EmailClient   postmarkClient.MailerClient
 	allRepository pkg.Repositories
 }
 

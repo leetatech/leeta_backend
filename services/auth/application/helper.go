@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
@@ -14,6 +15,55 @@ import (
 )
 
 var invalidAppErr = errors.New("you are on the wrong app")
+
+func (a authAppHandler) accountVerification(ctx context.Context, fullName, userID, target, templateAlias string, userCategory models.UserCategory) error {
+	requestOTP := domain.OTPRequest{
+		Topic:        "Sign Up",
+		Type:         models.EMAIL,
+		Target:       target,
+		UserCategory: userCategory,
+	}
+	otpResponse, err := a.createOTP(ctx, requestOTP)
+	if err != nil {
+		a.logger.Error("SignUp", zap.Any("createOTP", err))
+		return err
+	}
+
+	err = a.AWSClient.SendEmail("verify_signup.page.gohtml", models.Message{
+		ID:         a.idGenerator.Generate(),
+		UserID:     userID,
+		TemplateID: templateAlias,
+		Title:      "Sign Up Verification",
+		Sender:     a.LeetaConfig.VerificationEmail,
+		DataMap: map[string]string{
+			"User": fullName,
+			"OTP":  otpResponse.Message,
+		},
+		Recipients: []*string{
+			&target,
+		},
+		Ts: time.Now().Unix(),
+	})
+	if err != nil {
+		return err
+	}
+
+	//message := models.Message{
+	//	ID:         a.idGenerator.Generate(),
+	//	UserID:     userID,
+	//	Target:     target,
+	//	TemplateID: templateAlias,
+	//	DataMap: map[string]string{
+	//		"OTP": otpResponse.Message,
+	//	},
+	//	Ts: time.Now().Unix(),
+	//}
+	//err = a.sendEmail(message)
+	//if err != nil {
+	//	return err
+	//}
+	return nil
+}
 
 func (a authAppHandler) passwordValidationEncryption(password string) (string, error) {
 	err := a.encryptor.IsValidPassword(password)
@@ -83,7 +133,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, vendor.ID, vendor.Email.Address, pkg.SignUpEmailTemplateID, models.VendorCategory)
+			err = a.accountVerification(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath, models.VendorCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -148,7 +198,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.CustomerCategory)
+			err = a.accountVerification(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.CustomerCategory)
 			if err != nil {
 				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 			}
@@ -161,36 +211,6 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 	}
 
 	return nil, leetError.ErrorResponseBody(leetError.DuplicateUserError, errors.New("user already exists"))
-}
-
-func (a authAppHandler) accountVerification(ctx context.Context, userID, target, templateAlias string, userCategory models.UserCategory) error {
-	requestOTP := domain.OTPRequest{
-		Topic:        "Sign Up",
-		Type:         models.EMAIL,
-		Target:       target,
-		UserCategory: userCategory,
-	}
-	otpResponse, err := a.createOTP(ctx, requestOTP)
-	if err != nil {
-		a.logger.Error("SignUp", zap.Any("createOTP", err))
-		return err
-	}
-
-	message := models.Message{
-		ID:         a.idGenerator.Generate(),
-		UserID:     userID,
-		Target:     target,
-		TemplateID: templateAlias,
-		DataMap: map[string]string{
-			"OTP": otpResponse.Message,
-		},
-		Ts: time.Now().Unix(),
-	}
-	err = a.sendEmail(message)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
@@ -386,7 +406,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, admin.ID, admin.User.Email.Address, pkg.AdminSignUpEmailTemplateID, models.AdminCategory)
+			err = a.accountVerification(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpEmailTemplateID, models.AdminCategory)
 			if err != nil {
 				return nil, err
 			}

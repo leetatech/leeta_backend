@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -18,7 +18,7 @@ type productAppHandler struct {
 	idGenerator   pkg.IDGenerator
 	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
-	EmailClient   mailer.MailerClient
+	EmailClient   postmarkClient.MailerClient
 	allRepository pkg.Repositories
 }
 
