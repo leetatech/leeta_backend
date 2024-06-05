@@ -32,6 +32,9 @@ var functions = template.FuncMap{}
 
 func (t *Template) Create(buf io.Writer, fileName string, data any) error {
 	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 	page := fmt.Sprintf("%s/%s", filepath.Join(dir, "pkg/mailer/templates"), fileName)
 
 	ts, err := template.New(fileName).Funcs(functions).ParseFiles(page)
