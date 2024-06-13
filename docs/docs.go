@@ -2117,14 +2117,12 @@ const docTemplate = `{
         "CompareOperator": {
             "type": "string",
             "enum": [
-                "isEqualTo",
-                "isEqualToArray",
-                "like"
+                "contains",
+                "isEqualTo"
             ],
             "x-enum-varnames": [
-                "CompareOperatorIsEqualTo",
-                "CompareOperatorIsEqualToArray",
-                "CompareOperatorLike"
+                "CompareOperatorContains",
+                "CompareOperatorIsEqualTo"
             ]
         },
         "ControlType": {
@@ -2690,12 +2688,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "operator": {
-                    "description": "Operator can be isEqualTo, isEqualToArray, or like\n* isEqualTo - value = [\"1234\"], array is expected to be length of 1 and comparison will be value = \"1234\".\n* isEqualToArray - value = [\"1234\", \"5678\"], array can be any length and comparison will be value = [\"1234\", \"5678\"].\n* like - value = [\"1234\", \"5678\"],  array can be any length and comparison can either be value = \"1234\" or value = \"5678\" or both.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/CompareOperator"
-                        }
-                    ]
+                    "$ref": "#/definitions/CompareOperator"
                 },
                 "value": {
                     "description": "Value can be a list of values or a value"

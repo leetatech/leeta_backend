@@ -107,14 +107,12 @@ definitions:
     type: object
   CompareOperator:
     enum:
+    - contains
     - isEqualTo
-    - isEqualToArray
-    - like
     type: string
     x-enum-varnames:
+    - CompareOperatorContains
     - CompareOperatorIsEqualTo
-    - CompareOperatorIsEqualToArray
-    - CompareOperatorLike
   ControlType:
     enum:
     - string
@@ -480,13 +478,7 @@ definitions:
       name:
         type: string
       operator:
-        allOf:
-        - $ref: '#/definitions/CompareOperator'
-        description: |-
-          Operator can be isEqualTo, isEqualToArray, or like
-          * isEqualTo - value = ["1234"], array is expected to be length of 1 and comparison will be value = "1234".
-          * isEqualToArray - value = ["1234", "5678"], array can be any length and comparison will be value = ["1234", "5678"].
-          * like - value = ["1234", "5678"],  array can be any length and comparison can either be value = "1234" or value = "5678" or both.
+        $ref: '#/definitions/CompareOperator'
       value:
         description: Value can be a list of values or a value
     required:

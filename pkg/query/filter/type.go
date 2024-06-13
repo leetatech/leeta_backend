@@ -27,12 +27,12 @@ ControlType ENUM(
 const (
 	// ControlTypeString is a ControlType of type string.
 	ControlTypeString ControlType = "string"
+	// CompareOperatorContains is a CompareOperator of type contains.
+	CompareOperatorContains CompareOperator = "contains"
 )
 
 const (
-	CompareOperatorIsEqualTo      CompareOperator = "isEqualTo"
-	CompareOperatorIsEqualToArray CompareOperator = "isEqualToArray"
-	CompareOperatorLike           CompareOperator = "like"
+	CompareOperatorIsEqualTo CompareOperator = "isEqualTo"
 )
 
 type ControlType string // @name ControlType
@@ -41,8 +41,6 @@ type ControlType string // @name ControlType
 CompareOperator ENUM(
 
 	isEqualTo
-	isEqualToArray
-	like
 
 )
 */

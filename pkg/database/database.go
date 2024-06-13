@@ -53,12 +53,14 @@ func BuildMongoFilterQuery(requestFilter *filter.Request) bson.M {
 func andLogicOperator(query bson.M, field filter.RequestField) bson.M {
 	if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
 		switch field.Operator {
-		case filter.CompareOperatorLike:
+		case filter.CompareOperatorContains:
 			query[field.Name] = bson.M{"$in": field.Value}
-		case filter.CompareOperatorIsEqualToArray:
-			query[field.Name] = bson.M{"eq": field.Value}
 		case filter.CompareOperatorIsEqualTo:
-			query[field.Name] = field.Value.([]interface{})[0]
+			if values, isSlice := field.Value.([]any); isSlice {
+				query[field.Name] = bson.M{"$eq": field.Value}
+			} else {
+				query[field.Name] = values[0]
+			}
 		}
 	} else {
 		query[field.Name] = field.Value
@@ -71,11 +73,14 @@ func orLogicOperator(field filter.RequestField) []bson.M {
 	var orConditions []bson.M
 	if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
 		switch field.Operator {
-		case filter.CompareOperatorLike:
+		case filter.CompareOperatorContains:
 			orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
-		case filter.CompareOperatorIsEqualToArray:
-			orConditions = append(orConditions, bson.M{field.Name: bson.M{"$eq": field.Value}})
 		case filter.CompareOperatorIsEqualTo:
+			if values, isSlice := field.Value.([]any); isSlice {
+				orConditions = append(orConditions, bson.M{field.Name: bson.M{"$eq": field.Value}})
+			} else {
+				orConditions = append(orConditions, bson.M{field.Name: values[0]})
+			}
 			orConditions = append(orConditions, bson.M{field.Name: field.Value.([]interface{})[0]})
 		}
 	} else {
