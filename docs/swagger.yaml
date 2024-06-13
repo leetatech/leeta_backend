@@ -107,12 +107,12 @@ definitions:
     type: object
   CompareOperator:
     enum:
+    - contains
     - isEqualTo
-    - like
     type: string
     x-enum-varnames:
+    - CompareOperatorContains
     - CompareOperatorIsEqualTo
-    - CompareOperatorLike
   ControlType:
     enum:
     - string

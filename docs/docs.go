@@ -2117,12 +2117,12 @@ const docTemplate = `{
         "CompareOperator": {
             "type": "string",
             "enum": [
-                "isEqualTo",
-                "like"
+                "contains",
+                "isEqualTo"
             ],
             "x-enum-varnames": [
-                "CompareOperatorIsEqualTo",
-                "CompareOperatorLike"
+                "CompareOperatorContains",
+                "CompareOperatorIsEqualTo"
             ]
         },
         "ControlType": {
