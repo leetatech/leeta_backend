@@ -46,7 +46,7 @@ type PostmarkConfig struct {
 
 type LeetaConfig struct {
 	Domain            string `env:"DOMAIN"`
-	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL" envDefault:"waire.tega@gmail.com"`
+	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL"`
 	DoNotReplyEmail   string `env:"LEETA_DONOTREPLY_EMAIL"`
 }
 

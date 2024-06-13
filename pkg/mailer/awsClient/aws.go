@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/leetatech/leeta_backend/pkg/config"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer/parseTemplates"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.uber.org/zap"
@@ -37,7 +38,7 @@ func (awsClient *AWSClient) ConnectAWS() error {
 	awsSession, err := session.NewSession(awsConfig)
 	if err != nil {
 		log.Println("Error occurred while creating aws session", err)
-		return err
+		return leetError.ErrorResponseBody(leetError.AwsSessionError, err)
 	}
 
 	awsClient.Session = awsSession
@@ -77,11 +78,11 @@ func (awsClient AWSClient) SendEmail(templatePath string, message models.Message
 
 	_, err = awsClient.SVC.SendEmail(input)
 	if err != nil {
-		log.Println("Error sending mail - ", err)
-		return err
+		awsClient.Log.Error("Error sending mail - ", zap.Error(err))
+		return leetError.ErrorResponseBody(leetError.SesSendEmailError, err)
 	}
 
-	log.Println("Email sent successfully")
+	awsClient.Log.Info("Email sent successfully")
 
 	return nil
 }
