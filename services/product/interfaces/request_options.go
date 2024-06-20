@@ -1,7 +1,8 @@
 package interfaces
 
 import (
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/sorting"
 )
 
 var productStatusRequestName = filter.ReadableValue[string]{
@@ -29,4 +30,11 @@ var listProductOptions = []filter.RequestOption{
 		},
 		MultiSelect: true,
 	},
+}
+
+var allowedSortFields = []string{"name"}
+
+var defaultSortingRequest = &sorting.Request{
+	SortColumn:    "name",
+	SortDirection: sorting.DirectionDescending,
 }

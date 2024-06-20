@@ -3,12 +3,11 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg/config"
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"reflect"
 )
 
 func MongoDBClient(ctx context.Context, config *config.ServerConfig) (*mongo.Client, error) {
@@ -38,54 +37,23 @@ func BuildMongoFilterQuery(requestFilter *filter.Request) bson.M {
 	switch requestFilter.Operator {
 	case "and":
 		for _, field := range requestFilter.Fields {
-			query = andLogicOperator(query, field)
+			if field.Operator == filter.CompareOperatorContains {
+				query[field.Name] = bson.M{"$in": field.Value}
+			} else {
+				query[field.Name] = field.Value
+			}
 		}
 	case "or":
 		var orConditions []bson.M
 		for _, field := range requestFilter.Fields {
-			orConditions = orLogicOperator(field)
+			if field.Operator == filter.CompareOperatorContains {
+				orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
+			} else {
+				orConditions = append(orConditions, bson.M{field.Name: field.Value})
+			}
 		}
 		query["$or"] = orConditions
 	}
-	return query
-}
-
-func andLogicOperator(query bson.M, field filter.RequestField) bson.M {
-	if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
-		switch field.Operator {
-		case filter.CompareOperatorContains:
-			query[field.Name] = bson.M{"$in": field.Value}
-		case filter.CompareOperatorIsEqualTo:
-			if values, isSlice := field.Value.([]any); isSlice {
-				query[field.Name] = bson.M{"$eq": values}
-			} else {
-				query[field.Name] = values[0]
-			}
-		}
-	} else {
-		query[field.Name] = field.Value
-	}
 
 	return query
-}
-
-func orLogicOperator(field filter.RequestField) []bson.M {
-	var orConditions []bson.M
-	if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
-		switch field.Operator {
-		case filter.CompareOperatorContains:
-			orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
-		case filter.CompareOperatorIsEqualTo:
-			if values, isSlice := field.Value.([]any); isSlice {
-				orConditions = append(orConditions, bson.M{field.Name: bson.M{"$eq": field.Value}})
-			} else {
-				orConditions = append(orConditions, bson.M{field.Name: values[0]})
-			}
-
-		}
-	} else {
-		orConditions = append(orConditions, bson.M{field.Name: field.Value})
-	}
-
-	return orConditions
 }

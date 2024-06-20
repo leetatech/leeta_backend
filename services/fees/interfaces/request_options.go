@@ -1,26 +1,28 @@
 package interfaces
 
 import (
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/sorting"
+	"github.com/leetatech/leeta_backend/services/models"
 )
 
 var lgaRequestName = filter.ReadableValue[string]{
-	Label: "lga",
+	Label: "LGA",
 	Value: "lga",
 }
 
 var productIDRequestName = filter.ReadableValue[string]{
-	Label: "product_id",
+	Label: "Product",
 	Value: "product_id",
 }
 
 var feeTypeRequestName = filter.ReadableValue[string]{
-	Label: "fee_type",
+	Label: "Fee Type",
 	Value: "fee_type",
 }
 
 var statusRequestName = filter.ReadableValue[string]{
-	Label: "status",
+	Label: "Status",
 	Value: "status",
 }
 
@@ -38,7 +40,7 @@ var listFeesOptions = []filter.RequestOption{
 	{
 		Name: lgaRequestName,
 		Control: filter.RequestOptionType{
-			Type: "LGA",
+			Type: filter.ControlTypeString,
 		},
 		Operators: []filter.ReadableValue[filter.CompareOperator]{
 			operatorEqual,
@@ -58,21 +60,32 @@ var listFeesOptions = []filter.RequestOption{
 	{
 		Name: feeTypeRequestName,
 		Control: filter.RequestOptionType{
-			Type: "FeeType",
+			Type: filter.ControlTypeEnum,
 		},
 		Operators: []filter.ReadableValue[filter.CompareOperator]{
 			operatorEqual,
 		},
-		MultiSelect: true,
+		Values: []string{
+			string(models.DeliveryFee),
+			string(models.ServiceFee),
+			string(models.ProductFee),
+		},
 	},
 	{
 		Name: statusRequestName,
 		Control: filter.RequestOptionType{
-			Type: "FeesStatuses",
+			Type: filter.ControlTypeString,
 		},
 		Operators: []filter.ReadableValue[filter.CompareOperator]{
 			operatorEqual,
 		},
 		MultiSelect: true,
 	},
+}
+
+var allowedSortFields = []string{"name"}
+
+var defaultSortingRequest = &sorting.Request{
+	SortColumn:    "name",
+	SortDirection: sorting.DirectionDescending,
 }

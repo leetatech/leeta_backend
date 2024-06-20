@@ -3,13 +3,15 @@ package interfaces
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
+	_ "github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
+	"github.com/leetatech/leeta_backend/services/web"
 	"github.com/samber/lo"
 	"net/http"
 )
@@ -164,27 +166,20 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /product/ [put]
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
-	var request query.ResultSelector
-	err := json.NewDecoder(r.Body).Decode(&request)
+	resultSelector, err := web.PrepareResultSelector(r, listProductOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
 		return
 	}
 
-	request, err = helpers.ValidateResultSelector(request)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
-
-	products, totalResults, err := handler.ProductApplication.ListProducts(r.Context(), request)
+	products, totalResults, err := handler.ProductApplication.ListProducts(r.Context(), resultSelector)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
 	}
 
 	response := query.ResponseListWithMetadata[models.Product]{
-		Metadata: query.NewMetadata(request, totalResults),
+		Metadata: query.NewMetadata(resultSelector, totalResults),
 		Data:     products,
 	}
 

@@ -2114,26 +2114,6 @@ const docTemplate = `{
                 }
             }
         },
-        "CompareOperator": {
-            "type": "string",
-            "enum": [
-                "contains",
-                "isEqualTo"
-            ],
-            "x-enum-varnames": [
-                "CompareOperatorContains",
-                "CompareOperatorIsEqualTo"
-            ]
-        },
-        "ControlType": {
-            "type": "string",
-            "enum": [
-                "string"
-            ],
-            "x-enum-varnames": [
-                "ControlTypeString"
-            ]
-        },
         "Coordinates": {
             "type": "object",
             "properties": {
@@ -2646,6 +2626,83 @@ const docTemplate = `{
                 }
             }
         },
+        "filter.CompareOperator": {
+            "type": "string",
+            "enum": [
+                "beginsWith",
+                "doesNotBeginWith",
+                "contains",
+                "doesNotContain",
+                "isNumberEqualTo",
+                "isEqualTo",
+                "isIpEqualTo",
+                "isStringEqualTo",
+                "isNotEqualTo",
+                "isNumberNotEqualTo",
+                "isIpNotEqualTo",
+                "isStringNotEqualTo",
+                "isGreaterThan",
+                "isGreaterThanOrEqualTo",
+                "isLessThan",
+                "isLessThanOrEqualTo",
+                "beforeDate",
+                "afterDate",
+                "exists"
+            ],
+            "x-enum-varnames": [
+                "CompareOperatorBeginsWith",
+                "CompareOperatorDoesNotBeginWith",
+                "CompareOperatorContains",
+                "CompareOperatorDoesNotContain",
+                "CompareOperatorIsNumberEqualTo",
+                "CompareOperatorIsEqualTo",
+                "CompareOperatorIsIpEqualTo",
+                "CompareOperatorIsStringEqualTo",
+                "CompareOperatorIsNotEqualTo",
+                "CompareOperatorIsNumberNotEqualTo",
+                "CompareOperatorIsIpNotEqualTo",
+                "CompareOperatorIsStringNotEqualTo",
+                "CompareOperatorIsGreaterThan",
+                "CompareOperatorIsGreaterThanOrEqualTo",
+                "CompareOperatorIsLessThan",
+                "CompareOperatorIsLessThanOrEqualTo",
+                "CompareOperatorBeforeDate",
+                "CompareOperatorAfterDate",
+                "CompareOperatorExists"
+            ]
+        },
+        "filter.ControlType": {
+            "type": "string",
+            "enum": [
+                "enum",
+                "float",
+                "integer",
+                "string",
+                "dateTime",
+                "uuid",
+                "autocomplete"
+            ],
+            "x-enum-varnames": [
+                "ControlTypeEnum",
+                "ControlTypeFloat",
+                "ControlTypeInteger",
+                "ControlTypeString",
+                "ControlTypeDateTime",
+                "ControlTypeUuid",
+                "ControlTypeAutocomplete"
+            ]
+        },
+        "filter.LogicOperator": {
+            "type": "string",
+            "enum": [
+                "and",
+                "or"
+            ],
+            "x-enum-varnames": [
+                "LogicOperatorAnd",
+                "LogicOperatorOr"
+            ]
+        },
         "filter.ReadableValue-string": {
             "type": "object",
             "properties": {
@@ -2672,7 +2729,7 @@ const docTemplate = `{
                     }
                 },
                 "operator": {
-                    "type": "string"
+                    "$ref": "#/definitions/filter.LogicOperator"
                 }
             }
         },
@@ -2684,11 +2741,17 @@ const docTemplate = `{
                 "value"
             ],
             "properties": {
+                "keys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "name": {
                     "type": "string"
                 },
                 "operator": {
-                    "$ref": "#/definitions/CompareOperator"
+                    "$ref": "#/definitions/filter.CompareOperator"
                 },
                 "value": {
                     "description": "Value can be a list of values or a value"
@@ -2720,7 +2783,7 @@ const docTemplate = `{
                                 "description": "Value is the value for the backend",
                                 "allOf": [
                                     {
-                                        "$ref": "#/definitions/CompareOperator"
+                                        "$ref": "#/definitions/filter.CompareOperator"
                                     }
                                 ]
                             }
@@ -2747,7 +2810,7 @@ const docTemplate = `{
                     ],
                     "allOf": [
                         {
-                            "$ref": "#/definitions/ControlType"
+                            "$ref": "#/definitions/filter.ControlType"
                         }
                     ]
                 }
@@ -3174,6 +3237,9 @@ const docTemplate = `{
                 },
                 "paging": {
                     "$ref": "#/definitions/paging.Response"
+                },
+                "sorting": {
+                    "$ref": "#/definitions/sorting.Request"
                 }
             }
         },
@@ -3254,8 +3320,35 @@ const docTemplate = `{
                 },
                 "paging": {
                     "$ref": "#/definitions/paging.Request"
+                },
+                "sorting": {
+                    "$ref": "#/definitions/sorting.Request"
                 }
             }
+        },
+        "sorting.Request": {
+            "type": "object",
+            "properties": {
+                "column": {
+                    "type": "string"
+                },
+                "direction": {
+                    "$ref": "#/definitions/sorting.SortDirection"
+                }
+            }
+        },
+        "sorting.SortDirection": {
+            "type": "string",
+            "enum": [
+                "desc",
+                "asc",
+                ""
+            ],
+            "x-enum-varnames": [
+                "DirectionDescending",
+                "DirectionAscending",
+                "NoDirection"
+            ]
         }
     },
     "securityDefinitions": {
