@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
+	"github.com/leetatech/leeta_backend/services/web"
 	"github.com/samber/lo"
 	"net/http"
 )
@@ -157,28 +157,20 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /cart [put]
 func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request) {
-	var request query.ResultSelector
-
-	err := json.NewDecoder(r.Body).Decode(&request)
+	resultSelector, err := web.PrepareResultSelector(r, listCartOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.UnmarshalError, err))
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
 		return
 	}
 
-	request, err = helpers.ValidateResultSelector(request)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
-
-	carts, totalRecord, err := handler.CartApplication.ListCart(r.Context(), request)
+	carts, totalRecord, err := handler.CartApplication.ListCart(r.Context(), resultSelector)
 	if err != nil {
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	response := query.ResponseWithMetadata[models.Cart]{
-		Metadata: query.NewMetadata(request, totalRecord),
+		Metadata: query.NewMetadata(resultSelector, totalRecord),
 		Data:     carts,
 	}
 

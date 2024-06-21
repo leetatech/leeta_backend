@@ -2,7 +2,7 @@ package domain
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/pkg/query"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 
 	"github.com/leetatech/leeta_backend/services/models"
 )

@@ -2,14 +2,14 @@ package interfaces
 
 import (
 	"encoding/json"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/fees/application"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
+	"github.com/leetatech/leeta_backend/services/web"
 	"github.com/samber/lo"
 	"net/http"
 )
@@ -70,27 +70,20 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /fees/ [PUT]
 func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.Request) {
-	var request query.ResultSelector
-	err := json.NewDecoder(r.Body).Decode(&request)
+	resultSelector, err := web.PrepareResultSelector(r, listFeesOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
 		return
 	}
 
-	request, err = helpers.ValidateResultSelector(request)
+	fees, totalRecord, err := handler.FeesApplication.GetTypedFees(r.Context(), resultSelector)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
-
-	fees, totalRecord, err := handler.FeesApplication.GetTypedFees(r.Context(), request)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, leetError.ErrorResponseBody(leetError.InternalError, err))
 		return
 	}
 
 	response := query.ResponseListWithMetadata[models.Fee]{
-		Metadata: query.NewMetadata(request, totalRecord),
+		Metadata: query.NewMetadata(resultSelector, totalRecord),
 		Data:     fees,
 	}
 	pkg.EncodeResult(w, response, http.StatusOK)

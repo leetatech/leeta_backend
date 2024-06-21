@@ -2,9 +2,9 @@ package infrastructure
 
 import (
 	"context"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/rs/zerolog/log"

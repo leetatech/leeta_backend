@@ -3,13 +3,12 @@ package application
 import (
 	"context"
 	"errors"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/paging"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
-	"github.com/leetatech/leeta_backend/pkg/query"
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
-	"github.com/leetatech/leeta_backend/pkg/query/paging"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -85,11 +84,6 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 			},
 		},
 		Paging: &paging.Request{},
-	}
-
-	getRequest, err = helpers.ValidateResultSelector(getRequest)
-	if err != nil {
-		return nil, err
 	}
 
 	fees, _, err := f.allRepository.FeesRepository.FetchFees(ctx, getRequest)
