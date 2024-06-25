@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const DefaultLimit = 10
+const DefaultLimit = 50
 
 // PrepareResultSelector converts the common query parameters to a ResultSelector.
 // Parameters are verified where possible and defaults are set.
