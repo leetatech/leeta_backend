@@ -103,9 +103,11 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request query.Res
 		return nil, 0, err
 	}
 
-	pagingOptions = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+	// TODO: uncomment code below when bug is fixed
+	//pagingOptions = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
 
-	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
+	//extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
+	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetLimit(1))
 	if err != nil {
 		p.logger.Error("error getting extra document", zap.Error(err))
 		return nil, 0, err
@@ -119,12 +121,12 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request query.Res
 
 	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
-		p.logger.Error("error getting products", zap.Error(err))
+		p.logger.Error("error finding products", zap.Error(err))
 		return nil, 0, err
 	}
 	products = make([]models.Product, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &products); err != nil {
-		p.logger.Error("error getting products", zap.Error(err))
+		p.logger.Error("error getting remaining product batch", zap.Error(err))
 		return nil, 0, err
 	}
 
