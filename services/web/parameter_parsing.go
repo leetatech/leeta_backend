@@ -49,7 +49,9 @@ func ResultSelectorDefaults(sortingRequest *sorting.Request) query.ResultSelecto
 
 func applyDefaults(resultSelector query.ResultSelector, defaults query.ResultSelector) query.ResultSelector {
 	if resultSelector.Paging == nil {
-		resultSelector.Paging = defaults.Paging
+		if resultSelector.Paging.PageIndex < 0 || resultSelector.Paging.PageSize < 1 {
+			resultSelector.Paging = defaults.Paging
+		}
 	}
 	if resultSelector.Sorting == nil {
 		resultSelector.Sorting = defaults.Sorting
