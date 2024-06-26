@@ -113,16 +113,20 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	message := models.Message{
+	err = a.AWSClient.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
-		Target:     request.Email,
-		TemplateID: pkg.EarlyAccessEmailTemplateID,
+		UserID:     request.Email,
+		TemplateID: pkg.EarlyAccessTemplatePath,
+		Title:      "Get the VIP Treatment: Exclusive Early Access Inside!",
+		Sender:     a.LeetaConfig.VerificationEmail,
 		DataMap: map[string]string{
 			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/",
 		},
+		Recipients: []*string{
+			&request.Email,
+		},
 		Ts: time.Now().Unix(),
-	}
-	err = a.sendEmail(message)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -195,18 +199,22 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 		OTP = verification.Code
 	}
 
-	message := models.Message{
+	err = a.AWSClient.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
-		Target:     request.Email,
-		TemplateID: pkg.ForgotPasswordEmailTemplateID,
+		UserID:     request.Email,
+		TemplateID: pkg.ForgotPasswordTemplatePath,
+		Title:      "Verification Link",
+		Sender:     a.LeetaConfig.VerificationEmail,
 		DataMap: map[string]string{
 			"FirstName": user.FirstName,
 			"LastName":  user.LastName,
 			"OTP":       OTP,
 		},
+		Recipients: []*string{
+			&request.Email,
+		},
 		Ts: time.Now().Unix(),
-	}
-	err = a.sendEmail(message)
+	})
 	if err != nil {
 		return err
 	}

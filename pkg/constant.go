@@ -2,11 +2,10 @@ package pkg
 
 // email template IDs
 const (
-	SignUpEmailTemplateID         = "SignUp"
-	EarlyAccessEmailTemplateID    = "EarlyAccess"
-	ForgotPasswordEmailTemplateID = "ForgotPassword"
-	AdminSignUpEmailTemplateID    = "AdminSignUp"
-	VerifySignUPTemplatePath      = "verify_signup.page.gohtml"
+	EarlyAccessTemplatePath    = "early_access.page.gohtml"
+	ForgotPasswordTemplatePath = "forgot_password.page.gohtml"
+	AdminSignUpTemplatePath    = "admin_signup.page.gohtml"
+	VerifySignUPTemplatePath   = "verify_signup.page.gohtml"
 )
 
 const (

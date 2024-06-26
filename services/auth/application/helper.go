@@ -10,7 +10,6 @@ import (
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
-	"sync"
 	"time"
 )
 
@@ -28,8 +27,7 @@ func (a authAppHandler) accountVerification(ctx context.Context, fullName, userI
 		a.logger.Error("SignUp", zap.Any("createOTP", err))
 		return err
 	}
-
-	err = a.AWSClient.SendEmail("verify_signup.page.gohtml", models.Message{
+	err = a.AWSClient.SendEmail(templateAlias, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
 		TemplateID: templateAlias,
@@ -48,20 +46,6 @@ func (a authAppHandler) accountVerification(ctx context.Context, fullName, userI
 		return err
 	}
 
-	//message := models.Message{
-	//	ID:         a.idGenerator.Generate(),
-	//	UserID:     userID,
-	//	Target:     target,
-	//	TemplateID: templateAlias,
-	//	DataMap: map[string]string{
-	//		"OTP": otpResponse.Message,
-	//	},
-	//	Ts: time.Now().Unix(),
-	//}
-	//err = a.sendEmail(message)
-	//if err != nil {
-	//	return err
-	//}
 	return nil
 }
 
@@ -198,7 +182,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.SignUpEmailTemplateID, models.CustomerCategory)
+			err = a.accountVerification(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath, models.CustomerCategory)
 			if err != nil {
 				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
 			}
@@ -406,7 +390,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, leetError.ErrorResponseBody(leetError.TokenGenerationError, err)
 			}
 
-			err = a.accountVerification(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpEmailTemplateID, models.AdminCategory)
+			err = a.accountVerification(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath, models.AdminCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -433,28 +417,28 @@ func (a authAppHandler) adminSignIN(ctx context.Context, request domain.SigningR
 	return a.buildSignIn(ctx, admin.User, admin.Status, request)
 }
 
-func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, errChan chan<- error) {
-	defer wg.Done()
-	err := a.EmailClient.SendEmailWithTemplate(message)
-	if err != nil {
-		a.logger.Error("sendEmail", zap.Error(leetError.ErrorResponseBody(leetError.EmailSendingError, err)))
-		errChan <- err
-	}
-}
-
-func (a authAppHandler) sendEmail(message models.Message) error {
-	var prepWg sync.WaitGroup
-
-	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
-	prepWg.Add(1)
-	go a.prepEmail(message, &prepWg, errChan)
-	prepWg.Wait()
-
-	select {
-	case err := <-errChan:
-		a.logger.Error("sendEmail", zap.Error(leetError.ErrorResponseBody(leetError.EmailSendingError, err)))
-		return leetError.ErrorResponseBody(leetError.EmailSendingError, err)
-	default:
-		return nil
-	}
-}
+//func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, errChan chan<- error) {
+//	defer wg.Done()
+//	err := a.EmailClient.SendEmailWithTemplate(message)
+//	if err != nil {
+//		a.logger.Error("sendEmail", zap.Error(leetError.ErrorResponseBody(leetError.EmailSendingError, err)))
+//		errChan <- err
+//	}
+//}
+//
+//func (a authAppHandler) sendEmail(message models.Message) error {
+//	var prepWg sync.WaitGroup
+//
+//	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
+//	prepWg.Add(1)
+//	go a.prepEmail(message, &prepWg, errChan)
+//	prepWg.Wait()
+//
+//	select {
+//	case err := <-errChan:
+//		a.logger.Error("sendEmail", zap.Error(leetError.ErrorResponseBody(leetError.EmailSendingError, err)))
+//		return leetError.ErrorResponseBody(leetError.EmailSendingError, err)
+//	default:
+//		return nil
+//	}
+//}
