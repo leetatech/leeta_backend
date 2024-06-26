@@ -1,6 +1,7 @@
 package awsClient
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -72,8 +73,7 @@ func (awsClient AWSClient) SendEmail(templatePath string, message models.Message
 				Data:    aws.String(message.Title),
 			},
 		},
-
-		Source: aws.String(message.Sender),
+		Source: aws.String(fmt.Sprintf("Leeta Technologies <%s>", message.Sender)),
 	}
 
 	_, err = awsClient.SVC.SendEmail(input)
