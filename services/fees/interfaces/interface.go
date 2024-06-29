@@ -76,7 +76,7 @@ func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.
 		return
 	}
 
-	fees, totalRecord, err := handler.FeesApplication.GetTypedFees(r.Context(), resultSelector)
+	fees, totalRecord, err := handler.FeesApplication.ListFees(r.Context(), resultSelector)
 	if err != nil {
 		pkg.EncodeErrorResult(w, http.StatusInternalServerError, leetError.ErrorResponseBody(leetError.InternalError, err))
 		return
