@@ -45,7 +45,6 @@ var listFeesOptions = []filter.RequestOption{
 		Operators: []filter.ReadableValue[filter.CompareOperator]{
 			operatorEqual,
 		},
-		MultiSelect: true,
 	},
 	{
 		Name: productIDRequestName,
@@ -55,7 +54,6 @@ var listFeesOptions = []filter.RequestOption{
 		Operators: []filter.ReadableValue[filter.CompareOperator]{
 			operatorEqual,
 		},
-		MultiSelect: true,
 	},
 	{
 		Name: feeTypeRequestName,

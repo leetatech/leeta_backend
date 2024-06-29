@@ -95,7 +95,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request query.Res
 	var filter bson.M
 	var pagingOptions *options.FindOptions
 	if request.Filter != nil {
-		filter = database.BuildMongoFilterQuery(request.Filter)
+		filter = database.BuildMongoFilterQuery(request.Filter, nil)
 	}
 
 	totalRecord, err := p.col(models.ProductCollectionName).CountDocuments(ctx, filter)

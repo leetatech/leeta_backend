@@ -103,9 +103,12 @@ func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string
 }
 
 func (f feeStoreHandler) FetchFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
+	feesFilterMapping := map[string]string{
+		"lga": "lga.lga",
+	}
 	var filterQuery bson.M
 	if request.Filter != nil {
-		filterQuery = database.BuildMongoFilterQuery(request.Filter)
+		filterQuery = database.BuildMongoFilterQuery(request.Filter, feesFilterMapping)
 	}
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filterQuery)

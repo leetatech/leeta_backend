@@ -27,7 +27,7 @@ type FeesHandler struct {
 
 type FeesApplication interface {
 	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error)
-	GetTypedFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error)
+	ListFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error)
 }
 
 func NewFeesApplication(request pkg.DefaultApplicationRequest) FeesApplication {
@@ -180,7 +180,8 @@ func (f *FeesHandler) feeTypeValidation(ctx context.Context, request domain.FeeQ
 	return &lga, nil
 }
 
-func (f *FeesHandler) GetTypedFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
+func (f *FeesHandler) ListFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
+
 	fees, totalRecord, err := f.allRepository.FeesRepository.FetchFees(ctx, request)
 	if err != nil {
 		return nil, 0, err

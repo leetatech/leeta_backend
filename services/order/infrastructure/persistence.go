@@ -183,7 +183,7 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 
 	filter := bson.M{"customer_id": userId}
 	if request.Filter != nil {
-		userFilter := database.BuildMongoFilterQuery(request.Filter)
+		userFilter := database.BuildMongoFilterQuery(request.Filter, nil)
 		for key, value := range userFilter {
 			filter[key] = value
 		}
