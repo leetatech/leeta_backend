@@ -3,14 +3,15 @@ package interfaces
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
+	"github.com/leetatech/leeta_backend/services/web"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
 	"net/http"
@@ -123,27 +124,20 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /order/ [PUT]
 func (handler *OrderHttpHandler) ListOrdersHandler(w http.ResponseWriter, r *http.Request) {
-	var request query.ResultSelector
-	err := json.NewDecoder(r.Body).Decode(&request)
+	resultSelector, err := web.PrepareResultSelector(r, listOrdersOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
 		return
 	}
 
-	request, err = helpers.ValidateResultSelector(request)
+	orders, totalRecord, err := handler.OrderApplication.ListOrders(r.Context(), resultSelector)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
-		return
-	}
-
-	orders, totalRecord, err := handler.OrderApplication.ListOrders(r.Context(), request)
-	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		pkg.EncodeErrorResult(w, http.StatusInternalServerError, leetError.ErrorResponseBody(leetError.InternalError, err))
 		return
 	}
 
 	response := query.ResponseListWithMetadata[models.Order]{
-		Metadata: query.NewMetadata(request, totalRecord),
+		Metadata: query.NewMetadata(resultSelector, totalRecord),
 		Data:     orders,
 	}
 	pkg.EncodeResult(w, response, http.StatusOK)

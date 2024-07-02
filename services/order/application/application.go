@@ -3,11 +3,11 @@ package application
 import (
 	"context"
 	"errors"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
 	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
-	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"go.uber.org/zap"
@@ -46,7 +46,7 @@ func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication
 	}
 }
 
-func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*pkg.DefaultResponse, error) {
+func (o *orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.UpdateOrderStatusRequest) (*pkg.DefaultResponse, error) {
 	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -91,7 +91,7 @@ func (o orderAppHandler) UpdateOrderStatus(ctx context.Context, request domain.U
 	return &pkg.DefaultResponse{Success: "success", Message: "Order status updated successfully"}, nil
 }
 
-func (o orderAppHandler) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {
+func (o *orderAppHandler) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {
 	_, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -105,7 +105,7 @@ func (o orderAppHandler) GetOrderByID(ctx context.Context, id string) (*models.O
 	return order, nil
 }
 
-func (o orderAppHandler) GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error) {
+func (o *orderAppHandler) GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrdersRequest) ([]domain.OrderResponse, error) {
 	claims, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -133,7 +133,7 @@ func (o *orderAppHandler) ListOrders(ctx context.Context, request query.ResultSe
 	return orders, totalRecord, nil
 }
 
-func (o orderAppHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
+func (o *orderAppHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
 	_, err := o.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)

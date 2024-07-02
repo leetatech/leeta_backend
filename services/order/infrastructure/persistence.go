@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"github.com/rs/zerolog/log"
@@ -181,22 +181,29 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	var filter bson.M
-
-	var pagingOptions *options.FindOptions
+	filter := bson.M{"customer_id": userId}
 	if request.Filter != nil {
-		filter = database.BuildMongoFilterQuery(request.Filter)
-		filter["customer_id"] = userId
+		userFilter := database.BuildMongoFilterQuery(request.Filter, nil)
+		for key, value := range userFilter {
+			filter[key] = value
+		}
 	}
 
-	totalRecord, err := o.col(models.OrderCollectionName).CountDocuments(ctx, filter)
+	totalRecord, err := o.col(models.OrderCollectionName).CountDocuments(updatedCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	pagingOptions = database.GetPaginatedOpts(int64(request.Paging.PageSize), int64(request.Paging.PageIndex))
+	// Calculate skip value and ensure it's non-negative
+	skip := int64(request.Paging.PageSize * request.Paging.PageIndex)
+	if skip < 0 {
+		skip = 0
+	}
 
-	extraDocumentCursor, err := o.col(models.OrderCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
+	limit := int64(request.Paging.PageSize)
+	pagingOptions := options.Find().SetSkip(skip).SetLimit(limit)
+
+	extraDocumentCursor, err := o.col(models.OrderCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(skip+limit).SetLimit(1))
 	if err != nil {
 		o.logger.Error("error getting extra document", zap.Error(err))
 		return nil, 0, err
@@ -210,7 +217,7 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 
 	cursor, err := o.col(models.OrderCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
-		o.logger.Error("error getting orders", zap.Error(err))
+		o.logger.Error("error finding orders in mongo collection", zap.Error(err))
 		return nil, 0, err
 	}
 	orders = make([]models.Order, cursor.RemainingBatchLength())

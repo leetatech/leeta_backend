@@ -3,8 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg/config"
-	"github.com/leetatech/leeta_backend/pkg/query/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,30 +27,42 @@ func GetPaginatedOpts(limit, page int64) *options.FindOptions {
 	return &fOpt
 }
 
-func BuildMongoFilterQuery(requestFilter *filter.Request) bson.M {
+// BuildMongoFilterQuery constructs a MongoDB filter query based on the provided request filter
+// and a field mapping. It supports both "and" and "or" operators for combining field conditions.
+// TODO: handle filter field mapping better
+func BuildMongoFilterQuery(requestFilter *filter.Request, fieldMapping map[string]string) bson.M {
 	query := bson.M{}
 
 	if requestFilter == nil {
 		return query
 	}
 
+	// Helper function to build individual field queries
+	buildFieldQuery := func(field filter.RequestField) bson.M {
+		// Use the mapped field name if it exists, otherwise use the original field name
+		fieldName := fieldMapping[field.Name]
+		if fieldName == "" {
+			fieldName = field.Name
+		}
+
+		if field.Operator == filter.CompareOperatorContains {
+			return bson.M{fieldName: bson.M{"$in": field.Value}}
+		}
+		return bson.M{fieldName: field.Value}
+	}
+
 	switch requestFilter.Operator {
 	case "and":
 		for _, field := range requestFilter.Fields {
-			if field.Operator == filter.CompareOperatorLike {
-				query[field.Name] = bson.M{"$in": field.Value}
-			} else {
-				query[field.Name] = field.Value
+			fieldQuery := buildFieldQuery(field)
+			for key, value := range fieldQuery {
+				query[key] = value
 			}
 		}
 	case "or":
-		var orConditions []bson.M
-		for _, field := range requestFilter.Fields {
-			if field.Operator == filter.CompareOperatorLike {
-				orConditions = append(orConditions, bson.M{field.Name: bson.M{"$in": field.Value}})
-			} else {
-				orConditions = append(orConditions, bson.M{field.Name: field.Value})
-			}
+		orConditions := make([]bson.M, len(requestFilter.Fields))
+		for i, field := range requestFilter.Fields {
+			orConditions[i] = buildFieldQuery(field)
 		}
 		query["$or"] = orConditions
 	}

@@ -2,10 +2,8 @@ package helpers
 
 import (
 	"errors"
-	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
 	"net/http"
 )
 
@@ -32,17 +30,4 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 		return
 	}
 
-}
-
-func ValidateResultSelector(resultSelector query.ResultSelector) (query.ResultSelector, error) {
-	if resultSelector.Paging == nil {
-		return resultSelector, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("the paging cannot be empty"))
-	}
-
-	if err := resultSelector.Paging.Validate(); err != nil {
-		return resultSelector, leetError.ErrorResponseBody(leetError.InvalidRequestError, fmt.Errorf("invalid paging request %w", err))
-	}
-	resultSelector.Paging.ApplyDefaults()
-
-	return resultSelector, nil
 }

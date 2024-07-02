@@ -2,9 +2,9 @@ package infrastructure
 
 import (
 	"context"
+	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/query"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/rs/zerolog/log"
@@ -103,9 +103,12 @@ func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string
 }
 
 func (f feeStoreHandler) FetchFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
+	feesFilterMapping := map[string]string{
+		"lga": "lga.lga",
+	}
 	var filterQuery bson.M
 	if request.Filter != nil {
-		filterQuery = database.BuildMongoFilterQuery(request.Filter)
+		filterQuery = database.BuildMongoFilterQuery(request.Filter, feesFilterMapping)
 	}
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filterQuery)
