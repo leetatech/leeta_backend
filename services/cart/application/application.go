@@ -8,6 +8,7 @@ import (
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/paging"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
 	"go.mongodb.org/mongo-driver/bson"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )

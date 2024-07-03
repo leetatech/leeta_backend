@@ -8,8 +8,9 @@ import (
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -54,7 +55,7 @@ type Application struct {
 	Ctx          context.Context
 	Router       *chi.Mux
 	EmailClient  postmarkClient.MailerClient
-	AWSClient    awsClient.AWSClient
+	AWSClient    messaging.AWSClient
 	Repositories pkg.Repositories
 }
 
@@ -88,7 +89,7 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 
 	app.EmailClient = postmarkClient.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
 
-	app.AWSClient = awsClient.AWSClient{
+	app.AWSClient = messaging.AWSClient{
 		Config: app.Config,
 		Log:    app.Logger,
 	}
@@ -172,13 +173,15 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 
 	app.Repositories = allRepositories
 
+	awsEmailClient := awsEmail.NewAWSEmailClient(app.AWSClient)
+
 	request := pkg.DefaultApplicationRequest{
-		TokenHandler:  tokenHandler,
-		Logger:        app.Logger,
-		AllRepository: allRepositories,
-		EmailClient:   app.EmailClient,
-		AWSClient:     app.AWSClient,
-		LeetaConfig:   app.Config.Leeta,
+		TokenHandler:   tokenHandler,
+		Logger:         app.Logger,
+		AllRepository:  allRepositories,
+		EmailClient:    app.EmailClient,
+		AWSEmailClient: awsEmailClient,
+		LeetaConfig:    app.Config.Leeta,
 	}
 
 	orderApplications := orderApplication.NewOrderApplication(request)

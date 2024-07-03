@@ -6,8 +6,8 @@ import (
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"go.uber.org/zap"
@@ -21,7 +21,7 @@ type orderAppHandler struct {
 	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   postmarkClient.MailerClient
-	AWSClient     awsClient.AWSClient
+	AWSClient     awsEmail.AWSClient
 	allRepository pkg.Repositories
 }
 

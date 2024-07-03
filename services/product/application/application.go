@@ -5,7 +5,7 @@ import (
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"go.uber.org/zap"

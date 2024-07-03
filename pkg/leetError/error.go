@@ -160,7 +160,7 @@ var (
 		RestrictedAccessError:        "User do not have authorization to access this endpoint",
 		FeesError:                    "There is an error with the application fees",
 		TemplateCreationError:        "An error occurred while creating template",
-		AwsSessionError:              "An error occurred while creating aws session",
+		AwsSessionError:              "An error occurred while creating awsEmail session",
 		SesSendEmailError:            "An error occurred while sending email",
 	}
 )

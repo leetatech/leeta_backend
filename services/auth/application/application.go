@@ -7,8 +7,8 @@ import (
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
+	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -17,15 +17,15 @@ import (
 )
 
 type authAppHandler struct {
-	tokenHandler  pkg.TokenHandler
-	encryptor     pkg.EncryptorManager
-	idGenerator   pkg.IDGenerator
-	otpGenerator  pkg.OtpGenerator
-	logger        *zap.Logger
-	EmailClient   postmarkClient.MailerClient
-	AWSClient     awsClient.AWSClient
-	LeetaConfig   config.LeetaConfig
-	allRepository pkg.Repositories
+	tokenHandler   pkg.TokenHandler
+	encryptor      pkg.EncryptorManager
+	idGenerator    pkg.IDGenerator
+	otpGenerator   pkg.OtpGenerator
+	logger         *zap.Logger
+	EmailClient    postmarkClient.MailerClient
+	AWSEmailClient awsEmail.AWSEmailClient
+	LeetaConfig    config.LeetaConfig
+	allRepository  pkg.Repositories
 }
 
 type AuthApplication interface {
@@ -44,15 +44,15 @@ type AuthApplication interface {
 
 func NewAuthApplication(request pkg.DefaultApplicationRequest) AuthApplication {
 	return &authAppHandler{
-		tokenHandler:  request.TokenHandler,
-		encryptor:     pkg.NewEncryptor(),
-		idGenerator:   pkg.NewIDGenerator(),
-		otpGenerator:  pkg.NewOTPGenerator(),
-		logger:        request.Logger,
-		EmailClient:   request.EmailClient,
-		AWSClient:     request.AWSClient,
-		LeetaConfig:   request.LeetaConfig,
-		allRepository: request.AllRepository,
+		tokenHandler:   request.TokenHandler,
+		encryptor:      pkg.NewEncryptor(),
+		idGenerator:    pkg.NewIDGenerator(),
+		otpGenerator:   pkg.NewOTPGenerator(),
+		logger:         request.Logger,
+		EmailClient:    request.EmailClient,
+		AWSEmailClient: request.AWSEmailClient,
+		LeetaConfig:    request.LeetaConfig,
+		allRepository:  request.AllRepository,
 	}
 }
 
@@ -113,7 +113,7 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	err = a.AWSClient.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
+	err = a.AWSEmailClient.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     request.Email,
 		TemplateID: pkg.EarlyAccessTemplatePath,
@@ -199,7 +199,7 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 		OTP = verification.Code
 	}
 
-	err = a.AWSClient.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
+	err = a.AWSEmailClient.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     request.Email,
 		TemplateID: pkg.ForgotPasswordTemplatePath,

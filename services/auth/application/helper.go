@@ -27,7 +27,8 @@ func (a authAppHandler) accountVerification(ctx context.Context, fullName, userI
 		a.logger.Error("SignUp", zap.Any("createOTP", err))
 		return err
 	}
-	err = a.AWSClient.SendEmail(templateAlias, models.Message{
+
+	err = a.AWSEmailClient.SendEmail(templateAlias, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
 		TemplateID: templateAlias,
