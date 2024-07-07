@@ -212,12 +212,25 @@ definitions:
       vendor_id:
         type: string
     type: object
+  OTPRequest:
+    properties:
+      target:
+        type: string
+      topic:
+        type: string
+      type:
+        $ref: '#/definitions/models.MessageDeliveryType'
+      userCategory:
+        $ref: '#/definitions/models.UserCategory'
+    type: object
   OTPValidationRequest:
     properties:
       code:
         type: string
       target:
         type: string
+      type:
+        $ref: '#/definitions/models.MessageDeliveryType'
     type: object
   Order:
     properties:
@@ -627,6 +640,10 @@ definitions:
     - 1043
     - 1044
     - 1045
+    - 1046
+    - 1047
+    - 1048
+    - 1049
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -676,6 +693,10 @@ definitions:
     - InvalidServiceFeeError
     - RestrictedAccessError
     - FeesError
+    - TemplateCreationError
+    - AwsSessionError
+    - SesSendEmailError
+    - SnsSendSMSError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -794,6 +815,16 @@ definitions:
       state:
         type: string
     type: object
+  models.MessageDeliveryType:
+    enum:
+    - SMS
+    - EMAIL
+    - PUSH
+    type: string
+    x-enum-varnames:
+    - SMS
+    - EMAIL
+    - PUSH
   models.OrderStatuses:
     enum:
     - PENDING
@@ -1861,10 +1892,10 @@ paths:
       parameters:
       - description: request otp body
         in: body
-        name: domain.EmailRequestBody
+        name: domain.OTPRequest
         required: true
         schema:
-          $ref: '#/definitions/EmailRequestBody'
+          $ref: '#/definitions/OTPRequest'
       produces:
       - application/json
       responses:

@@ -211,3 +211,29 @@ func (a authStoreHandler) UpdateGuestRecord(ctx context.Context, guest models.Gu
 
 	return nil
 }
+
+func (a authStoreHandler) GetUserByEmailOrPhone(ctx context.Context, target string) (*models.Customer, error) {
+	customer := &models.Customer{}
+
+	filter := bson.M{"$or": []bson.M{
+		{dtos.EmailAddress: target},
+		{dtos.PhoneNumber: target},
+	}}
+
+	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(customer)
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
+}
+
+func (a authStoreHandler) UpdatePhoneVerify(ctx context.Context, phone string, status bool) error {
+	filter := bson.M{dtos.PhoneNumber: phone}
+	update := bson.M{"$set": bson.M{dtos.PhoneVerificationStatus: status}}
+	_, err := a.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+	}
+	return nil
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging/sms/awsSMS"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -24,13 +25,14 @@ type authAppHandler struct {
 	logger         *zap.Logger
 	EmailClient    postmarkClient.MailerClient
 	AWSEmailClient awsEmail.AWSEmailClient
+	AWSSMSClient   awsSMS.AWSSMSClient
 	LeetaConfig    config.LeetaConfig
 	allRepository  pkg.Repositories
 }
 
 type AuthApplication interface {
 	SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error)
-	RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
+	RequestOTP(ctx context.Context, request domain.OTPRequest) (*pkg.DefaultResponse, error)
 	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*pkg.DefaultResponse, error)
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
@@ -51,6 +53,7 @@ func NewAuthApplication(request pkg.DefaultApplicationRequest) AuthApplication {
 		logger:         request.Logger,
 		EmailClient:    request.EmailClient,
 		AWSEmailClient: request.AWSEmailClient,
+		AWSSMSClient:   request.AWSSMSClient,
 		LeetaConfig:    request.LeetaConfig,
 		allRepository:  request.AllRepository,
 	}
@@ -156,41 +159,41 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 }
 
 func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
-	if err := a.sendOTP(ctx, request); err != nil {
+	if err := a.sendOTP(ctx, domain.OTPRequest{
+		Topic:  "ForgotPassword",
+		Target: request.Email,
+		Type:   models.EMAIL,
+	}); err != nil {
 		return nil, err
 	}
 	return &pkg.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
 }
 
-func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
+func (a authAppHandler) RequestOTP(ctx context.Context, request domain.OTPRequest) (*pkg.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ForgotPasswordError, err)
 	}
 	return &pkg.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
 }
 
-func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequestBody) error {
+func (a authAppHandler) sendOTP(ctx context.Context, request domain.OTPRequest) error {
 	// get user by email
-	user, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
+	user, err := a.allRepository.AuthRepository.GetUserByEmailOrPhone(ctx, request.Target)
 	if err != nil {
-		a.logger.Error("error getting user by email", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
+		a.logger.Error("error getting user by email or phone", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Target))
 		return leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
 	}
 
 	// check if user otp exists
-	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Email)
+	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Target)
 	if err != nil && !errors.Is(err, infrastructure.ErrItemNotFound) {
 		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
 	}
 
-	requestOTP := domain.OTPRequest{
-		Topic:  "ForgotPassword",
-		Type:   models.EMAIL,
-		Target: request.Email,
-	}
+	// TODO set text message
 	var OTP string
 	if isVerificationValid := verification.VerifyCodeValidity(); !isVerificationValid {
-		response, err := a.createOTP(ctx, requestOTP)
+		response, err := a.createOTP(ctx, request)
 		if err != nil {
 			return err
 		}
@@ -198,25 +201,36 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 	} else {
 		OTP = verification.Code
 	}
-
-	err = a.AWSEmailClient.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
-		ID:         a.idGenerator.Generate(),
-		UserID:     request.Email,
-		TemplateID: pkg.ForgotPasswordTemplatePath,
-		Title:      "Verification Link",
-		Sender:     a.LeetaConfig.VerificationEmail,
-		DataMap: map[string]string{
-			"FirstName": user.FirstName,
-			"LastName":  user.LastName,
-			"OTP":       OTP,
-		},
-		Recipients: []*string{
-			&request.Email,
-		},
-		Ts: time.Now().Unix(),
-	})
-	if err != nil {
-		return err
+	switch request.Type {
+	case models.EMAIL:
+		err = a.AWSEmailClient.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
+			ID:         a.idGenerator.Generate(),
+			UserID:     request.Target,
+			TemplateID: pkg.ForgotPasswordTemplatePath,
+			Title:      "Verification Link",
+			Sender:     a.LeetaConfig.VerificationEmail,
+			DataMap: map[string]string{
+				"FirstName": user.FirstName,
+				"LastName":  user.LastName,
+				"OTP":       OTP,
+			},
+			Recipients: []*string{
+				&request.Target,
+			},
+			Ts: time.Now().Unix(),
+		})
+		if err != nil {
+			return err
+		}
+	case models.SMS:
+		var messageBody string
+		err = a.AWSSMSClient.SendSMS(models.Message{
+			Target: request.Target,
+			Body:   messageBody,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -255,10 +269,19 @@ func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValid
 		return nil, err
 	}
 
-	err = a.allRepository.AuthRepository.UpdateEmailVerify(ctx, verification.Target, true)
-	if err != nil {
-		a.logger.Error("error validating user email", zap.Error(err), zap.String("verification_email", verification.Target))
-		return nil, err
+	switch verification.Type {
+	case models.EMAIL:
+		err = a.allRepository.AuthRepository.UpdateEmailVerify(ctx, verification.Target, true)
+		if err != nil {
+			a.logger.Error("error validating user email", zap.Error(err), zap.String("verification_email", verification.Target))
+			return nil, err
+		}
+	case models.SMS:
+		err = a.allRepository.AuthRepository.UpdatePhoneVerify(ctx, verification.Target, true)
+		if err != nil {
+			a.logger.Error("error validating user phone number", zap.Error(err), zap.String("verification_Phone_number", verification.Target))
+			return nil, err
+		}
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "OTP validated"}, nil

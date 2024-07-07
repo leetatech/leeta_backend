@@ -48,6 +48,7 @@ type LeetaConfig struct {
 	Domain            string `env:"DOMAIN"`
 	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL"`
 	DoNotReplyEmail   string `env:"LEETA_DONOTREPLY_EMAIL"`
+	SMSenderID        string `env:"LEETA_SMS_SENDER_ID"`
 }
 
 type NgnStatesConfig struct {

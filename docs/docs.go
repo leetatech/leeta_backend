@@ -1364,11 +1364,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "request otp body",
-                        "name": "domain.EmailRequestBody",
+                        "name": "domain.OTPRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/EmailRequestBody"
+                            "$ref": "#/definitions/OTPRequest"
                         }
                     }
                 ],
@@ -2280,6 +2280,23 @@ const docTemplate = `{
                 }
             }
         },
+        "OTPRequest": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.MessageDeliveryType"
+                },
+                "userCategory": {
+                    "$ref": "#/definitions/models.UserCategory"
+                }
+            }
+        },
         "OTPValidationRequest": {
             "type": "object",
             "properties": {
@@ -2288,6 +2305,9 @@ const docTemplate = `{
                 },
                 "target": {
                     "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.MessageDeliveryType"
                 }
             }
         },
@@ -2863,7 +2883,11 @@ const docTemplate = `{
                 1042,
                 1043,
                 1044,
-                1045
+                1045,
+                1046,
+                1047,
+                1048,
+                1049
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2913,7 +2937,11 @@ const docTemplate = `{
                 "InvalidDeliveryFeeError",
                 "InvalidServiceFeeError",
                 "RestrictedAccessError",
-                "FeesError"
+                "FeesError",
+                "TemplateCreationError",
+                "AwsSessionError",
+                "SesSendEmailError",
+                "SnsSendSMSError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -3088,6 +3116,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.MessageDeliveryType": {
+            "type": "string",
+            "enum": [
+                "SMS",
+                "EMAIL",
+                "PUSH"
+            ],
+            "x-enum-varnames": [
+                "SMS",
+                "EMAIL",
+                "PUSH"
+            ]
         },
         "models.OrderStatuses": {
             "type": "string",

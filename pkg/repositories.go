@@ -5,6 +5,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging/sms/awsSMS"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
@@ -36,6 +37,7 @@ type DefaultApplicationRequest struct {
 	AllRepository  Repositories
 	EmailClient    postmarkClient.MailerClient
 	AWSEmailClient awsEmail.AWSEmailClient
+	AWSSMSClient   awsSMS.AWSSMSClient
 	LeetaConfig    config.LeetaConfig
 }
 

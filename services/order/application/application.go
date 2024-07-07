@@ -21,7 +21,7 @@ type orderAppHandler struct {
 	otpGenerator  pkg.OtpGenerator
 	logger        *zap.Logger
 	EmailClient   postmarkClient.MailerClient
-	AWSClient     awsEmail.AWSClient
+	AWSClient     awsEmail.AWSEmailClient
 	allRepository pkg.Repositories
 }
 
@@ -41,7 +41,7 @@ func NewOrderApplication(request pkg.DefaultApplicationRequest) OrderApplication
 		otpGenerator:  pkg.NewOTPGenerator(),
 		logger:        request.Logger,
 		EmailClient:   request.EmailClient,
-		AWSClient:     request.AWSClient,
+		AWSClient:     request.AWSEmailClient,
 		allRepository: request.AllRepository,
 	}
 }

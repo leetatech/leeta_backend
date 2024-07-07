@@ -59,6 +59,7 @@ const (
 	TemplateCreationError        ErrorCode = 1046
 	AwsSessionError              ErrorCode = 1047
 	SesSendEmailError            ErrorCode = 1048
+	SnsSendSMSError              ErrorCode = 1049
 )
 
 var (
@@ -111,6 +112,7 @@ var (
 		TemplateCreationError:        "TemplateCreationError",
 		AwsSessionError:              "AwsSessionError",
 		SesSendEmailError:            "SesSendEmailError",
+		SnsSendSMSError:              "SnsSendSMSError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -162,6 +164,7 @@ var (
 		TemplateCreationError:        "An error occurred while creating template",
 		AwsSessionError:              "An error occurred while creating awsEmail session",
 		SesSendEmailError:            "An error occurred while sending email",
+		SnsSendSMSError:              "An error occurred while sending SMS",
 	}
 )
 

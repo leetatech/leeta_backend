@@ -41,8 +41,9 @@ type EmailRequestBody struct {
 } // @name EmailRequestBody
 
 type OTPValidationRequest struct {
-	Code   string `json:"code" bson:"code"`
-	Target string `json:"target" bson:"target"`
+	Type   models.MessageDeliveryType `json:"type" bson:"type"`
+	Code   string                     `json:"code" bson:"code"`
+	Target string                     `json:"target" bson:"target"`
 } // @name OTPValidationRequest
 
 type CreateNewPasswordRequest struct {

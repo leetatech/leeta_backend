@@ -11,6 +11,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/messaging"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/messaging/sms/awsSMS"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -174,6 +175,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 	app.Repositories = allRepositories
 
 	awsEmailClient := awsEmail.NewAWSEmailClient(app.AWSClient)
+	awsSMSClient := awsSMS.NewAWSSMSClient(app.AWSClient)
 
 	request := pkg.DefaultApplicationRequest{
 		TokenHandler:   tokenHandler,
@@ -181,6 +183,7 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		AllRepository:  allRepositories,
 		EmailClient:    app.EmailClient,
 		AWSEmailClient: awsEmailClient,
+		AWSSMSClient:   awsSMSClient,
 		LeetaConfig:    app.Config.Leeta,
 	}
 

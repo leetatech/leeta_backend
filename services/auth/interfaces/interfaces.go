@@ -53,11 +53,11 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 // @Tags OTP Management
 // @Accept json
 // @Produce json
-// @Param domain.EmailRequestBody body domain.EmailRequestBody true "request otp body"
+// @Param domain.OTPRequest body domain.OTPRequest true "request otp body"
 // @Success 200 {object} pkg.DefaultResponse
 // @Router /session/otp/request [post]
 func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.EmailRequestBody
+	var request domain.OTPRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		pkg.EncodeResult(w, err, http.StatusBadRequest)

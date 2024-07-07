@@ -3,6 +3,7 @@ package awsSMS
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
+	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/messaging"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.uber.org/zap"
@@ -25,7 +26,7 @@ func (awsClient AWSSMSClient) SendSMS(message models.Message) error {
 	resp, err := awsClient.Client.SNS.Publish(input)
 	if err != nil {
 		awsClient.Client.Log.Error("Error sending sms - ", zap.Error(err))
-		return err
+		return leetError.ErrorResponseBody(leetError.SnsSendSMSError, err)
 	}
 
 	awsClient.Client.Log.Info("sms sent successfully", zap.String("MessageId", *resp.MessageId))
