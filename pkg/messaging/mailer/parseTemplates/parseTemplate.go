@@ -36,7 +36,7 @@ func (t *Template) Create(buf io.Writer, fileName string, data any) error {
 	if err != nil {
 		return err
 	}
-	page := fmt.Sprintf("%s/%s", filepath.Join(dir, "pkg/mailer/templates"), fileName)
+	page := fmt.Sprintf("%s/%s", filepath.Join(dir, "pkg/messaging/mailer/templates"), fileName)
 
 	ts, err := template.New(fileName).Funcs(functions).ParseFiles(page)
 
@@ -44,7 +44,7 @@ func (t *Template) Create(buf io.Writer, fileName string, data any) error {
 		return err
 	}
 
-	ts, err = ts.ParseGlob("./pkg/mailer/templates/*.layout.gohtml")
+	ts, err = ts.ParseGlob("./pkg/messaging/mailer/templates/*.layout.gohtml")
 
 	if err != nil {
 		return err
