@@ -21,6 +21,8 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 		case leetError.InvalidRequestError:
 			pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
 			return
+		case leetError.ResourceNotFoundError:
+			pkg.EncodeErrorResult(w, http.StatusNotFound, err)
 		default:
 			pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 			return

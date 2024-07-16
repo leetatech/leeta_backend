@@ -184,7 +184,13 @@ func (f *FeesHandler) ListFees(ctx context.Context, request query.ResultSelector
 
 	fees, totalRecord, err := f.allRepository.FeesRepository.FetchFees(ctx, request)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, leetError.ErrorResponseBody(leetError.InternalError, err)
+	}
+
+	for _, field := range request.Filter.Fields {
+		if field.Name == "lga" && len(fees) == 0 {
+			return nil, 0, leetError.ErrorResponseBody(leetError.ResourceNotFoundError, errors.New("we are not delivering to this address"))
+		}
 	}
 
 	return fees, totalRecord, nil

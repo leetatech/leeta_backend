@@ -56,6 +56,7 @@ const (
 	InvalidServiceFeeError       ErrorCode = 1043
 	RestrictedAccessError        ErrorCode = 1044
 	FeesError                    ErrorCode = 1045
+	ResourceNotFoundError        ErrorCode = 1046
 )
 
 var (
@@ -105,6 +106,7 @@ var (
 		InvalidServiceFeeError:       "InvalidServiceFeeError",
 		RestrictedAccessError:        "RestrictedAccessError",
 		FeesError:                    "FeesError",
+		ResourceNotFoundError:        "ResourceNotFoundError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -153,6 +155,7 @@ var (
 		InvalidServiceFeeError:       "An error occurred because the service fee is invalid",
 		RestrictedAccessError:        "User do not have authorization to access this endpoint",
 		FeesError:                    "There is an error with the application fees",
+		ResourceNotFoundError:        "An error occurred because the requested resource was not found",
 	}
 )
 
