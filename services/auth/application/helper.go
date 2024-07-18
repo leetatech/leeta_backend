@@ -151,6 +151,12 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 					Time: timestamp,
 				},
 			}
+
+			err = customer.User.ExtractName(request.FullName)
+			if err != nil {
+				return nil, leetError.ErrorResponseBody(leetError.MissingUserNames, err)
+			}
+
 			err = a.allRepository.AuthRepository.CreateUser(ctx, customer)
 			if err != nil {
 				return nil, err
@@ -184,7 +190,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 
 			err = a.accountVerification(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath, models.CustomerCategory)
 			if err != nil {
-				return nil, leetError.ErrorResponseBody(leetError.InternalError, err)
+				return nil, err
 			}
 
 			return &domain.DefaultSigningResponse{AuthToken: response, Body: customer.User}, nil
