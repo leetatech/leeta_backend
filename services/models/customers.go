@@ -81,7 +81,7 @@ type AddressType string
 
 const (
 	CustomerResidentAddress AddressType = "customer_resident_address"
-	DeliveryAddress                     = "delivery_address"
+	DeliveryAddress         AddressType = "delivery_address"
 )
 
 // Address model
