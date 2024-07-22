@@ -1,8 +1,10 @@
 package interfaces
 
 import (
+	"encoding/json"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/application"
 	"net/http"
 )
@@ -97,4 +99,34 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 		return
 	}
 	pkg.EncodeResult(w, token, http.StatusOK)
+}
+
+// UpdateUserRecordHandler godoc
+// @Summary Update User Status
+// @Description The endpoint takes the request to update signed user records
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param models.User body models.User true "update user record"
+// @Security BearerToken
+// @Success 200 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /user/ [put]
+func (handler *UserHttpHandler) UpdateUserRecordHandler(w http.ResponseWriter, r *http.Request) {
+	var request models.User
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := handler.UserApplication.UpdateUserRecord(r.Context(), request)
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+
+	pkg.EncodeResult(w, resp, http.StatusOK)
 }

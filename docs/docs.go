@@ -1644,6 +1644,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/": {
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint takes the request to update signed user records",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User Status",
+                "parameters": [
+                    {
+                        "description": "update user record",
+                        "name": "models.User",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/admin/vendor": {
             "post": {
                 "security": [
@@ -1963,6 +2014,9 @@ const docTemplate = `{
         "Address": {
             "type": "object",
             "properties": {
+                "address_type": {
+                    "$ref": "#/definitions/models.AddressType"
+                },
                 "city": {
                     "type": "string"
                 },
@@ -1971,6 +2025,9 @@ const docTemplate = `{
                 },
                 "coordinate": {
                     "$ref": "#/definitions/Coordinates"
+                },
+                "default_delivery_address": {
+                    "type": "boolean"
                 },
                 "full_address": {
                     "type": "string"
@@ -1990,7 +2047,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Address"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
                 },
                 "department": {
                     "type": "string"
@@ -2934,6 +2994,15 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AddressType": {
+            "type": "string",
+            "enum": [
+                "customer_resident_address"
+            ],
+            "x-enum-varnames": [
+                "CustomerResidentAddress"
+            ]
+        },
         "models.Cart": {
             "type": "object",
             "properties": {
@@ -3188,6 +3257,50 @@ const docTemplate = `{
                 "Exited",
                 "Locked"
             ]
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "$ref": "#/definitions/Email"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "has_pin": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Statuses"
+                }
+            }
         },
         "models.UserCategory": {
             "type": "string",
