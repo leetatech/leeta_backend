@@ -130,3 +130,23 @@ func (handler *UserHttpHandler) UpdateUserRecordHandler(w http.ResponseWriter, r
 
 	pkg.EncodeResult(w, resp, http.StatusOK)
 }
+
+// GetAuthenticatedUserHandler godoc
+// @Summary Get only authenticated user record
+// @Description The endpoint to get user record from current context
+// @Tags User
+// @Produce json
+// @Security BearerToken
+// @Success 200 {object} models.Customer
+// @error 400 {object} pkg.DefaultErrorResponse
+// @error 401 {object} pkg.DefaultErrorResponse
+// @Router /user/ [get]
+func (handler *UserHttpHandler) GetAuthenticatedUserHandler(w http.ResponseWriter, r *http.Request) {
+	resp, err := handler.UserApplication.GetAuthenticatedUser(r.Context())
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+
+	pkg.EncodeResult(w, resp, http.StatusOK)
+}

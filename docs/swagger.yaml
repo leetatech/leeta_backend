@@ -127,6 +127,39 @@ definitions:
       password:
         type: string
     type: object
+  Customer:
+    properties:
+      address:
+        items:
+          $ref: '#/definitions/Address'
+        type: array
+      dob:
+        type: string
+      email:
+        $ref: '#/definitions/Email'
+      first_name:
+        type: string
+      has_pin:
+        type: boolean
+      id:
+        type: string
+      is_blocked:
+        type: boolean
+      is_blocked_reason:
+        type: string
+      last_name:
+        type: string
+      phone:
+        $ref: '#/definitions/Phone'
+      pin_blocked:
+        type: boolean
+      status:
+        $ref: '#/definitions/models.Statuses'
+      status_ts:
+        type: integer
+      ts:
+        type: integer
+    type: object
   DefaultErrorResponse:
     properties:
       data:
@@ -697,9 +730,11 @@ definitions:
   models.AddressType:
     enum:
     - customer_resident_address
+    - delivery_address
     type: string
     x-enum-varnames:
     - CustomerResidentAddress
+    - DeliveryAddress
   models.Cart:
     properties:
       cart_items:
@@ -2085,6 +2120,20 @@ paths:
       tags:
       - state
   /user/:
+    get:
+      description: The endpoint to get user record from current context
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Customer'
+      security:
+      - BearerToken: []
+      summary: Get only authenticated user record
+      tags:
+      - User
     put:
       consumes:
       - application/json

@@ -25,6 +25,7 @@ type UserApplication interface {
 	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
 	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
 	UpdateUserRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error)
+	GetAuthenticatedUser(ctx context.Context) (*models.Customer, error)
 }
 
 func NewUserApplication(request pkg.DefaultApplicationRequest) UserApplication {
@@ -172,4 +173,18 @@ func (u userAppHandler) UpdateUserRecord(ctx context.Context, request models.Use
 		Success: "success",
 		Message: "user details updated successfully",
 	}, nil
+}
+
+func (u userAppHandler) GetAuthenticatedUser(ctx context.Context) (*models.Customer, error) {
+	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+	if err != nil {
+		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+	}
+
+	customer, err := u.allRepository.UserRepository.GetCustomerByID(claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
 }
