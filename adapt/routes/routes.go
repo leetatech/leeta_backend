@@ -124,6 +124,12 @@ func buildUserEndpoints(user userInterfaces.UserHttpHandler, tokenHandler *pkg.T
 
 	router.Mount("/vendor", buildVendorEndpoints(user, tokenHandler))
 
+	router.Group(func(r chi.Router) {
+		r.Use(tokenHandler.ValidateMiddleware)
+		r.Get("/", user.Data)
+		r.Put("/", user.UpdateUserData)
+	})
+
 	return router
 }
 

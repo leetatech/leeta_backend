@@ -6,12 +6,16 @@ definitions:
     type: object
   Address:
     properties:
+      address_type:
+        $ref: '#/definitions/models.AddressType'
       city:
         type: string
       closest_landmark:
         type: string
       coordinate:
         $ref: '#/definitions/Coordinates'
+      default_delivery_address:
+        type: boolean
       full_address:
         type: string
       lga:
@@ -24,7 +28,9 @@ definitions:
   Admin:
     properties:
       address:
-        $ref: '#/definitions/Address'
+        items:
+          $ref: '#/definitions/Address'
+        type: array
       department:
         type: string
       dob:
@@ -120,6 +126,39 @@ definitions:
         type: string
       password:
         type: string
+    type: object
+  Customer:
+    properties:
+      address:
+        items:
+          $ref: '#/definitions/Address'
+        type: array
+      dob:
+        type: string
+      email:
+        $ref: '#/definitions/Email'
+      first_name:
+        type: string
+      has_pin:
+        type: boolean
+      id:
+        type: string
+      is_blocked:
+        type: boolean
+      is_blocked_reason:
+        type: string
+      last_name:
+        type: string
+      phone:
+        $ref: '#/definitions/Phone'
+      pin_blocked:
+        type: boolean
+      status:
+        $ref: '#/definitions/models.Statuses'
+      status_ts:
+        type: integer
+      ts:
+        type: integer
     type: object
   DefaultErrorResponse:
     properties:
@@ -688,6 +727,14 @@ definitions:
       message:
         type: string
     type: object
+  models.AddressType:
+    enum:
+    - customer_resident_address
+    - delivery_address
+    type: string
+    x-enum-varnames:
+    - CustomerResidentAddress
+    - DeliveryAddress
   models.Cart:
     properties:
       cart_items:
@@ -873,6 +920,35 @@ definitions:
     - Rejected
     - Exited
     - Locked
+  models.User:
+    properties:
+      address:
+        items:
+          $ref: '#/definitions/Address'
+        type: array
+      dob:
+        type: string
+      email:
+        $ref: '#/definitions/Email'
+      first_name:
+        type: string
+      has_pin:
+        type: boolean
+      id:
+        type: string
+      is_blocked:
+        type: boolean
+      is_blocked_reason:
+        type: string
+      last_name:
+        type: string
+      phone:
+        $ref: '#/definitions/Phone'
+      pin_blocked:
+        type: boolean
+      status:
+        $ref: '#/definitions/models.Statuses'
+    type: object
   models.UserCategory:
     enum:
     - vendor
@@ -2043,6 +2119,53 @@ paths:
       summary: Get a state.
       tags:
       - state
+  /user/:
+    get:
+      description: The endpoint to get user record from current user jwt token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Customer'
+      security:
+      - BearerToken: []
+      summary: Get only authenticated user data
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update user data is the endpoint used to make changes to a user
+        database record
+      parameters:
+      - description: update user record
+        in: body
+        name: models.User
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/DefaultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DefaultErrorResponse'
+      security:
+      - BearerToken: []
+      summary: Update User data
+      tags:
+      - User
   /user/admin/vendor:
     post:
       consumes:
