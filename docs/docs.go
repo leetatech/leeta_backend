@@ -1651,7 +1651,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint takes the request to update signed user records",
+                "description": "Update user data is the endpoint used to make changes to a user database record",
                 "consumes": [
                     "application/json"
                 ],
@@ -1661,7 +1661,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Update User Status",
+                "summary": "Update User data",
                 "parameters": [
                     {
                         "description": "update user record",
@@ -1674,8 +1674,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "204": {
+                        "description": "No Content",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
                         }
@@ -2997,10 +2997,12 @@ const docTemplate = `{
         "models.AddressType": {
             "type": "string",
             "enum": [
-                "customer_resident_address"
+                "customer_resident_address",
+                "delivery_address"
             ],
             "x-enum-varnames": [
-                "CustomerResidentAddress"
+                "CustomerResidentAddress",
+                "DeliveryAddress"
             ]
         },
         "models.Cart": {

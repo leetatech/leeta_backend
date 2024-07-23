@@ -101,19 +101,19 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 	pkg.EncodeResult(w, token, http.StatusOK)
 }
 
-// UpdateUserRecordHandler godoc
-// @Summary Update User Status
-// @Description The endpoint takes the request to update signed user records
+// UpdateUserData godoc
+// @Summary Update User data
+// @Description Update user data is the endpoint used to make changes to a user database record
 // @Tags User
 // @Accept json
 // @Produce json
 // @Param models.User body models.User true "update user record"
 // @Security BearerToken
-// @Success 200 {object} pkg.DefaultResponse
+// @Success 204 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /user/ [put]
-func (handler *UserHttpHandler) UpdateUserRecordHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *UserHttpHandler) UpdateUserData(w http.ResponseWriter, r *http.Request) {
 	var request models.User
 
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -122,7 +122,7 @@ func (handler *UserHttpHandler) UpdateUserRecordHandler(w http.ResponseWriter, r
 		return
 	}
 
-	resp, err := handler.UserApplication.UpdateUserRecord(r.Context(), request)
+	resp, err := handler.UserApplication.UpdateRecord(r.Context(), request)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return

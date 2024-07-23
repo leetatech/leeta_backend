@@ -697,9 +697,11 @@ definitions:
   models.AddressType:
     enum:
     - customer_resident_address
+    - delivery_address
     type: string
     x-enum-varnames:
     - CustomerResidentAddress
+    - DeliveryAddress
   models.Cart:
     properties:
       cart_items:
@@ -2088,7 +2090,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: The endpoint takes the request to update signed user records
+      description: Update user data is the endpoint used to make changes to a user
+        database record
       parameters:
       - description: update user record
         in: body
@@ -2099,8 +2102,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
             $ref: '#/definitions/DefaultResponse'
         "400":
@@ -2113,7 +2116,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Update User Status
+      summary: Update User data
       tags:
       - User
   /user/admin/vendor:
