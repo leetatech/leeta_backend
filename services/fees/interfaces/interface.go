@@ -5,6 +5,7 @@ import (
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/fees/application"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
@@ -78,7 +79,7 @@ func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.
 
 	fees, totalRecord, err := handler.FeesApplication.ListFees(r.Context(), resultSelector)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, leetError.ErrorResponseBody(leetError.InternalError, err))
+		helpers.CheckErrorType(err, w)
 		return
 	}
 

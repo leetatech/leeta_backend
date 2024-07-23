@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/paging"
@@ -184,7 +185,13 @@ func (f *FeesHandler) ListFees(ctx context.Context, request query.ResultSelector
 
 	fees, totalRecord, err := f.allRepository.FeesRepository.FetchFees(ctx, request)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error fetching fees: %w", err))
+	}
+
+	for _, field := range request.Filter.Fields {
+		if field.Name == "lga" && len(fees) == 0 {
+			return nil, 0, leetError.ErrorResponseBody(leetError.LGANotFoundError, fmt.Errorf("lga not found, leeta is not available in this region: %s", field.Name))
+		}
 	}
 
 	return fees, totalRecord, nil

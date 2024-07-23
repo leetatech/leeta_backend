@@ -666,6 +666,7 @@ definitions:
     - 1043
     - 1044
     - 1045
+    - 1046
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -715,6 +716,7 @@ definitions:
     - InvalidServiceFeeError
     - RestrictedAccessError
     - FeesError
+    - ResourceNotFoundError
   leetError.ErrorResponse:
     properties:
       error_code:
@@ -2131,7 +2133,7 @@ paths:
             $ref: '#/definitions/Customer'
       security:
       - BearerToken: []
-      summary: Get only authenticated user data
+      summary: Get authenticated user data
       tags:
       - User
     put:

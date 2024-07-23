@@ -1658,7 +1658,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Get only authenticated user data",
+                "summary": "Get authenticated user data",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2996,7 +2996,8 @@ const docTemplate = `{
                 1042,
                 1043,
                 1044,
-                1045
+                1045,
+                1046
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -3046,7 +3047,8 @@ const docTemplate = `{
                 "InvalidDeliveryFeeError",
                 "InvalidServiceFeeError",
                 "RestrictedAccessError",
-                "FeesError"
+                "FeesError",
+                "ResourceNotFoundError"
             ]
         },
         "leetError.ErrorResponse": {
