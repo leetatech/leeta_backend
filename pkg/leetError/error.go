@@ -59,6 +59,7 @@ const (
 	TemplateCreationError        ErrorCode = 1046
 	AwsSessionError              ErrorCode = 1047
 	SesSendEmailError            ErrorCode = 1048
+	LGANotFoundError             ErrorCode = 1049
 )
 
 var (
@@ -111,6 +112,7 @@ var (
 		TemplateCreationError:        "TemplateCreationError",
 		AwsSessionError:              "AwsSessionError",
 		SesSendEmailError:            "SesSendEmailError",
+		LGANotFoundError:             "LGANotFoundError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -162,6 +164,7 @@ var (
 		TemplateCreationError:        "An error occurred while creating template",
 		AwsSessionError:              "An error occurred while creating aws session",
 		SesSendEmailError:            "An error occurred while sending email",
+		LGANotFoundError:             "Leeta is not available in your region",
 	}
 )
 

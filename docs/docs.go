@@ -1644,6 +1644,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get user record from current user jwt token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get authenticated user data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Customer"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Update user data is the endpoint used to make changes to a user database record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User data",
+                "parameters": [
+                    {
+                        "description": "update user record",
+                        "name": "models.User",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/admin/vendor": {
             "post": {
                 "security": [
@@ -1963,6 +2037,9 @@ const docTemplate = `{
         "Address": {
             "type": "object",
             "properties": {
+                "address_type": {
+                    "$ref": "#/definitions/models.AddressType"
+                },
                 "city": {
                     "type": "string"
                 },
@@ -1971,6 +2048,9 @@ const docTemplate = `{
                 },
                 "coordinate": {
                     "$ref": "#/definitions/Coordinates"
+                },
+                "default_delivery_address": {
+                    "type": "boolean"
                 },
                 "full_address": {
                     "type": "string"
@@ -1990,7 +2070,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Address"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
                 },
                 "department": {
                     "type": "string"
@@ -2136,6 +2219,56 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "Customer": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "$ref": "#/definitions/Email"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "has_pin": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Statuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "ts": {
+                    "type": "integer"
                 }
             }
         },
@@ -2863,7 +2996,8 @@ const docTemplate = `{
                 1042,
                 1043,
                 1044,
-                1045
+                1045,
+                1046
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2913,7 +3047,8 @@ const docTemplate = `{
                 "InvalidDeliveryFeeError",
                 "InvalidServiceFeeError",
                 "RestrictedAccessError",
-                "FeesError"
+                "FeesError",
+                "ResourceNotFoundError"
             ]
         },
         "leetError.ErrorResponse": {
@@ -2933,6 +3068,17 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.AddressType": {
+            "type": "string",
+            "enum": [
+                "customer_resident_address",
+                "delivery_address"
+            ],
+            "x-enum-varnames": [
+                "CustomerResidentAddress",
+                "DeliveryAddress"
+            ]
         },
         "models.Cart": {
             "type": "object",
@@ -3188,6 +3334,50 @@ const docTemplate = `{
                 "Exited",
                 "Locked"
             ]
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "$ref": "#/definitions/Email"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "has_pin": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Statuses"
+                }
+            }
         },
         "models.UserCategory": {
             "type": "string",

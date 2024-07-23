@@ -78,7 +78,7 @@ func (u userStoreHandler) GetVendorByID(id string) (*models.Vendor, error) {
 func (u userStoreHandler) GetCustomerByID(id string) (*models.Customer, error) {
 	customer := &models.Customer{}
 	filter := bson.M{
-		"id": id,
+		"user.id": id,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -96,4 +96,26 @@ func (u userStoreHandler) GetCustomerByID(id string) (*models.Customer, error) {
 	}
 
 	return customer, nil
+}
+
+func (u userStoreHandler) UpdateUserRecord(request *models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"user.id": request.ID,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"user": *request,
+		},
+	}
+
+	_, err := u.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
