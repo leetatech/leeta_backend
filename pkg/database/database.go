@@ -69,10 +69,3 @@ func BuildMongoFilterQuery(requestFilter *filter.Request, fieldMapping map[strin
 
 	return query
 }
-
-// TODO: build general update query
-func BuildUpdateQuery(request interface{}) bson.M {
-	update := bson.M{}
-
-	return update
-}

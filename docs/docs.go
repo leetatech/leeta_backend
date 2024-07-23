@@ -1651,14 +1651,14 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint to get user record from current context",
+                "description": "The endpoint to get user record from current user jwt token",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "User"
                 ],
-                "summary": "Get only authenticated user record",
+                "summary": "Get only authenticated user data",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1674,7 +1674,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "The endpoint takes the request to update signed user records",
+                "description": "Update user data is the endpoint used to make changes to a user database record",
                 "consumes": [
                     "application/json"
                 ],
@@ -1684,7 +1684,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Update User Status",
+                "summary": "Update User data",
                 "parameters": [
                     {
                         "description": "update user record",
@@ -1697,8 +1697,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "204": {
+                        "description": "No Content",
                         "schema": {
                             "$ref": "#/definitions/DefaultResponse"
                         }

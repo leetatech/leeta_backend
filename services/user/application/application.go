@@ -24,7 +24,7 @@ type userAppHandler struct {
 type UserApplication interface {
 	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
 	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
-	GetAuthenticatedUser(ctx context.Context) (*models.Customer, error)
+	Data(ctx context.Context) (*models.Customer, error)
 	UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error)
 }
 
@@ -40,7 +40,7 @@ func NewUserApplication(request pkg.DefaultApplicationRequest) UserApplication {
 	}
 }
 
-func (u userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
+func (u *userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -87,7 +87,7 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }
 
-func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
+func (u *userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -142,7 +142,7 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }
 
-func (u userAppHandler) UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error) {
+func (u *userAppHandler) UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
@@ -175,7 +175,7 @@ func (u userAppHandler) UpdateRecord(ctx context.Context, request models.User) (
 	}, nil
 }
 
-func (u userAppHandler) GetAuthenticatedUser(ctx context.Context) (*models.Customer, error) {
+func (u *userAppHandler) Data(ctx context.Context) (*models.Customer, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)

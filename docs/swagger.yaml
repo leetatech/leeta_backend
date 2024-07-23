@@ -2121,7 +2121,7 @@ paths:
       - state
   /user/:
     get:
-      description: The endpoint to get user record from current context
+      description: The endpoint to get user record from current user jwt token
       produces:
       - application/json
       responses:
@@ -2131,13 +2131,14 @@ paths:
             $ref: '#/definitions/Customer'
       security:
       - BearerToken: []
-      summary: Get only authenticated user record
+      summary: Get only authenticated user data
       tags:
       - User
     put:
       consumes:
       - application/json
-      description: The endpoint takes the request to update signed user records
+      description: Update user data is the endpoint used to make changes to a user
+        database record
       parameters:
       - description: update user record
         in: body
@@ -2148,8 +2149,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
             $ref: '#/definitions/DefaultResponse'
         "400":
@@ -2162,7 +2163,7 @@ paths:
             $ref: '#/definitions/DefaultErrorResponse'
       security:
       - BearerToken: []
-      summary: Update User Status
+      summary: Update User data
       tags:
       - User
   /user/admin/vendor:
