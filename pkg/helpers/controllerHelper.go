@@ -15,14 +15,12 @@ func CheckErrorType(err error, w http.ResponseWriter) {
 		case leetError.ErrorUnauthorized:
 			pkg.EncodeErrorResult(w, http.StatusUnauthorized, err)
 			return
-		case leetError.DatabaseNoRecordError:
+		case leetError.DatabaseNoRecordError, leetError.LGANotFoundError:
 			pkg.EncodeErrorResult(w, http.StatusNotFound, err)
 			return
 		case leetError.InvalidRequestError:
 			pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
 			return
-		case leetError.ResourceNotFoundError:
-			pkg.EncodeErrorResult(w, http.StatusNotFound, err)
 		default:
 			pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
 			return
