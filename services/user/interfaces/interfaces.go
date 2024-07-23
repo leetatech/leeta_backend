@@ -130,3 +130,23 @@ func (handler *UserHttpHandler) UpdateUserData(w http.ResponseWriter, r *http.Re
 
 	pkg.EncodeResult(w, resp, http.StatusOK)
 }
+
+// Data godoc
+// @Summary Get authenticated user data
+// @Description The endpoint to get user record from current user jwt token
+// @Tags User
+// @Produce json
+// @Security BearerToken
+// @Success 200 {object} models.Customer
+// @error 400 {object} pkg.DefaultErrorResponse
+// @error 401 {object} pkg.DefaultErrorResponse
+// @Router /user/ [get]
+func (handler *UserHttpHandler) Data(w http.ResponseWriter, r *http.Request) {
+	resp, err := handler.UserApplication.Data(r.Context())
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+
+	pkg.EncodeResult(w, resp, http.StatusOK)
+}

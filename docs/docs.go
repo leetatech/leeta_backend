@@ -1645,6 +1645,29 @@ const docTemplate = `{
             }
         },
         "/user/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get user record from current user jwt token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get only authenticated user data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Customer"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -2196,6 +2219,56 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "Customer": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "$ref": "#/definitions/Email"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "has_pin": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Statuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "ts": {
+                    "type": "integer"
                 }
             }
         },
