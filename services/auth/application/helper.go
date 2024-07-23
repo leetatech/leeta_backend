@@ -342,13 +342,6 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 						Address: request.Email,
 					},
 					DOB: request.DOB,
-					Address: models.Address{
-						State:           request.Address.State,
-						City:            request.Address.City,
-						LGA:             request.Address.LGA,
-						FullAddress:     request.Address.FullAddress,
-						ClosestLandmark: request.Address.ClosestLandmark,
-					},
 					Phone: models.Phone{
 						Primary: true,
 						Number:  request.Phone,
@@ -361,6 +354,16 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 					Time: timestamp,
 				},
 			}
+
+			admin.User.Address = append(admin.User.Address, models.Address{
+				State:           request.Address.State,
+				City:            request.Address.City,
+				LGA:             request.Address.LGA,
+				FullAddress:     request.Address.FullAddress,
+				ClosestLandmark: request.Address.ClosestLandmark,
+				AddressType:     models.CustomerResidentAddress,
+			})
+
 			err = a.allRepository.AuthRepository.CreateUser(ctx, admin)
 			if err != nil {
 				return nil, err

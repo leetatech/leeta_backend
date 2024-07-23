@@ -7,4 +7,5 @@ type UserRepository interface {
 	RegisterVendorBusiness(request models.Business) error
 	GetVendorByID(id string) (*models.Vendor, error)
 	GetCustomerByID(id string) (*models.Customer, error)
+	UpdateUserRecord(request *models.User) error
 }
