@@ -24,8 +24,8 @@ type userAppHandler struct {
 type UserApplication interface {
 	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
 	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
-	UpdateUserRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error)
 	GetAuthenticatedUser(ctx context.Context) (*models.Customer, error)
+	UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error)
 }
 
 func NewUserApplication(request pkg.DefaultApplicationRequest) UserApplication {
@@ -142,7 +142,7 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }
 
-func (u userAppHandler) UpdateUserRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error) {
+func (u userAppHandler) UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error) {
 	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
 	if err != nil {
 		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
