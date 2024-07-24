@@ -5,27 +5,29 @@ import (
 	"errors"
 	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/encrypto"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/idgenerator"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
 	"github.com/leetatech/leeta_backend/services/models"
-	"go.uber.org/zap"
 	"time"
 )
 
 type authAppHandler struct {
-	tokenHandler  pkg.TokenHandler
-	encryptor     pkg.EncryptorManager
-	idGenerator   pkg.IDGenerator
-	otpGenerator  pkg.OtpGenerator
-	logger        *zap.Logger
-	EmailClient   mailer.MailerClient
-	Domain        string
-	allRepository pkg.Repositories
+	jwtManager        jwtmiddleware.Manager
+	encryptor         encrypto.Manager
+	idGenerator       idgenerator.Generator
+	otpGenerator      otp.Generator
+	mailer            mailer.Client
+	domain            string
+	repositoryManager pkg.RepositoryManager
 }
 
-type AuthApplication interface {
+type Auth interface {
 	SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error)
 	RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
 	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*pkg.DefaultResponse, error)
@@ -39,24 +41,22 @@ type AuthApplication interface {
 	GetGuestRecord(ctx context.Context, deviceId string) (models.Guest, error)
 }
 
-func NewAuthApplication(request pkg.DefaultApplicationRequest) AuthApplication {
+func New(request pkg.ApplicationContext) Auth {
 	return &authAppHandler{
-		tokenHandler:  request.TokenHandler,
-		encryptor:     pkg.NewEncryptor(),
-		idGenerator:   pkg.NewIDGenerator(),
-		otpGenerator:  pkg.NewOTPGenerator(),
-		logger:        request.Logger,
-		EmailClient:   request.EmailClient,
-		Domain:        request.Domain,
-		allRepository: request.AllRepository,
+		jwtManager:        request.JwtManager,
+		encryptor:         encrypto.New(),
+		idGenerator:       idgenerator.New(),
+		otpGenerator:      otp.New(),
+		mailer:            request.Mailer,
+		domain:            request.Domain,
+		repositoryManager: request.RepositoryManager,
 	}
 }
 
 func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
-	hashedPassword, err := a.passwordValidationEncryption(request.Password)
+	hashedPassword, err := a.validateAndEncryptPassword(request.Password)
 	if err != nil {
-		a.logger.Error("Password Validation", zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("error validating and encrypting password on signup: %w", err)
 	}
 	request.Password = hashedPassword
 
@@ -93,7 +93,7 @@ func (a authAppHandler) createOTP(ctx context.Context, request domain.OTPRequest
 		Timestamp: time.Now().Unix(),
 	}
 
-	err := a.allRepository.AuthRepository.CreateOTP(ctx, otpResponse)
+	err := a.repositoryManager.AuthRepository.CreateOTP(ctx, otpResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -103,10 +103,9 @@ func (a authAppHandler) createOTP(ctx context.Context, request domain.OTPRequest
 
 func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAccess) (*pkg.DefaultResponse, error) {
 	request.Timestamp = time.Now().Unix()
-	err := a.allRepository.AuthRepository.EarlyAccess(ctx, request)
+	err := a.repositoryManager.AuthRepository.SaveEarlyAccess(ctx, request)
 	if err != nil {
-		a.logger.Error("EarlyAccess", zap.Any(leetError.ErrorType(leetError.DatabaseError), err), zap.Any(leetError.ErrorType(leetError.DatabaseError), leetError.ErrorMessage(leetError.DatabaseError)))
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, fmt.Errorf("error saving early access: %w", err))
 	}
 
 	message := models.Message{
@@ -156,23 +155,22 @@ func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.Email
 
 func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ForgotPasswordError, err)
+		return nil, errs.Body(errs.ForgotPasswordError, err)
 	}
 	return &pkg.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
 }
 
 func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequestBody) error {
 	// get user by email
-	user, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
+	user, err := a.repositoryManager.AuthRepository.UserByEmail(ctx, request.Email)
 	if err != nil {
-		a.logger.Error("error getting user by email", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
-		return leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+		return errs.Body(errs.UserNotFoundError, fmt.Errorf("error getting user by email: %w", err))
 	}
 
 	// check if user otp exists
-	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Email)
+	verification, err := a.repositoryManager.AuthRepository.FindUnvalidatedVerificationByTarget(ctx, request.Email)
 	if err != nil && !errors.Is(err, infrastructure.ErrItemNotFound) {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	requestOTP := domain.OTPRequest{
@@ -211,42 +209,30 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 }
 
 func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValidationRequest) (*pkg.DefaultResponse, error) {
-	verification, err := a.allRepository.AuthRepository.GetOTPForValidation(ctx, request.Target)
+	verification, err := a.repositoryManager.AuthRepository.FindUnvalidatedVerificationByTarget(ctx, request.Target)
 	if err != nil {
-		a.logger.Error("ValidateOTP", zap.String("target", request.Target), zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("error getting unvalidated verification by target when validating otp: %w", err)
 	}
 	if verification.Validated {
-		newErr := errors.New("already validated otp")
-		a.logger.Error("ValidateOTP", zap.String(leetError.ErrorType(leetError.TokenValidationError), fmt.Sprintf("%s: %s", "target", request.Target)), zap.Error(newErr))
-
-		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr))
+		return nil, errs.Body(errs.TokenValidationError, fmt.Errorf("otp has already been validated"))
 	}
 
 	if verification.Code != request.Code {
-		newErr := errors.New("invalid otp")
-		a.logger.Error("ValidateOTP", zap.String(leetError.ErrorType(leetError.TokenValidationError), fmt.Sprintf("%s: %s", "target", request.Target)), zap.Error(leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)))
-
-		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)
+		return nil, errs.Body(errs.TokenValidationError, errors.New("invalid otp"))
 	}
 
 	if time.Unix(verification.ExpiresAt, 0).Before(time.Now()) {
-		newErr := errors.New("expired otp")
-		a.logger.Error("ValidateOTP", zap.String(leetError.ErrorType(leetError.TokenValidationError), fmt.Sprintf("%s: %s", "target", request.Target)), zap.Error(leetError.ErrorResponseBody(leetError.TokenValidationError, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr))))
-
-		return nil, leetError.ErrorResponseBody(leetError.TokenValidationError, newErr)
+		return nil, errs.Body(errs.TokenValidationError, errors.New("expired otp"))
 	}
 
-	err = a.allRepository.AuthRepository.ValidateOTP(ctx, verification.ID)
+	err = a.repositoryManager.AuthRepository.ValidateOTP(ctx, verification.ID)
 	if err != nil {
-		a.logger.Error("store validating verification", zap.Error(err), zap.String("verification_id", verification.ID))
-		return nil, err
+		return nil, fmt.Errorf("error validating otp: %w", err)
 	}
 
-	err = a.allRepository.AuthRepository.UpdateEmailVerify(ctx, verification.Target, true)
+	err = a.repositoryManager.AuthRepository.SetEmailVerificationStatus(ctx, verification.Target, true)
 	if err != nil {
-		a.logger.Error("error validating user email", zap.Error(err), zap.String("verification_email", verification.Target))
-		return nil, err
+		return nil, fmt.Errorf("error setting email verification status")
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "OTP validated"}, nil
@@ -255,38 +241,32 @@ func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValid
 func (a authAppHandler) CreateNewPassword(ctx context.Context, request domain.CreateNewPasswordRequest) (*domain.DefaultSigningResponse, error) {
 
 	if request.Password != request.ConfirmPassword {
-		a.logger.Error("CreateNewPassword", zap.Any(leetError.ErrorType(leetError.PasswordValidationError), errors.New("password and confirm password don't match")))
-
-		return nil, leetError.ErrorResponseBody(leetError.PasswordValidationError, errors.New("password and confirm password don't match"))
+		return nil, errs.Body(errs.PasswordValidationError, errors.New("password and confirm password don't match"))
 	}
 
-	vendor, err := a.allRepository.AuthRepository.GetUserByEmail(ctx, request.Email)
+	vendor, err := a.repositoryManager.AuthRepository.UserByEmail(ctx, request.Email)
 	if err != nil {
-		a.logger.Error("CreateNewPassword", zap.Any(leetError.ErrorType(leetError.UserNotFoundError), err), zap.Any("email", request.Email))
-		return nil, leetError.ErrorResponseBody(leetError.UserNotFoundError, err)
+		return nil, errs.Body(errs.UserNotFoundError, fmt.Errorf("error getting user by email: %w", err))
 	}
 
-	return a.createNewPassword(ctx, vendor.ID, vendor.Email.Address, request.Password)
+	return a.createNewPassword(ctx, vendor.ID, request.Password)
 
 }
 
 func (a authAppHandler) AdminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
-	err := a.encryptor.IsValidEmailFormat(request.Email)
+	err := a.encryptor.ValidateEmailFormat(request.Email)
 	if err != nil {
-		a.logger.Error("AdminSignUp", zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("error validating email format: %w", err)
 	}
 
-	err = a.encryptor.IsLeetaDomain(request.Email, a.Domain)
+	err = a.encryptor.ValidateDomain(request.Email, a.domain)
 	if err != nil {
-		a.logger.Error("AdminSignUp", zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("error validating domain on admin sign up: %w", err)
 	}
 
-	hashedPassword, err := a.passwordValidationEncryption(request.Password)
+	hashedPassword, err := a.validateAndEncryptPassword(request.Password)
 	if err != nil {
-		a.logger.Error("Password Validation", zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("error validating and encrypting password on admin sign up: %w", err)
 	}
 	request.Password = hashedPassword
 
@@ -297,10 +277,10 @@ func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*
 	ctx := context.Background()
 
 	// check if guest device id already exist. if it does then there is already an assigned guest id
-	guestRecord, err := a.allRepository.AuthRepository.GetGuestRecord(ctx, request.DeviceID)
+	guestRecord, err := a.repositoryManager.AuthRepository.GuestRecord(ctx, request.DeviceID)
 	if err != nil {
 		if !errors.Is(err, infrastructure.ErrItemNotFound) {
-			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error when searching for guest record %w", err))
+			return nil, errs.Body(errs.InternalError, fmt.Errorf("error when searching for guest record %w", err))
 		}
 	}
 
@@ -313,14 +293,14 @@ func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*
 			Location: request.Location,
 		}
 
-		if err := a.allRepository.AuthRepository.CreateGuestRecord(context.Background(), guestRecord); err != nil {
-			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error creating guest record %w", err))
+		if err := a.repositoryManager.AuthRepository.CreateGuestRecord(context.Background(), guestRecord); err != nil {
+			return nil, errs.Body(errs.InternalError, fmt.Errorf("error creating guest record %w", err))
 		}
 	}
 
-	tokenString, err := a.tokenHandler.BuildAuthResponse("", guestRecord.ID, request.DeviceID, models.GuestCategory)
+	tokenString, err := a.jwtManager.BuildAuthResponse("", guestRecord.ID, request.DeviceID, models.GuestCategory)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error building token response %w", err))
+		return nil, errs.Body(errs.InternalError, fmt.Errorf("error building token response %w", err))
 	}
 
 	return &domain.ReceiveGuestResponse{
@@ -331,10 +311,10 @@ func (a authAppHandler) ReceiveGuestToken(request domain.ReceiveGuestRequest) (*
 }
 
 func (a authAppHandler) UpdateGuestRecord(ctx context.Context, request models.Guest) (*pkg.DefaultResponse, error) {
-	guestRecord, err := a.allRepository.AuthRepository.GetGuestRecord(ctx, request.DeviceID)
+	guestRecord, err := a.repositoryManager.AuthRepository.GuestRecord(ctx, request.DeviceID)
 	if err != nil {
 		if !errors.Is(err, infrastructure.ErrItemNotFound) {
-			return nil, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error when searching for guest record %w", err))
+			return nil, errs.Body(errs.InternalError, fmt.Errorf("error when searching for guest record %w", err))
 		}
 	}
 
@@ -350,7 +330,7 @@ func (a authAppHandler) UpdateGuestRecord(ctx context.Context, request models.Gu
 	guestRecord.Address.Coordinates = request.Address.Coordinates
 	guestRecord.Address.Verified = request.Address.Verified
 
-	err = a.allRepository.AuthRepository.UpdateGuestRecord(ctx, guestRecord)
+	err = a.repositoryManager.AuthRepository.UpdateGuestRecord(ctx, guestRecord)
 	if err != nil {
 		return nil, err
 	}
@@ -358,5 +338,5 @@ func (a authAppHandler) UpdateGuestRecord(ctx context.Context, request models.Gu
 }
 
 func (a authAppHandler) GetGuestRecord(ctx context.Context, deviceId string) (models.Guest, error) {
-	return a.allRepository.AuthRepository.GetGuestRecord(ctx, deviceId)
+	return a.repositoryManager.AuthRepository.GuestRecord(ctx, deviceId)
 }

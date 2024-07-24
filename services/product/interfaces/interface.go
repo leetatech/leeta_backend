@@ -5,9 +5,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	_ "github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
-	"github.com/leetatech/leeta_backend/pkg"
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/application"
 	"github.com/leetatech/leeta_backend/services/product/domain"
@@ -17,10 +18,10 @@ import (
 )
 
 type ProductHttpHandler struct {
-	ProductApplication application.ProductApplication
+	ProductApplication application.Product
 }
 
-func NewProductHTTPHandler(productApplication application.ProductApplication) *ProductHttpHandler {
+func New(productApplication application.Product) *ProductHttpHandler {
 	return &ProductHttpHandler{
 		ProductApplication: productApplication,
 	}
@@ -55,16 +56,16 @@ func NewProductHTTPHandler(productApplication application.ProductApplication) *P
 func (handler *ProductHttpHandler) CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := checkFormFileAndAddProducts(r)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	resp, err := handler.ProductApplication.CreateProduct(r.Context(), *request)
+	resp, err := handler.ProductApplication.Create(r.Context(), *request)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, resp, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }
 
 // GetProductByIDHandler godoc
@@ -87,13 +88,13 @@ func (handler *ProductHttpHandler) GetProductByIDHandler(w http.ResponseWriter, 
 	)
 	productID := chi.URLParam(r, "product_id")
 
-	product, err = handler.ProductApplication.GetProductByID(r.Context(), productID)
+	product, err = handler.ProductApplication.ProductByID(r.Context(), productID)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
 	}
 
-	pkg.EncodeResult(w, product, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, product, http.StatusOK)
 }
 
 // GetAllVendorProductsHandler godoc
@@ -114,15 +115,15 @@ func (handler *ProductHttpHandler) GetAllVendorProductsHandler(w http.ResponseWr
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	products, err := handler.ProductApplication.GetAllVendorProducts(r.Context(), request)
+	products, err := handler.ProductApplication.VendorProducts(r.Context(), request)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, products, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, products, http.StatusOK)
 }
 
 // CreateGasProductHandler godoc
@@ -141,16 +142,16 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 	var request domain.GasProductRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, errs.Body(errs.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
 
-	result, err := handler.ProductApplication.CreateGasProduct(r.Context(), request)
+	result, err := handler.ProductApplication.CreateGas(r.Context(), request)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, result, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, result, http.StatusOK)
 }
 
 // ListProductsHandler godoc
@@ -168,11 +169,11 @@ func (handler *ProductHttpHandler) CreateGasProductHandler(w http.ResponseWriter
 func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	resultSelector, err := web.PrepareResultSelector(r, listProductOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, errs.Body(errs.InvalidRequestError, err))
 		return
 	}
 
-	products, totalResults, err := handler.ProductApplication.ListProducts(r.Context(), resultSelector)
+	products, totalResults, err := handler.ProductApplication.Products(r.Context(), resultSelector)
 	if err != nil {
 		helpers.CheckErrorType(err, w)
 		return
@@ -183,7 +184,7 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 		Data:     products,
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // ListProductOptions list product filter options
@@ -197,5 +198,5 @@ func (handler *ProductHttpHandler) ListProductsHandler(w http.ResponseWriter, r 
 // @Router /product/options [get]
 func (handler *ProductHttpHandler) ListProductOptions(w http.ResponseWriter, r *http.Request) {
 	requestOptions := lo.Map(listProductOptions, ToFilterOption)
-	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, requestOptions, http.StatusOK)
 }

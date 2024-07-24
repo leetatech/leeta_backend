@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/caarlos0/env"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 	"net/url"
 	"os"
 	"strings"
@@ -59,7 +59,7 @@ func LoadEnv(configFile string) error {
 	return nil
 }
 
-func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
+func ReadConfig(configFile string) (*ServerConfig, error) {
 	err := LoadEnv(configFile)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
 
 	overrideWithEnvVars(&serverConfig)
 	out := serverConfig.formatURI()
-	logger.Info(out)
+	log.Debug().Msgf("config: %v", out)
 
 	return &serverConfig, nil
 }

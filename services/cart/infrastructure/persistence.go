@@ -4,33 +4,31 @@ import (
 	"context"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 	"time"
 )
 
 type CartStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
 }
 
 func (c *CartStoreHandler) col(collectionName string) *mongo.Collection {
 	return c.client.Database(c.databaseName).Collection(collectionName)
 }
 
-func NewCartPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.CartRepository {
-	return &CartStoreHandler{client: client, databaseName: databaseName, logger: logger}
+func New(client *mongo.Client, databaseName string) domain.CartRepository {
+	return &CartStoreHandler{client: client, databaseName: databaseName}
 }
 
 func (c *CartStoreHandler) AddToCart(ctx context.Context, request models.Cart) error {
 	_, err := c.col(models.CartsCollectionName).InsertOne(ctx, request)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
@@ -51,7 +49,7 @@ func (c *CartStoreHandler) GetCartByCustomerID(ctx context.Context, customerID s
 func (c *CartStoreHandler) UpdateCart(ctx context.Context, request models.Cart) error {
 	_, err := c.col(models.CartsCollectionName).UpdateOne(ctx, bson.M{"id": request.ID}, bson.M{"$set": request})
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
 	"github.com/rs/zerolog/log"
@@ -14,37 +14,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type orderStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
 }
 
-func (o orderStoreHandler) col(collectionName string) *mongo.Collection {
+func (o *orderStoreHandler) col(collectionName string) *mongo.Collection {
 	return o.client.Database(o.databaseName).Collection(collectionName)
 }
 
-func NewOrderPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.OrderRepository {
-	return &orderStoreHandler{client: client, databaseName: databaseName, logger: logger}
+func New(client *mongo.Client, databaseName string) domain.OrderRepository {
+	return &orderStoreHandler{client: client, databaseName: databaseName}
 }
 
-func (o orderStoreHandler) CreateOrder(ctx context.Context, request models.Order) error {
+func (o *orderStoreHandler) Create(ctx context.Context, request models.Order) error {
 	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	_, err := o.col(models.OrderCollectionName).InsertOne(updatedCtx, request)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
 }
 
-func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain.PersistOrderUpdate) error {
+func (o *orderStoreHandler) UpdateStatus(ctx context.Context, request domain.PersistOrderUpdate) error {
 	filter := bson.M{
 		"id": request.OrderId,
 	}
@@ -61,12 +58,12 @@ func (o orderStoreHandler) UpdateOrderStatus(ctx context.Context, request domain
 
 	_, err := o.col(models.OrderCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 	return nil
 }
 
-func (o orderStoreHandler) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {
+func (o *orderStoreHandler) OrderByID(ctx context.Context, id string) (*models.Order, error) {
 	order := &models.Order{}
 	filter := bson.M{
 		"id": id,
@@ -74,13 +71,13 @@ func (o orderStoreHandler) GetOrderByID(ctx context.Context, id string) (*models
 
 	err := o.col(models.OrderCollectionName).FindOne(ctx, filter).Decode(order)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, err)
 	}
 
 	return order, nil
 }
 
-func (o orderStoreHandler) GetCustomerOrdersByStatus(ctx context.Context, request domain.GetCustomerOrders) ([]domain.OrderResponse, error) {
+func (o *orderStoreHandler) OrdersByStatus(ctx context.Context, request domain.GetCustomerOrders) ([]domain.Response, error) {
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -98,7 +95,7 @@ func (o orderStoreHandler) GetCustomerOrdersByStatus(ctx context.Context, reques
 
 	cursor, err := o.col(models.OrderCollectionName).Aggregate(updatedCtx, pipeline)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, err)
 	}
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
 		err := cursor.Close(ctx)
@@ -107,15 +104,15 @@ func (o orderStoreHandler) GetCustomerOrdersByStatus(ctx context.Context, reques
 		}
 	}(cursor, ctx)
 
-	nodes := make([]domain.OrderResponse, cursor.RemainingBatchLength())
+	nodes := make([]domain.Response, cursor.RemainingBatchLength())
 
 	err = cursor.All(ctx, &nodes)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, err)
 	}
 
 	if len(nodes) == 0 {
-		return []domain.OrderResponse{}, nil
+		return []domain.Response{}, nil
 	}
 
 	return nodes, err
@@ -177,7 +174,7 @@ func makeCustomerPipeline(filter bson.M, limit, page int64) []bson.M {
 	}
 }
 
-func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultSelector, userId string) (orders []models.Order, totalResults uint64, err error) {
+func (o *orderStoreHandler) Orders(ctx context.Context, request query.ResultSelector, userId string) (orders []models.Order, totalResults uint64, err error) {
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -205,8 +202,7 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 
 	extraDocumentCursor, err := o.col(models.OrderCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(skip+limit).SetLimit(1))
 	if err != nil {
-		o.logger.Error("error getting extra document", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error finding orders: %w", err)
 	}
 	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
 		err = extraDocumentCursor.Close(ctx)
@@ -217,19 +213,17 @@ func (o orderStoreHandler) ListOrders(ctx context.Context, request query.ResultS
 
 	cursor, err := o.col(models.OrderCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
-		o.logger.Error("error finding orders in mongo collection", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error finding orders in mongo collection: %w", err)
 	}
 	orders = make([]models.Order, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &orders); err != nil {
-		o.logger.Error("error getting orders", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error getting orders: %w", err)
 	}
 
 	return orders, uint64(totalRecord), nil
 }
 
-func (o orderStoreHandler) ListOrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
+func (o *orderStoreHandler) OrderStatusHistory(ctx context.Context, orderId string) ([]models.StatusHistory, error) {
 	updatedCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -241,9 +235,9 @@ func (o orderStoreHandler) ListOrderStatusHistory(ctx context.Context, orderId s
 	err := o.col(models.OrderCollectionName).FindOne(updatedCtx, filter).Decode(order)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, fmt.Errorf("order with id %s not found", orderId))
+			return nil, errs.Body(errs.DatabaseNoRecordError, fmt.Errorf("order with id %s not found", orderId))
 		}
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, err)
 	}
 
 	return order.StatusHistory, nil

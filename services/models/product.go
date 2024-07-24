@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 )
 
 type Product struct {
@@ -59,7 +59,7 @@ func SetProductCategory(category ProductCategory) (ProductCategory, error) {
 	case true:
 		return category, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.ProductCategoryError, errors.New("invalid business category"))
+		return "", errs.Body(errs.ProductCategoryError, errors.New("invalid business category"))
 	}
 }
 
@@ -72,7 +72,7 @@ func SetProductSubCategory(category ProductSubCategory) (ProductSubCategory, err
 	case true:
 		return category, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.ProductSubCategoryError, errors.New("invalid business category"))
+		return "", errs.Body(errs.ProductSubCategoryError, errors.New("invalid business category"))
 	}
 }
 
@@ -85,6 +85,6 @@ func SetProductStatus(status ProductStatus) (ProductStatus, error) {
 	case true:
 		return status, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.ProductStatusError, errors.New("invalid business category"))
+		return "", errs.Body(errs.ProductStatusError, errors.New("invalid business category"))
 	}
 }

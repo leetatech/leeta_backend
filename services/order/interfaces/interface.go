@@ -5,9 +5,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
-	"github.com/leetatech/leeta_backend/pkg"
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/application"
 	"github.com/leetatech/leeta_backend/services/order/domain"
@@ -18,10 +19,10 @@ import (
 )
 
 type OrderHttpHandler struct {
-	OrderApplication application.OrderApplication
+	OrderApplication application.Order
 }
 
-func NewOrderHTTPHandler(orderApplication application.OrderApplication) *OrderHttpHandler {
+func New(orderApplication application.Order) *OrderHttpHandler {
 	return &OrderHttpHandler{
 		OrderApplication: orderApplication,
 	}
@@ -34,18 +35,18 @@ func NewOrderHTTPHandler(orderApplication application.OrderApplication) *OrderHt
 // @Tags Order
 // @Accept json
 // @Produce json
-// @Param domain.UpdateOrderStatusRequest body domain.UpdateOrderStatusRequest true "update order by status request body"
+// @Param domain.UpdateStatusRequest body domain.UpdateStatusRequest true "update order by status request body"
 // @Security BearerToken
 // @Success 200 {object} pkg.DefaultResponse
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /order/status [put]
 func (handler *OrderHttpHandler) UpdateOrderStatusHandler(w http.ResponseWriter, r *http.Request) {
-	var request domain.UpdateOrderStatusRequest
+	var request domain.UpdateStatusRequest
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -56,7 +57,7 @@ func (handler *OrderHttpHandler) UpdateOrderStatusHandler(w http.ResponseWriter,
 		return
 	}
 
-	pkg.EncodeResult(w, resp, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }
 
 // GetOrderByIDHandler godoc
@@ -80,7 +81,7 @@ func (handler *OrderHttpHandler) GetOrderByIDHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	pkg.EncodeResult(w, order, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, order, http.StatusOK)
 }
 
 // GetCustomerOrdersByStatusHandler godoc
@@ -91,7 +92,7 @@ func (handler *OrderHttpHandler) GetOrderByIDHandler(w http.ResponseWriter, r *h
 // @produce json
 // @param domain.GetCustomerOrdersRequest body domain.GetCustomerOrdersRequest true "get customer orders by status request body"
 // @Security BearerToken
-// @success 200 {object} []domain.OrderResponse
+// @success 200 {object} []domain.Response
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /order/ [get]
@@ -100,7 +101,7 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 	orders, err := handler.OrderApplication.GetCustomerOrdersByStatus(r.Context(), request)
@@ -108,7 +109,7 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, orders, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, orders, http.StatusOK)
 }
 
 // ListOrdersHandler is the endpoint to list all orders
@@ -126,13 +127,13 @@ func (handler *OrderHttpHandler) GetCustomerOrdersByStatusHandler(w http.Respons
 func (handler *OrderHttpHandler) ListOrdersHandler(w http.ResponseWriter, r *http.Request) {
 	resultSelector, err := web.PrepareResultSelector(r, listOrdersOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, errs.Body(errs.InvalidRequestError, err))
 		return
 	}
 
 	orders, totalRecord, err := handler.OrderApplication.ListOrders(r.Context(), resultSelector)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, leetError.ErrorResponseBody(leetError.InternalError, err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, errs.Body(errs.InternalError, err))
 		return
 	}
 
@@ -140,7 +141,7 @@ func (handler *OrderHttpHandler) ListOrdersHandler(w http.ResponseWriter, r *htt
 		Metadata: query.NewMetadata(resultSelector, totalRecord),
 		Data:     orders,
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // ListOrdersOptions is the endpoint to get orders filter options
@@ -156,7 +157,7 @@ func (handler *OrderHttpHandler) ListOrdersHandler(w http.ResponseWriter, r *htt
 // @Router /order/options [get]
 func (handler *OrderHttpHandler) ListOrdersOptions(w http.ResponseWriter, r *http.Request) {
 	requestOptions := lo.Map(listOrdersOptions, toFilterOption)
-	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, requestOptions, http.StatusOK)
 }
 
 // ListOrderStatusHistoryHandler godoc
@@ -179,7 +180,7 @@ func (handler *OrderHttpHandler) ListOrderStatusHistoryHandler(w http.ResponseWr
 		return
 	}
 
-	pkg.EncodeResult(w, statusHistory, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, statusHistory, http.StatusOK)
 }
 
 func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {

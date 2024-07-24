@@ -1,4 +1,4 @@
-package pkg
+package otp
 
 import (
 	"fmt"
@@ -6,20 +6,20 @@ import (
 	"time"
 )
 
-type OtpGenerator interface {
+type Generator interface {
 	Generate() string
 }
 
-type otpGenerator struct {
+type generator struct {
 	randSource *rand.Rand
 }
 
-func NewOTPGenerator() OtpGenerator {
+func New() Generator {
 	source := rand.NewSource(time.Now().UnixNano())
 	randSource := rand.New(source)
-	return &otpGenerator{randSource: randSource}
+	return &generator{randSource: randSource}
 }
 
-func (o *otpGenerator) Generate() string {
+func (o *generator) Generate() string {
 	return fmt.Sprintf("%06d", o.randSource.Intn(999999))
 }

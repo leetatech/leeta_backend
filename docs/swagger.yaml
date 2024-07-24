@@ -163,7 +163,7 @@ definitions:
   DefaultErrorResponse:
     properties:
       data:
-        $ref: '#/definitions/leetError.ErrorResponse'
+        $ref: '#/definitions/errs.Response'
     type: object
   DefaultResponse:
     properties:
@@ -291,33 +291,6 @@ definitions:
       ts:
         type: integer
     type: object
-  OrderResponse:
-    properties:
-      customer:
-        $ref: '#/definitions/Admin'
-      customer_id:
-        type: string
-      delivery_fee:
-        type: number
-      id:
-        type: string
-      product_details:
-        $ref: '#/definitions/Product'
-      product_id:
-        type: string
-      status:
-        $ref: '#/definitions/models.OrderStatuses'
-      status_ts:
-        type: integer
-      total:
-        type: number
-      ts:
-        type: integer
-      vat:
-        type: number
-      vendor_id:
-        type: string
-    type: object
   Phone:
     properties:
       number:
@@ -382,6 +355,33 @@ definitions:
       session_id:
         type: string
       token:
+        type: string
+    type: object
+  Response:
+    properties:
+      customer:
+        $ref: '#/definitions/Admin'
+      customer_id:
+        type: string
+      delivery_fee:
+        type: number
+      id:
+        type: string
+      product_details:
+        $ref: '#/definitions/Product'
+      product_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.OrderStatuses'
+      status_ts:
+        type: integer
+      total:
+        type: number
+      ts:
+        type: integer
+      vat:
+        type: number
+      vendor_id:
         type: string
     type: object
   ShippingInfo:
@@ -451,7 +451,7 @@ definitions:
       quantity:
         type: integer
     type: object
-  UpdateOrderStatusRequest:
+  UpdateStatusRequest:
     properties:
       order_id:
         type: string
@@ -477,6 +477,116 @@ definitions:
         items:
           $ref: '#/definitions/Product'
         type: array
+    type: object
+  errs.ErrorCode:
+    enum:
+    - 1001
+    - 1002
+    - 1003
+    - 1004
+    - 1005
+    - 1006
+    - 1007
+    - 1008
+    - 1009
+    - 1010
+    - 1011
+    - 1012
+    - 1013
+    - 1014
+    - 1015
+    - 1016
+    - 1017
+    - 1018
+    - 1019
+    - 1020
+    - 1021
+    - 1022
+    - 1023
+    - 1024
+    - 1025
+    - 1026
+    - 1027
+    - 1028
+    - 1029
+    - 1030
+    - 1031
+    - 1032
+    - 1033
+    - 1034
+    - 1035
+    - 1036
+    - 1037
+    - 1038
+    - 1039
+    - 1040
+    - 1041
+    - 1042
+    - 1043
+    - 1044
+    - 1045
+    - 1046
+    type: integer
+    x-enum-comments:
+      InvalidRequestError: generic
+    x-enum-varnames:
+    - DatabaseError
+    - DatabaseNoRecordError
+    - UnmarshalError
+    - MarshalError
+    - PasswordValidationError
+    - EncryptionError
+    - DecryptionError
+    - DuplicateUserError
+    - UserNotFoundError
+    - IdentityNotFoundError
+    - UserLockedError
+    - CredentialsValidationError
+    - TokenGenerationError
+    - TokenValidationError
+    - UserCategoryError
+    - EmailSendingError
+    - BusinessCategoryError
+    - StatusesError
+    - ErrorUnauthorized
+    - EmailFormatError
+    - ValidEmailHostError
+    - ValidLeetaDomainError
+    - FormParseError
+    - OrderStatusesError
+    - ProductCategoryError
+    - ProductSubCategoryError
+    - ProductStatusError
+    - ForgotPasswordError
+    - MissingUserNames
+    - InvalidUserRoleError
+    - InvalidIdentityError
+    - InvalidOTPError
+    - CartStatusesError
+    - AmountPaidError
+    - FeesStatusesError
+    - InvalidPageRequestError
+    - CartItemQuantityError
+    - CartItemRequestQuantityError
+    - InvalidRequestError
+    - InternalError
+    - InvalidProductIdError
+    - InvalidDeliveryFeeError
+    - InvalidServiceFeeError
+    - RestrictedAccessError
+    - FeesError
+    - LGANotFoundError
+  errs.Response:
+    properties:
+      error_code:
+        $ref: '#/definitions/errs.ErrorCode'
+      error_reference:
+        type: string
+      error_type:
+        type: string
+      internal_error_message: {}
+      message:
+        type: string
     type: object
   filter.CompareOperator:
     enum:
@@ -618,116 +728,6 @@ definitions:
         - float
         - integer
         - enum
-    type: object
-  leetError.ErrorCode:
-    enum:
-    - 1001
-    - 1002
-    - 1003
-    - 1004
-    - 1005
-    - 1006
-    - 1007
-    - 1008
-    - 1009
-    - 1010
-    - 1011
-    - 1012
-    - 1013
-    - 1014
-    - 1015
-    - 1016
-    - 1017
-    - 1018
-    - 1019
-    - 1020
-    - 1021
-    - 1022
-    - 1023
-    - 1024
-    - 1025
-    - 1026
-    - 1027
-    - 1028
-    - 1029
-    - 1030
-    - 1031
-    - 1032
-    - 1033
-    - 1034
-    - 1035
-    - 1036
-    - 1037
-    - 1038
-    - 1039
-    - 1040
-    - 1041
-    - 1042
-    - 1043
-    - 1044
-    - 1045
-    - 1046
-    type: integer
-    x-enum-comments:
-      InvalidRequestError: generic
-    x-enum-varnames:
-    - DatabaseError
-    - DatabaseNoRecordError
-    - UnmarshalError
-    - MarshalError
-    - PasswordValidationError
-    - EncryptionError
-    - DecryptionError
-    - DuplicateUserError
-    - UserNotFoundError
-    - IdentityNotFoundError
-    - UserLockedError
-    - CredentialsValidationError
-    - TokenGenerationError
-    - TokenValidationError
-    - UserCategoryError
-    - EmailSendingError
-    - BusinessCategoryError
-    - StatusesError
-    - ErrorUnauthorized
-    - EmailFormatError
-    - ValidEmailHostError
-    - ValidLeetaDomainError
-    - FormParseError
-    - OrderStatusesError
-    - ProductCategoryError
-    - ProductSubCategoryError
-    - ProductStatusError
-    - ForgotPasswordError
-    - MissingUserNames
-    - InvalidUserRoleError
-    - InvalidIdentityError
-    - InvalidOTPError
-    - CartStatusesError
-    - AmountPaidError
-    - FeesStatusesError
-    - InvalidPageRequestError
-    - CartItemQuantityError
-    - CartItemRequestQuantityError
-    - InvalidRequestError
-    - InternalError
-    - InvalidProductIdError
-    - InvalidDeliveryFeeError
-    - InvalidServiceFeeError
-    - RestrictedAccessError
-    - FeesError
-    - ResourceNotFoundError
-  leetError.ErrorResponse:
-    properties:
-      error_code:
-        $ref: '#/definitions/leetError.ErrorCode'
-      error_reference:
-        type: string
-      error_type:
-        type: string
-      internal_error_message: {}
-      message:
-        type: string
     type: object
   models.AddressType:
     enum:
@@ -1397,7 +1397,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/OrderResponse'
+              $ref: '#/definitions/Response'
             type: array
         "400":
           description: Bad Request
@@ -1510,10 +1510,10 @@ paths:
       parameters:
       - description: update order by status request body
         in: body
-        name: domain.UpdateOrderStatusRequest
+        name: domain.UpdateStatusRequest
         required: true
         schema:
-          $ref: '#/definitions/UpdateOrderStatusRequest'
+          $ref: '#/definitions/UpdateStatusRequest'
       produces:
       - application/json
       responses:

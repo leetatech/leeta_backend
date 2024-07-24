@@ -3,7 +3,7 @@ package pkg
 // email template IDs
 const (
 	SignUpEmailTemplateID         = "SignUp"
-	EarlyAccessEmailTemplateID    = "EarlyAccess"
+	EarlyAccessEmailTemplateID    = "SaveEarlyAccess"
 	ForgotPasswordEmailTemplateID = "ForgotPassword"
 	AdminSignUpEmailTemplateID    = "AdminSignUp"
 )

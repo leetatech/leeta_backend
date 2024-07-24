@@ -31,7 +31,7 @@ func main() {
 	flag.StringVar(&configFile, "c", "local.env", "configuration file (shorthand)")
 	flag.Parse()
 
-	app, err := adapt.New(appLogger, configFile)
+	app, err := adapt.New(configFile)
 	if err != nil {
 		appLogger.Error(fmt.Sprintf("Fatal error creating application: %v", err))
 		os.Exit(1)

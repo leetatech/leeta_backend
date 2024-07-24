@@ -5,38 +5,50 @@ import (
 	"fmt"
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/config"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/states"
 	"github.com/leetatech/leeta_backend/services/models"
-	"go.uber.org/zap"
 	"strings"
 	"time"
 )
 
 type StateAppHandler struct {
-	config        config.NgnStatesConfig
-	idGenerator   pkg.IDGenerator
-	tokenHandler  pkg.TokenHandler
-	logger        *zap.Logger
-	allRepository pkg.Repositories
+	config            config.NgnStatesConfig
+	idGenerator       idgenerator.Generator
+	repositoryManager pkg.RepositoryManager
 }
 
-func (s StateAppHandler) FetchStateDataFromAPI(ctx context.Context) error {
+type State interface {
+	UpdateStatesFromAPI(ctx context.Context) error
+	StateByName(ctx context.Context, name string) (models.State, error)
+	States(ctx context.Context) ([]models.State, error)
+}
+
+func New(request pkg.ApplicationContext, config config.NgnStatesConfig) State {
+	return &StateAppHandler{
+		idGenerator:       idgenerator.New(),
+		repositoryManager: request.RepositoryManager,
+		config:            config,
+	}
+}
+
+func (s *StateAppHandler) UpdateStatesFromAPI(ctx context.Context) error {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
 	stateList, err := states.GetAllStates(ctxWithTimeout, s.config.URL)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.InternalError, err)
+		return errs.Body(errs.InternalError, err)
 	}
 	if len(stateList) == 0 {
-		return leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("no ngn states found from api %v", s.config.URL))
+		return errs.Body(errs.InternalError, fmt.Errorf("no ngn states found from api %v", s.config.URL))
 	}
 	var allStates []any
 
 	for _, eachState := range stateList {
 		updatedState, err := states.GetState(ctxWithTimeout, eachState.Id, s.config.URL)
 		if err != nil {
-			return leetError.ErrorResponseBody(leetError.InternalError, err)
+			return errs.Body(errs.InternalError, err)
 		}
 
 		state := models.State{
@@ -54,45 +66,28 @@ func (s StateAppHandler) FetchStateDataFromAPI(ctx context.Context) error {
 		allStates = append(allStates, state)
 	}
 
-	err = s.allRepository.StatesRepository.SaveStates(ctx, allStates)
+	err = s.repositoryManager.StatesRepository.SaveStates(ctx, allStates)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
 }
 
-func (s StateAppHandler) GetState(ctx context.Context, name string) (models.State, error) {
-	state, err := s.allRepository.StatesRepository.GetState(ctx, strings.ToUpper(name))
+func (s *StateAppHandler) StateByName(ctx context.Context, name string) (models.State, error) {
+	state, err := s.repositoryManager.StatesRepository.GetState(ctx, strings.ToUpper(name))
 	if err != nil {
-		s.logger.Error("could not get state", zap.String("name", name), zap.Error(err))
-		return models.State{}, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return models.State{}, errs.Body(errs.DatabaseError, fmt.Errorf("could not get state %s: %w", name, err))
 	}
 
 	return state, nil
 }
 
-func (s StateAppHandler) GetAllStates(ctx context.Context) ([]models.State, error) {
-	allStates, err := s.allRepository.StatesRepository.GetAllStates(ctx)
+func (s *StateAppHandler) States(ctx context.Context) ([]models.State, error) {
+	allStates, err := s.repositoryManager.StatesRepository.GetAllStates(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, err)
 	}
 
 	return allStates, nil
-}
-
-type StateApplication interface {
-	FetchStateDataFromAPI(ctx context.Context) error
-	GetState(ctx context.Context, name string) (models.State, error)
-	GetAllStates(ctx context.Context) ([]models.State, error)
-}
-
-func NewStateApplication(request pkg.DefaultApplicationRequest, config config.NgnStatesConfig) StateApplication {
-	return &StateAppHandler{
-		idGenerator:   pkg.NewIDGenerator(),
-		logger:        request.Logger,
-		tokenHandler:  request.TokenHandler,
-		allRepository: request.AllRepository,
-		config:        config,
-	}
 }
