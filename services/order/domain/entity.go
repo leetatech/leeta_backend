@@ -6,7 +6,7 @@ type OrderRequest struct {
 	ProductID string `json:"product_id" bson:"product_id"`
 } // @name OrderRequest
 
-type OrderResponse struct {
+type Response struct {
 	ID              string               `json:"id" bson:"id"`
 	ProductID       string               `json:"product_id" bson:"product_id"`
 	CustomerID      string               `json:"customer_id" bson:"customer_id"`
@@ -19,16 +19,16 @@ type OrderResponse struct {
 	Ts              int64                `json:"ts" bson:"ts"`
 	CustomerDetails models.Admin         `json:"customer" bson:"customer"`
 	ProductDetails  models.Product       `json:"product_details"`
-} // @name OrderResponse
+} // @name Response
 
-type UpdateOrderStatusRequest struct {
+type UpdateStatusRequest struct {
 	OrderId     string               `json:"order_id" bson:"order_id"`
 	OrderStatus models.OrderStatuses `json:"order_status" bson:"order_status"`
 	Reason      string               `json:"reason" bson:"reason"`
-} // @name UpdateOrderStatusRequest
+} // @name UpdateStatusRequest
 
 type PersistOrderUpdate struct {
-	UpdateOrderStatusRequest
+	UpdateStatusRequest
 	StatusHistory models.StatusHistory `json:"status_history" bson:"status_history"`
 }
 

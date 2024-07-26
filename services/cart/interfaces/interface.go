@@ -7,8 +7,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
-	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/services/cart/application"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -18,10 +19,10 @@ import (
 )
 
 type CartHttpHandler struct {
-	CartApplication application.CartApplication
+	CartApplication application.Cart
 }
 
-func NewCartHTTPHandler(cartApplication application.CartApplication) *CartHttpHandler {
+func New(cartApplication application.Cart) *CartHttpHandler {
 	return &CartHttpHandler{
 		CartApplication: cartApplication,
 	}
@@ -43,16 +44,16 @@ func (handler *CartHttpHandler) AddToCart(w http.ResponseWriter, r *http.Request
 	var request domain.CartItem
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	response, err := handler.CartApplication.AddToCart(r.Context(), request)
+	response, err := handler.CartApplication.Add(r.Context(), request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	pkg.EncodeResult(w, response, http.StatusCreated)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusCreated)
 }
 
 // DeleteCart is the endpoint to delete carts
@@ -70,16 +71,16 @@ func (handler *CartHttpHandler) AddToCart(w http.ResponseWriter, r *http.Request
 func (handler *CartHttpHandler) DeleteCart(w http.ResponseWriter, r *http.Request) {
 	cartID := chi.URLParam(r, "cart_id")
 	if cartID == "" {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, errors.New("cart_id is required"))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, errors.New("cart_id is required"))
 		return
 	}
 
-	err := handler.CartApplication.DeleteCart(r.Context(), cartID)
+	err := handler.CartApplication.Delete(r.Context(), cartID)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, fmt.Errorf("error deleting cart: %w", err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, fmt.Errorf("error deleting cart: %w", err))
 		return
 	}
-	pkg.EncodeResult(w, nil, http.StatusAccepted)
+	jwtmiddleware.WriteJSONResponse(w, nil, http.StatusAccepted)
 }
 
 // UpdateCartItemQuantity is the endpoint to increase cart item quantity
@@ -98,22 +99,22 @@ func (handler *CartHttpHandler) UpdateCartItemQuantity(w http.ResponseWriter, r 
 	var request domain.UpdateCartItemQuantityRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	if isValid, err := request.IsValid(); !isValid {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, fmt.Errorf("requst is not valid: %w", err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, fmt.Errorf("requst is not valid: %w", err))
 		return
 	}
 
-	response, err := handler.CartApplication.UpdateCartItemQuantity(r.Context(), request)
+	response, err := handler.CartApplication.UpdateItemQuantity(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusInternalServerError)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusAccepted)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusAccepted)
 }
 
 // DeleteCartItem is the endpoint to delete items from cart
@@ -131,17 +132,17 @@ func (handler *CartHttpHandler) UpdateCartItemQuantity(w http.ResponseWriter, r 
 func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Request) {
 	cartItemID := chi.URLParam(r, "cart_item_id")
 	if cartItemID == "" {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, fmt.Errorf("cart_item_id is required"))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, fmt.Errorf("cart_item_id is required"))
 		return
 	}
 
-	err := handler.CartApplication.DeleteCartItem(r.Context(), cartItemID)
+	err := handler.CartApplication.DeleteItem(r.Context(), cartItemID)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	pkg.EncodeResult(w, nil, http.StatusAccepted)
+	jwtmiddleware.WriteJSONResponse(w, nil, http.StatusAccepted)
 }
 
 // ListCart is the endpoint to list cart.
@@ -159,13 +160,13 @@ func (handler *CartHttpHandler) DeleteCartItem(w http.ResponseWriter, r *http.Re
 func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request) {
 	resultSelector, err := web.PrepareResultSelector(r, listCartOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, errs.Body(errs.InvalidRequestError, err))
 		return
 	}
 
 	carts, totalRecord, err := handler.CartApplication.ListCart(r.Context(), resultSelector)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -174,7 +175,7 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 		Data:     carts,
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // ListCartOptions is the endpoint to get cart filter options
@@ -190,7 +191,7 @@ func (handler *CartHttpHandler) ListCart(w http.ResponseWriter, r *http.Request)
 // @Router /cart/options [get]
 func (handler *CartHttpHandler) ListCartOptions(w http.ResponseWriter, r *http.Request) {
 	requestOptions := lo.Map(listCartOptions, toFilterOption)
-	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, requestOptions, http.StatusOK)
 }
 
 func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {
@@ -213,14 +214,14 @@ func (handler *CartHttpHandler) Checkout(w http.ResponseWriter, r *http.Request)
 	var request domain.CartCheckoutRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	response, err := handler.CartApplication.CartCheckout(r.Context(), request)
+	response, err := handler.CartApplication.Checkout(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }

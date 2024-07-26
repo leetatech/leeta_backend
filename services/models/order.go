@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 )
 
 type Order struct {
@@ -56,6 +56,6 @@ func SetOrderStatus(status OrderStatuses) (OrderStatuses, error) {
 	case true:
 		return status, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.OrderStatusesError, errors.New("invalid order status"))
+		return "", errs.Body(errs.OrderStatusesError, errors.New("invalid order status"))
 	}
 }

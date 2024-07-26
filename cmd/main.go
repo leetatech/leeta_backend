@@ -5,9 +5,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/leetatech/leeta_backend/adapt"
-	"github.com/leetatech/leeta_backend/pkg/logger"
+	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -24,21 +23,19 @@ import (
 // @in header
 // @name authorization
 func main() {
-	appLogger := logger.New()
-
 	var configFile string
 	flag.StringVar(&configFile, "config", "local.env", "configuration file")
 	flag.StringVar(&configFile, "c", "local.env", "configuration file (shorthand)")
 	flag.Parse()
 
-	app, err := adapt.New(appLogger, configFile)
+	app, err := adapt.New(configFile)
 	if err != nil {
-		appLogger.Error(fmt.Sprintf("Fatal error creating application: %v", err))
+		log.Error().Msgf("Fatal error creating application: %v", err)
 		os.Exit(1)
 	}
 
 	if err := app.Run(); err != nil {
-		appLogger.Error(fmt.Sprintf("Fatal error running application: %v", err))
+		log.Error().Msgf("Fatal error running application: %v", err)
 		os.Exit(1)
 	}
 }

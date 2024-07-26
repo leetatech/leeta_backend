@@ -3,7 +3,8 @@ package interfaces
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
-	"github.com/leetatech/leeta_backend/pkg"
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/services/auth/application"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -12,10 +13,10 @@ import (
 )
 
 type AuthHttpHandler struct {
-	AuthApplication application.AuthApplication
+	AuthApplication application.Auth
 }
 
-func NewAuthHttpHandler(authApplication application.AuthApplication) *AuthHttpHandler {
+func New(authApplication application.Auth) *AuthHttpHandler {
 	return &AuthHttpHandler{
 		AuthApplication: authApplication,
 	}
@@ -34,17 +35,17 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 	var signUpRequest domain.SignupRequest
 	err := json.NewDecoder(r.Body).Decode(&signUpRequest)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.SignUp(r.Context(), signUpRequest)
 	if err != nil {
 		log.Debug().Err(err).Msg("error completing user registration")
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // RequestOTPHandler godoc
@@ -60,17 +61,17 @@ func (handler *AuthHttpHandler) RequestOTPHandler(w http.ResponseWriter, r *http
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.RequestOTP(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 	token.Message = "OTP sent successfully"
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // EarlyAccessHandler godoc
@@ -86,16 +87,16 @@ func (handler *AuthHttpHandler) EarlyAccessHandler(w http.ResponseWriter, r *htt
 	var request models.EarlyAccess
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.EarlyAccess(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // SignInHandler godoc
@@ -111,16 +112,16 @@ func (handler *AuthHttpHandler) SignInHandler(w http.ResponseWriter, r *http.Req
 	var signInRequest domain.SigningRequest
 	err := json.NewDecoder(r.Body).Decode(&signInRequest)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := handler.AuthApplication.SignIn(r.Context(), signInRequest)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusInternalServerError)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusInternalServerError)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // ForgotPasswordHandler godoc
@@ -136,17 +137,17 @@ func (handler *AuthHttpHandler) ForgotPasswordHandler(w http.ResponseWriter, r *
 	var request domain.EmailRequestBody
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.ForgotPassword(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusInternalServerError)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // ValidateOTPHandler godoc
@@ -162,17 +163,17 @@ func (handler *AuthHttpHandler) ValidateOTPHandler(w http.ResponseWriter, r *htt
 	var request domain.OTPValidationRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.ValidateOTP(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // CreateNewPasswordHandler godoc
@@ -188,17 +189,17 @@ func (handler *AuthHttpHandler) CreateNewPasswordHandler(w http.ResponseWriter, 
 	var request domain.CreateNewPasswordRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	response, err := handler.AuthApplication.CreateNewPassword(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // AdminSignUpHandler godoc
@@ -214,19 +215,19 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 	var request domain.AdminSignUpRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
 	token, err := handler.AuthApplication.AdminSignUp(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 
 }
 
-// ReceiveGuestTokenHandler godoc
+// ReceiveGuestjwtManager godoc
 // @Summary Request accept guests
 // @Description The endpoint to allow guests to shop
 // @Tags Guest Management
@@ -237,20 +238,20 @@ func (handler *AuthHttpHandler) AdminSignUpHandler(w http.ResponseWriter, r *htt
 // @Failure 401 {object} pkg.DefaultErrorResponse
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /session/guest [post]
-func (handler *AuthHttpHandler) ReceiveGuestTokenHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *AuthHttpHandler) ReceiveGuestjwtManager(w http.ResponseWriter, r *http.Request) {
 	var request domain.ReceiveGuestRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
 	token, err := handler.AuthApplication.ReceiveGuestToken(request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // UpdateGuestRecordHandler godoc
@@ -268,16 +269,16 @@ func (handler *AuthHttpHandler) UpdateGuestRecordHandler(w http.ResponseWriter, 
 	var request models.Guest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
 	resp, err := handler.AuthApplication.UpdateGuestRecord(r.Context(), request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	pkg.EncodeResult(w, resp, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }
 
 // GetGuestRecordHandler godoc
@@ -296,9 +297,9 @@ func (handler *AuthHttpHandler) GetGuestRecordHandler(w http.ResponseWriter, r *
 
 	resp, err := handler.AuthApplication.GetGuestRecord(r.Context(), deviceID)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	pkg.EncodeResult(w, resp, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }

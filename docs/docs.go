@@ -540,7 +540,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/OrderResponse"
+                                "$ref": "#/definitions/Response"
                             }
                         }
                     },
@@ -718,11 +718,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "update order by status request body",
-                        "name": "domain.UpdateOrderStatusRequest",
+                        "name": "domain.UpdateStatusRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/UpdateOrderStatusRequest"
+                            "$ref": "#/definitions/UpdateStatusRequest"
                         }
                     }
                 ],
@@ -2276,7 +2276,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/leetError.ErrorResponse"
+                    "$ref": "#/definitions/errs.Response"
                 }
             }
         },
@@ -2472,47 +2472,6 @@ const docTemplate = `{
                 }
             }
         },
-        "OrderResponse": {
-            "type": "object",
-            "properties": {
-                "customer": {
-                    "$ref": "#/definitions/Admin"
-                },
-                "customer_id": {
-                    "type": "string"
-                },
-                "delivery_fee": {
-                    "type": "number"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "product_details": {
-                    "$ref": "#/definitions/Product"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/models.OrderStatuses"
-                },
-                "status_ts": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "number"
-                },
-                "ts": {
-                    "type": "integer"
-                },
-                "vat": {
-                    "type": "number"
-                },
-                "vendor_id": {
-                    "type": "string"
-                }
-            }
-        },
         "Phone": {
             "type": "object",
             "properties": {
@@ -2610,6 +2569,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "Response": {
+            "type": "object",
+            "properties": {
+                "customer": {
+                    "$ref": "#/definitions/Admin"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "delivery_fee": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "product_details": {
+                    "$ref": "#/definitions/Product"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.OrderStatuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "ts": {
+                    "type": "integer"
+                },
+                "vat": {
+                    "type": "number"
+                },
+                "vendor_id": {
                     "type": "string"
                 }
             }
@@ -2717,7 +2717,7 @@ const docTemplate = `{
                 }
             }
         },
-        "UpdateOrderStatusRequest": {
+        "UpdateStatusRequest": {
             "type": "object",
             "properties": {
                 "order_id": {
@@ -2756,6 +2756,126 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/Product"
                     }
+                }
+            }
+        },
+        "errs.ErrorCode": {
+            "type": "integer",
+            "enum": [
+                1001,
+                1002,
+                1003,
+                1004,
+                1005,
+                1006,
+                1007,
+                1008,
+                1009,
+                1010,
+                1011,
+                1012,
+                1013,
+                1014,
+                1015,
+                1016,
+                1017,
+                1018,
+                1019,
+                1020,
+                1021,
+                1022,
+                1023,
+                1024,
+                1025,
+                1026,
+                1027,
+                1028,
+                1029,
+                1030,
+                1031,
+                1032,
+                1033,
+                1034,
+                1035,
+                1036,
+                1037,
+                1038,
+                1039,
+                1040,
+                1041,
+                1042,
+                1043,
+                1044,
+                1045,
+                1046
+            ],
+            "x-enum-comments": {
+                "InvalidRequestError": "generic"
+            },
+            "x-enum-varnames": [
+                "DatabaseError",
+                "DatabaseNoRecordError",
+                "UnmarshalError",
+                "MarshalError",
+                "PasswordValidationError",
+                "EncryptionError",
+                "DecryptionError",
+                "DuplicateUserError",
+                "UserNotFoundError",
+                "IdentityNotFoundError",
+                "UserLockedError",
+                "CredentialsValidationError",
+                "TokenGenerationError",
+                "TokenValidationError",
+                "UserCategoryError",
+                "EmailSendingError",
+                "BusinessCategoryError",
+                "StatusesError",
+                "ErrorUnauthorized",
+                "EmailFormatError",
+                "ValidEmailHostError",
+                "ValidLeetaDomainError",
+                "FormParseError",
+                "OrderStatusesError",
+                "ProductCategoryError",
+                "ProductSubCategoryError",
+                "ProductStatusError",
+                "ForgotPasswordError",
+                "MissingUserNames",
+                "InvalidUserRoleError",
+                "InvalidIdentityError",
+                "InvalidOTPError",
+                "CartStatusesError",
+                "AmountPaidError",
+                "FeesStatusesError",
+                "InvalidPageRequestError",
+                "CartItemQuantityError",
+                "CartItemRequestQuantityError",
+                "InvalidRequestError",
+                "InternalError",
+                "InvalidProductIdError",
+                "InvalidDeliveryFeeError",
+                "InvalidServiceFeeError",
+                "RestrictedAccessError",
+                "FeesError",
+                "LGANotFoundError"
+            ]
+        },
+        "errs.Response": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "$ref": "#/definitions/errs.ErrorCode"
+                },
+                "error_reference": {
+                    "type": "string"
+                },
+                "error_type": {
+                    "type": "string"
+                },
+                "internal_error_message": {},
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -2946,126 +3066,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/filter.ControlType"
                         }
                     ]
-                }
-            }
-        },
-        "leetError.ErrorCode": {
-            "type": "integer",
-            "enum": [
-                1001,
-                1002,
-                1003,
-                1004,
-                1005,
-                1006,
-                1007,
-                1008,
-                1009,
-                1010,
-                1011,
-                1012,
-                1013,
-                1014,
-                1015,
-                1016,
-                1017,
-                1018,
-                1019,
-                1020,
-                1021,
-                1022,
-                1023,
-                1024,
-                1025,
-                1026,
-                1027,
-                1028,
-                1029,
-                1030,
-                1031,
-                1032,
-                1033,
-                1034,
-                1035,
-                1036,
-                1037,
-                1038,
-                1039,
-                1040,
-                1041,
-                1042,
-                1043,
-                1044,
-                1045,
-                1046
-            ],
-            "x-enum-comments": {
-                "InvalidRequestError": "generic"
-            },
-            "x-enum-varnames": [
-                "DatabaseError",
-                "DatabaseNoRecordError",
-                "UnmarshalError",
-                "MarshalError",
-                "PasswordValidationError",
-                "EncryptionError",
-                "DecryptionError",
-                "DuplicateUserError",
-                "UserNotFoundError",
-                "IdentityNotFoundError",
-                "UserLockedError",
-                "CredentialsValidationError",
-                "TokenGenerationError",
-                "TokenValidationError",
-                "UserCategoryError",
-                "EmailSendingError",
-                "BusinessCategoryError",
-                "StatusesError",
-                "ErrorUnauthorized",
-                "EmailFormatError",
-                "ValidEmailHostError",
-                "ValidLeetaDomainError",
-                "FormParseError",
-                "OrderStatusesError",
-                "ProductCategoryError",
-                "ProductSubCategoryError",
-                "ProductStatusError",
-                "ForgotPasswordError",
-                "MissingUserNames",
-                "InvalidUserRoleError",
-                "InvalidIdentityError",
-                "InvalidOTPError",
-                "CartStatusesError",
-                "AmountPaidError",
-                "FeesStatusesError",
-                "InvalidPageRequestError",
-                "CartItemQuantityError",
-                "CartItemRequestQuantityError",
-                "InvalidRequestError",
-                "InternalError",
-                "InvalidProductIdError",
-                "InvalidDeliveryFeeError",
-                "InvalidServiceFeeError",
-                "RestrictedAccessError",
-                "FeesError",
-                "ResourceNotFoundError"
-            ]
-        },
-        "leetError.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error_code": {
-                    "$ref": "#/definitions/leetError.ErrorCode"
-                },
-                "error_reference": {
-                    "type": "string"
-                },
-                "error_type": {
-                    "type": "string"
-                },
-                "internal_error_message": {},
-                "message": {
-                    "type": "string"
                 }
             }
         },

@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func MongoDBClient(ctx context.Context, config *config.ServerConfig) (*mongo.Client, error) {
+func Client(ctx context.Context, config *config.ServerConfig) (*mongo.Client, error) {
 	clientOpts := config.GetClientOptions()
 	mongoClient, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -42,27 +43,24 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
 type Application struct {
-	Logger       *zap.Logger
-	Config       *config.ServerConfig
-	Db           *mongo.Client
-	Ctx          context.Context
-	Router       *chi.Mux
-	EmailClient  mailer.MailerClient
-	Repositories pkg.Repositories
+	Config            *config.ServerConfig
+	Db                *mongo.Client
+	Ctx               context.Context
+	Router            *chi.Mux
+	MailClient        mailer.Client
+	RepositoryManager pkg.RepositoryManager
 }
 
 // New instances a new application
 // The application contains all the related components that allow the execution of the service
-func New(logger *zap.Logger, configFile string) (*Application, error) {
+func New(configFile string) (*Application, error) {
 	var app Application
 	var err error
-	app.Logger = logger
 	app.Config, err = app.buildConfig(configFile)
 
 	if err != nil {
@@ -77,7 +75,7 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 		return nil, errors.New("application config is empty")
 	}
 
-	app.Db, err = database.MongoDBClient(ctx, app.Config)
+	app.Db, err = database.Client(ctx, app.Config)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to mongo db client %w", err)
 	}
@@ -85,16 +83,16 @@ func New(logger *zap.Logger, configFile string) (*Application, error) {
 		return nil, errors.New("error pinging database")
 	}
 
-	app.EmailClient = mailer.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
+	app.MailClient = mailer.New(pkg.PostMarkAPIToken)
 
-	tokenHandler, err := pkg.NewMiddlewares(app.Config.PublicKey, app.Config.PrivateKey, app.Logger)
+	jwtManager, err := jwtmiddleware.New(app.Config.PublicKey, app.Config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	allInterfaces := app.buildApplicationConnection(*tokenHandler)
+	allInterfaces := app.buildApplicationConnection(*jwtManager)
 
-	router, _, err := routes.SetupRouter(tokenHandler, allInterfaces)
+	router, _, err := routes.SetupRouter(jwtManager, allInterfaces)
 	if err != nil {
 		return nil, err
 	}
@@ -138,19 +136,19 @@ func (app *Application) Run() error {
 }
 
 func (app *Application) buildConfig(configFile string) (*config.ServerConfig, error) {
-	return config.ReadConfig(*app.Logger, configFile)
+	return config.ReadConfig(configFile)
 }
 
-func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler) *routes.AllHTTPHandlers {
-	authPersistence := authInfrastructure.NewAuthPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	orderPersistence := orderInfrastructure.NewOrderPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	userPersistence := userInfrastructure.NewUserPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	productPersistence := productInfrastructure.NewProductPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	cartPersistence := cartInfrastructure.NewCartPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	feesPersistence := feesInfrastructure.NewFeesPersistence(app.Db, app.Config.Database.DBName, app.Logger)
-	statePersistence := stateInfrastructure.NewStatePersistence(app.Db, app.Config.Database.DBName, app.Logger)
+func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Manager) *routes.AllHTTPHandlers {
+	authPersistence := authInfrastructure.New(app.Db, app.Config.Database.DBName)
+	orderPersistence := orderInfrastructure.New(app.Db, app.Config.Database.DBName)
+	userPersistence := userInfrastructure.New(app.Db, app.Config.Database.DBName)
+	productPersistence := productInfrastructure.New(app.Db, app.Config.Database.DBName)
+	cartPersistence := cartInfrastructure.New(app.Db, app.Config.Database.DBName)
+	feesPersistence := feesInfrastructure.New(app.Db, app.Config.Database.DBName)
+	statePersistence := stateInfrastructure.New(app.Db, app.Config.Database.DBName)
 
-	allRepositories := pkg.Repositories{
+	repositoryManager := pkg.RepositoryManager{
 		OrderRepository:   orderPersistence,
 		AuthRepository:    authPersistence,
 		UserRepository:    userPersistence,
@@ -160,31 +158,30 @@ func (app *Application) buildApplicationConnection(tokenHandler pkg.TokenHandler
 		StatesRepository:  statePersistence,
 	}
 
-	app.Repositories = allRepositories
+	app.RepositoryManager = repositoryManager
 
-	request := pkg.DefaultApplicationRequest{
-		TokenHandler:  tokenHandler,
-		Logger:        app.Logger,
-		AllRepository: allRepositories,
-		EmailClient:   app.EmailClient,
-		Domain:        app.Config.Leeta.Domain,
+	request := pkg.ApplicationContext{
+		JwtManager:        jwtManager,
+		RepositoryManager: repositoryManager,
+		Mailer:            app.MailClient,
+		Domain:            app.Config.Leeta.Domain,
 	}
 
-	orderApplications := orderApplication.NewOrderApplication(request)
-	authApplications := authApplication.NewAuthApplication(request)
-	userApplications := userApplication.NewUserApplication(request)
-	productApplications := productApplication.NewProductApplication(request)
-	cartsApplication := cartApplication.NewCartApplication(request)
-	feeApplication := feesApplication.NewFeesApplication(request)
-	statesApplication := stateApplication.NewStateApplication(request, app.Config.NgnStates)
+	orderApplications := orderApplication.New(request)
+	authApplications := authApplication.New(request)
+	userApplications := userApplication.New(request)
+	productApplications := productApplication.New(request)
+	cartsApplication := cartApplication.New(request)
+	feeApplication := feesApplication.New(request)
+	statesApplication := stateApplication.New(request, app.Config.NgnStates)
 
-	orderInterfaces := orderInterface.NewOrderHTTPHandler(orderApplications)
-	authInterfaces := authInterface.NewAuthHttpHandler(authApplications)
-	userInterfaces := userInterface.NewUserHttpHandler(userApplications)
-	productInterfaces := productInterface.NewProductHTTPHandler(productApplications)
-	cartInterfaces := cartInterface.NewCartHTTPHandler(cartsApplication)
-	feesInterfaces := feeInterface.NewFeesHTTPHandler(feeApplication)
-	statesInterfaces := stateInterface.NewStateHttpHandler(statesApplication)
+	orderInterfaces := orderInterface.New(orderApplications)
+	authInterfaces := authInterface.New(authApplications)
+	userInterfaces := userInterface.New(userApplications)
+	productInterfaces := productInterface.New(productApplications)
+	cartInterfaces := cartInterface.New(cartsApplication)
+	feesInterfaces := feeInterface.New(feeApplication)
+	statesInterfaces := stateInterface.New(statesApplication)
 
 	allInterfaces := routes.AllHTTPHandlers{
 		Order:   orderInterfaces,

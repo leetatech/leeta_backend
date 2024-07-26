@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 )
 
 type Identity struct {
@@ -81,6 +81,6 @@ func SetUserCategory(category UserCategory) (UserCategory, error) {
 	case true:
 		return category, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.UserCategoryError, errors.New("invalid user category"))
+		return "", errs.Body(errs.UserCategoryError, errors.New("invalid user category"))
 	}
 }

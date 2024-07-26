@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -43,7 +43,7 @@ func CheckImageFormat(fileHeader *multipart.FileHeader) (string, error) {
 		return "png", nil
 
 	default:
-		return "", leetError.ErrorResponseBody(leetError.FormParseError, errors.New("invalid image format. Only JPEG and PNG images are allowed"))
+		return "", errs.Body(errs.FormParseError, errors.New("invalid image format. Only JPEG and PNG images are allowed"))
 	}
 
 }
@@ -51,16 +51,16 @@ func CheckImageFormat(fileHeader *multipart.FileHeader) (string, error) {
 func CheckImageSizeAndDimension(fileHeader *multipart.FileHeader, file multipart.File, width, height int) (image.Image, error) {
 	const maxImageSize = 5 * 1024 * 1024 // 5MB
 	if fileHeader.Size > maxImageSize {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("image size exceeds the maximum limit of 5MB"))
+		return nil, errs.Body(errs.FormParseError, errors.New("image size exceeds the maximum limit of 5MB"))
 	}
 
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("failed to decode the image"))
+		return nil, errs.Body(errs.FormParseError, errors.New("failed to decode the image"))
 	}
 
 	if img.Bounds().Dx() < width || img.Bounds().Dy() < height {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("image dimensions should be at least 500x600 pixels"))
+		return nil, errs.Body(errs.FormParseError, errors.New("image dimensions should be at least 500x600 pixels"))
 	}
 
 	return img, nil

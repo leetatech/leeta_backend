@@ -1,7 +1,8 @@
 package pkg
 
 import (
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/pkg/mailer"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
@@ -10,10 +11,9 @@ import (
 	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
 	statesDomain "github.com/leetatech/leeta_backend/services/state/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"
-	"go.uber.org/zap"
 )
 
-type Repositories struct {
+type RepositoryManager struct {
 	OrderRepository   orderDomain.OrderRepository
 	UserRepository    userDomain.UserRepository
 	AuthRepository    authDomain.AuthRepository
@@ -28,14 +28,13 @@ type DefaultResponse struct {
 	Message string `json:"message"`
 } // @name DefaultResponse
 
-type DefaultApplicationRequest struct {
-	TokenHandler  TokenHandler
-	Logger        *zap.Logger
-	AllRepository Repositories
-	EmailClient   mailer.MailerClient
-	Domain        string
+type ApplicationContext struct {
+	JwtManager        jwtmiddleware.Manager
+	RepositoryManager RepositoryManager
+	Mailer            mailer.Client
+	Domain            string
 }
 
 type DefaultErrorResponse struct {
-	Data leetError.ErrorResponse `json:"data"`
+	Data errs.Response `json:"data"`
 } // @name DefaultErrorResponse

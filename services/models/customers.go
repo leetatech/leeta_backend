@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"strings"
 )
 
@@ -150,6 +150,6 @@ func SetBusinessCategory(category BusinessCategory) (BusinessCategory, error) {
 	case true:
 		return category, nil
 	default:
-		return "", leetError.ErrorResponseBody(leetError.BusinessCategoryError, errors.New("invalid business category"))
+		return "", errs.Body(errs.BusinessCategoryError, errors.New("invalid business category"))
 	}
 }
