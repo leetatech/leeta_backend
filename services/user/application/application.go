@@ -13,7 +13,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
-	"go.uber.org/zap"
 )
 
 type userAppHandler struct {
@@ -21,7 +20,6 @@ type userAppHandler struct {
 	encryptor     encrypto.Manager
 	idGenerator   idgenerator.Generator
 	otpGenerator  otp.Generator
-	logger        *zap.Logger
 	EmailClient   mailer.Client
 	allRepository pkg.RepositoryManager
 }
@@ -39,13 +37,12 @@ func New(request pkg.ApplicationContext) UserApplication {
 		encryptor:     encrypto.New(),
 		idGenerator:   idgenerator.New(),
 		otpGenerator:  otp.New(),
-		logger:        request.Logger,
 		EmailClient:   request.Mailer,
 		allRepository: request.RepositoryManager,
 	}
 }
 
-func (u userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
+func (u *userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
 	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
 		return nil, errs.Body(errs.ErrorUnauthorized, err)
@@ -92,7 +89,7 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }
 
-func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
+func (u *userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
 	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
 		return nil, errs.Body(errs.ErrorUnauthorized, err)

@@ -7,13 +7,11 @@ import (
 	"github.com/leetatech/leeta_backend/services/state/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 )
 
 type StateStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
 }
 
 func New(client *mongo.Client, databaseName string) domain.StateRepository {

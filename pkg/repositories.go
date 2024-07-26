@@ -11,7 +11,6 @@ import (
 	productDomain "github.com/leetatech/leeta_backend/services/product/domain"
 	statesDomain "github.com/leetatech/leeta_backend/services/state/domain"
 	userDomain "github.com/leetatech/leeta_backend/services/user/domain"
-	"go.uber.org/zap"
 )
 
 type RepositoryManager struct {
@@ -31,7 +30,6 @@ type DefaultResponse struct {
 
 type ApplicationContext struct {
 	JwtManager        jwtmiddleware.Manager
-	Logger            *zap.Logger
 	RepositoryManager RepositoryManager
 	Mailer            mailer.Client
 	Domain            string

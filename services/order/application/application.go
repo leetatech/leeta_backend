@@ -13,7 +13,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
-	"go.uber.org/zap"
 	"time"
 )
 
@@ -22,7 +21,6 @@ type orderAppHandler struct {
 	encryptor     encrypto.Manager
 	idGenerator   idgenerator.Generator
 	otpGenerator  otp.Generator
-	logger        *zap.Logger
 	EmailClient   mailer.Client
 	allRepository pkg.RepositoryManager
 }
@@ -41,7 +39,6 @@ func New(request pkg.ApplicationContext) Order {
 		encryptor:     encrypto.New(),
 		idGenerator:   idgenerator.New(),
 		otpGenerator:  otp.New(),
-		logger:        request.Logger,
 		EmailClient:   request.Mailer,
 		allRepository: request.RepositoryManager,
 	}

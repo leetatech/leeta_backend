@@ -20,13 +20,11 @@ import (
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 )
 
 type CartApplicationManager struct {
 	idgenerator       idgenerator.Generator
 	jwtManager        jwtmiddleware.Manager
-	logger            *zap.Logger
 	EmailClient       mailer.Client
 	repositoryManager pkg.RepositoryManager
 }
@@ -43,7 +41,6 @@ type Cart interface {
 func New(applicationContext pkg.ApplicationContext) Cart {
 	return &CartApplicationManager{
 		idgenerator:       idgenerator.New(),
-		logger:            applicationContext.Logger,
 		jwtManager:        applicationContext.JwtManager,
 		EmailClient:       applicationContext.Mailer,
 		repositoryManager: applicationContext.RepositoryManager,
