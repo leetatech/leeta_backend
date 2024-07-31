@@ -9,14 +9,12 @@ import (
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
-	"sync"
 	"time"
 )
 
 var invalidAppErr = errors.New("you are on the wrong app")
 
-func (a authAppHandler) accountVerification(ctx context.Context, fullName, userID, target, templateAlias string, userCategory models.UserCategory) error {
+func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templateAlias string, userCategory models.UserCategory) error {
 	requestOTP := domain.OTPRequest{
 		Topic:        "Sign Up",
 		Type:         models.EMAIL,
@@ -25,26 +23,25 @@ func (a authAppHandler) accountVerification(ctx context.Context, fullName, userI
 	}
 	otpResponse, err := a.createOTP(ctx, requestOTP)
 	if err != nil {
-		a.logger.Error("SignUp", zap.Any("createOTP", err))
-		return err
+		return fmt.Errorf("error creating OTP: %w", err)
 	}
-	err = a.AWSClient.SendEmail(templateAlias, models.Message{
+	err = a.mailer.SendEmail(templateAlias, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
 		TemplateID: templateAlias,
 		Title:      "Sign Up Verification",
-		Sender:     a.LeetaConfig.VerificationEmail,
+		Sender:     a.mailerConfig.VerificationEmail,
 		DataMap: map[string]string{
 			"User": fullName,
 			"OTP":  otpResponse.Message,
 		},
-		Recipients: []*string{
-			&target,
+		Recipients: []string{
+			target,
 		},
 		Ts: time.Now().Unix(),
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error sending verification email: %w", err)
 	}
 
 	return nil
@@ -116,7 +113,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on vendor sign up: %w", err))
 			}
 
-			err = a.accountVerification(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath, models.VendorCategory)
+			err = a.sendAccountVerificationEmail(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath, models.VendorCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -185,7 +182,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on customer sign up: %w", err))
 			}
 
-			err = a.accountVerification(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath, models.CustomerCategory)
+			err = a.sendAccountVerificationEmail(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath, models.CustomerCategory)
 			if err != nil {
 				return nil, errs.Body(errs.InternalError, err)
 			}
@@ -198,35 +195,6 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 	}
 
 	return nil, errs.Body(errs.DuplicateUserError, errors.New("user already exists"))
-}
-
-func (a authAppHandler) accountVerification(ctx context.Context, userID, target, templateAlias string, userCategory models.UserCategory) error {
-	requestOTP := domain.OTPRequest{
-		Topic:        "Sign Up",
-		Type:         models.EMAIL,
-		Target:       target,
-		UserCategory: userCategory,
-	}
-	otpResponse, err := a.createOTP(ctx, requestOTP)
-	if err != nil {
-		return fmt.Errorf("error creating otp: %w", err)
-	}
-
-	message := models.Message{
-		ID:         a.idGenerator.Generate(),
-		UserID:     userID,
-		Target:     target,
-		TemplateID: templateAlias,
-		DataMap: map[string]string{
-			"OTP": otpResponse.Message,
-		},
-		Ts: time.Now().Unix(),
-	}
-	err = a.sendEmail(message)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (a authAppHandler) buildSignIn(ctx context.Context, user models.User, status models.Statuses, request domain.SigningRequest) (*domain.DefaultSigningResponse, error) {
@@ -393,7 +361,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on admin sign up: %w", err))
 			}
 
-			err = a.accountVerification(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath, models.AdminCategory)
+			err = a.sendAccountVerificationEmail(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath, models.AdminCategory)
 			if err != nil {
 				return nil, err
 			}
@@ -415,28 +383,4 @@ func (a authAppHandler) adminSignIN(ctx context.Context, request domain.SigningR
 	}
 
 	return a.buildSignIn(ctx, admin.User, admin.Status, request)
-}
-
-func (a authAppHandler) prepEmail(message models.Message, wg *sync.WaitGroup, errChan chan<- error) {
-	defer wg.Done()
-	err := a.mailer.SendWithTemplate(message)
-	if err != nil {
-		errChan <- err
-	}
-}
-
-func (a authAppHandler) sendEmail(message models.Message) error {
-	var prepWg sync.WaitGroup
-
-	errChan := make(chan error, 1) // Use a buffered channel with a buffer size of 1
-	prepWg.Add(1)
-	go a.prepEmail(message, &prepWg, errChan)
-	prepWg.Wait()
-
-	select {
-	case err := <-errChan:
-		return errs.Body(errs.EmailSendingError, fmt.Errorf("error sending email: %w", err))
-	default:
-		return nil
-	}
 }

@@ -10,8 +10,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -54,8 +53,7 @@ type Application struct {
 	Db                *mongo.Client
 	Ctx               context.Context
 	Router            *chi.Mux
-	MailClient        mailer.Client
-	AWSClient         awsClient.AWSClient
+	EmailClient       aws.MailClient
 	RepositoryManager pkg.RepositoryManager
 }
 
@@ -85,24 +83,21 @@ func New(configFile string) (*Application, error) {
 	if err := app.Db.Ping(ctx, readpref.Primary()); err != nil {
 		return nil, errors.New("error pinging database")
 	}
-	app.EmailClient = postmarkClient.NewMailerClient(pkg.PostMarkAPIToken, app.Logger)
 
-	app.AWSClient = awsClient.AWSClient{
-		Config: app.Config,
-		Log:    app.Logger,
+	app.EmailClient = aws.MailClient{
+		Config: &app.Config.AWSConfig,
 	}
-	err = app.AWSClient.ConnectAWS()
+	err = app.EmailClient.Connect()
 	if err != nil {
 		return nil, err
 	}
-	app.MailClient = mailer.New(pkg.PostMarkAPIToken)
 
 	jwtManager, err := jwtmiddleware.New(app.Config.PublicKey, app.Config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	allInterfaces := app.buildApplicationConnection(*jwtManager)
+	allInterfaces := app.buildApplicationConnection(*jwtManager, *app.Config)
 
 	router, _, err := routes.SetupRouter(jwtManager, allInterfaces)
 	if err != nil {
@@ -151,7 +146,7 @@ func (app *Application) buildConfig(configFile string) (*config.ServerConfig, er
 	return config.ReadConfig(configFile)
 }
 
-func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Manager) *routes.AllHTTPHandlers {
+func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Manager, config config.ServerConfig) *routes.AllHTTPHandlers {
 	authPersistence := authInfrastructure.New(app.Db, app.Config.Database.DBName)
 	orderPersistence := orderInfrastructure.New(app.Db, app.Config.Database.DBName)
 	userPersistence := userInfrastructure.New(app.Db, app.Config.Database.DBName)
@@ -175,9 +170,9 @@ func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Mana
 	request := pkg.ApplicationContext{
 		JwtManager:        jwtManager,
 		RepositoryManager: repositoryManager,
-		Mailer:            app.MailClient,
-		AWSClient:         app.AWSClient,
-		Domain:            app.Config.Leeta.Domain,
+		MailClient:        app.EmailClient,
+		Domain:            app.Config.Notification.Domain,
+		Config:            config,
 	}
 
 	orderApplications := orderApplication.New(request)

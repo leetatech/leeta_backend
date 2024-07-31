@@ -11,23 +11,21 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/helpers"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	"go.mongodb.org/mongo-driver/bson"
 	"strings"
 	"time"
 
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/cart/domain"
 	"github.com/leetatech/leeta_backend/services/models"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CartApplicationManager struct {
 	idgenerator       idgenerator.Generator
 	jwtManager        jwtmiddleware.Manager
-	EmailClient       mailer.Client
+	EmailClient       aws.MailClient
 	repositoryManager pkg.RepositoryManager
 }
 
@@ -44,7 +42,7 @@ func New(applicationContext pkg.ApplicationContext) Cart {
 	return &CartApplicationManager{
 		idgenerator:       idgenerator.New(),
 		jwtManager:        applicationContext.JwtManager,
-		EmailClient:       applicationContext.Mailer,
+		EmailClient:       applicationContext.MailClient,
 		repositoryManager: applicationContext.RepositoryManager,
 	}
 }

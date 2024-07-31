@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg/config"
 	"time"
 
 	"github.com/leetatech/leeta_backend/pkg"
@@ -11,8 +12,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
-	"github.com/leetatech/leeta_backend/pkg/mailer/awsClient"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
@@ -20,14 +20,14 @@ import (
 )
 
 type authAppHandler struct {
-	AWSClient         awsClient.AWSClient
 	jwtManager        jwtmiddleware.Manager
 	encryptor         encrypto.Manager
 	idGenerator       idgenerator.Generator
 	otpGenerator      otp.Generator
-	mailer            mailer.Client
+	mailer            aws.MailClient
 	domain            string
 	repositoryManager pkg.RepositoryManager
+	mailerConfig      config.NotificationConfig
 }
 
 type Auth interface {
@@ -46,14 +46,14 @@ type Auth interface {
 
 func New(request pkg.ApplicationContext) Auth {
 	return &authAppHandler{
-		AWSClient:         request.AWSClient,
 		jwtManager:        request.JwtManager,
 		encryptor:         encrypto.New(),
 		idGenerator:       idgenerator.New(),
 		otpGenerator:      otp.New(),
-		mailer:            request.Mailer,
+		mailer:            request.MailClient,
 		domain:            request.Domain,
 		repositoryManager: request.RepositoryManager,
+		mailerConfig:      request.Config.Notification,
 	}
 }
 
@@ -112,17 +112,17 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		return nil, errs.Body(errs.DatabaseError, fmt.Errorf("error saving early access: %w", err))
 	}
 
-	err = a.AWSClient.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
+	err = a.mailer.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     request.Email,
 		TemplateID: pkg.EarlyAccessTemplatePath,
 		Title:      "Get the VIP Treatment: Exclusive Early Access Inside!",
-		Sender:     a.LeetaConfig.VerificationEmail,
+		Sender:     a.mailerConfig.VerificationEmail,
 		DataMap: map[string]string{
 			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/",
 		},
-		Recipients: []*string{
-			&request.Email,
+		Recipients: []string{
+			request.Email,
 		},
 		Ts: time.Now().Unix(),
 	})
@@ -197,19 +197,19 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 		OTP = verification.Code
 	}
 
-	err = a.AWSClient.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
+	err = a.mailer.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     request.Email,
 		TemplateID: pkg.ForgotPasswordTemplatePath,
 		Title:      "Verification Link",
-		Sender:     a.LeetaConfig.VerificationEmail,
+		Sender:     a.mailerConfig.VerificationEmail,
 		DataMap: map[string]string{
 			"FirstName": user.FirstName,
 			"LastName":  user.LastName,
 			"OTP":       OTP,
 		},
-		Recipients: []*string{
-			&request.Email,
+		Recipients: []string{
+			request.Email,
 		},
 		Ts: time.Now().Unix(),
 	})

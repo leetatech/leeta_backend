@@ -526,6 +526,9 @@ definitions:
     - 1044
     - 1045
     - 1046
+    - 1047
+    - 1048
+    - 1049
     type: integer
     x-enum-comments:
       InvalidRequestError: generic
@@ -575,6 +578,9 @@ definitions:
     - InvalidServiceFeeError
     - RestrictedAccessError
     - FeesError
+    - TemplateCreationError
+    - AwsSessionError
+    - SesSendEmailError
     - LGANotFoundError
   errs.Response:
     properties:

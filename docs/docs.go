@@ -2807,7 +2807,10 @@ const docTemplate = `{
                 1043,
                 1044,
                 1045,
-                1046
+                1046,
+                1047,
+                1048,
+                1049
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2858,6 +2861,9 @@ const docTemplate = `{
                 "InvalidServiceFeeError",
                 "RestrictedAccessError",
                 "FeesError",
+                "TemplateCreationError",
+                "AwsSessionError",
+                "SesSendEmailError",
                 "LGANotFoundError"
             ]
         },

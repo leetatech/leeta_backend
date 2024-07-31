@@ -4,9 +4,9 @@ type Message struct {
 	ID            string            `json:"id" bson:"id"`
 	Sender        string            `json:"sender" bson:"sender"`
 	UserID        string            `json:"user_id" bson:"user_id"`
-	BccRecipients []*string         `json:"bcc_recipients"`
-	CcRecipients  []*string         `json:"cc_recipients"`
-	Recipients    []*string         `json:"recipients"`
+	BccRecipients []string          `json:"bcc_recipients"`
+	CcRecipients  []string          `json:"cc_recipients"`
+	Recipients    []string          `json:"recipients"`
 	Target        string            `json:"target" bson:"target"`
 	Title         string            `json:"title" bson:"title"`
 	Body          string            `json:"body" bson:"body"`
