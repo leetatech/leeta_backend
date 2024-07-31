@@ -1,4 +1,4 @@
-package pkg
+package idgenerator
 
 import (
 	"github.com/oklog/ulid/v2"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type IDGenerator interface {
+type Generator interface {
 	Generate() string
 }
 
@@ -15,7 +15,7 @@ type idGenerator struct {
 	entropy *ulid.MonotonicEntropy
 }
 
-func NewIDGenerator() IDGenerator {
+func New() Generator {
 	entropy := ulid.Monotonic(rand.New(rand.NewSource(time.Now().UnixNano())), 0)
 	return &idGenerator{entropy: entropy}
 }

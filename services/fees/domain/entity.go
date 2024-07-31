@@ -2,7 +2,7 @@ package domain
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 )
 
@@ -28,13 +28,13 @@ func (request FeeQuotationRequest) FeeTypeValidation() (FeeQuotationRequest, err
 		request.Cost.CostPerQt = 0
 		request.Cost.CostPerKG = 0
 		if request.Cost.CostPerType == 0 {
-			return FeeQuotationRequest{}, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("cost per type is required for service fee"))
+			return FeeQuotationRequest{}, errs.Body(errs.InvalidRequestError, errors.New("cost per type is required for service fee"))
 		}
 	case models.ProductFee:
 		request.LGA = models.LGA{}
 		request.Cost.CostPerType = 0
 		if request.ProductID == "" {
-			return FeeQuotationRequest{}, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("product id, cost per kg and cost per quantity is required for product fee"))
+			return FeeQuotationRequest{}, errs.Body(errs.InvalidRequestError, errors.New("product id, cost per kg and cost per quantity is required for product fee"))
 		}
 
 	case models.DeliveryFee:
@@ -42,7 +42,7 @@ func (request FeeQuotationRequest) FeeTypeValidation() (FeeQuotationRequest, err
 		request.Cost.CostPerQt = 0
 		request.Cost.CostPerKG = 0
 		if request.LGA.LGA == "" || request.Cost.CostPerType == 0 {
-			return FeeQuotationRequest{}, leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("lga and cost per type is required for delivery fee"))
+			return FeeQuotationRequest{}, errs.Body(errs.InvalidRequestError, errors.New("lga and cost per type is required for delivery fee"))
 		}
 	}
 

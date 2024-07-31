@@ -2,18 +2,20 @@ package interfaces
 
 import (
 	"encoding/json"
-	"github.com/leetatech/leeta_backend/pkg"
+	"net/http"
+
+	_ "github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/application"
-	"net/http"
 )
 
 type UserHttpHandler struct {
 	UserApplication application.UserApplication
 }
 
-func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHandler {
+func New(userApplication application.UserApplication) *UserHttpHandler {
 	return &UserHttpHandler{
 		UserApplication: userApplication,
 	}
@@ -57,7 +59,7 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // AddVendorByAdminHandler godoc
@@ -98,7 +100,7 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // UpdateUserData godoc
@@ -118,7 +120,7 @@ func (handler *UserHttpHandler) UpdateUserData(w http.ResponseWriter, r *http.Re
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -128,7 +130,7 @@ func (handler *UserHttpHandler) UpdateUserData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	pkg.EncodeResult(w, resp, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }
 
 // Data godoc
@@ -148,5 +150,5 @@ func (handler *UserHttpHandler) Data(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pkg.EncodeResult(w, resp, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }

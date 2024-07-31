@@ -2,46 +2,45 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 	"time"
 )
 
 type productStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
 }
 
 func (p productStoreHandler) col(collectionName string) *mongo.Collection {
 	return p.client.Database(p.databaseName).Collection(collectionName)
 }
 
-func NewProductPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.ProductRepository {
-	return &productStoreHandler{client: client, databaseName: databaseName, logger: logger}
+func New(client *mongo.Client, databaseName string) domain.ProductRepository {
+	return &productStoreHandler{client: client, databaseName: databaseName}
 }
 
-func (p productStoreHandler) CreateProduct(ctx context.Context, request models.Product) error {
+func (p productStoreHandler) Create(ctx context.Context, request models.Product) error {
 	updatedCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	_, err := p.col(models.ProductCollectionName).InsertOne(updatedCtx, request)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
 }
 
-func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (models.Product, error) {
+func (p productStoreHandler) Product(ctx context.Context, id string) (models.Product, error) {
 	filter := bson.M{
 		"id": id,
 	}
@@ -59,7 +58,7 @@ func (p productStoreHandler) GetProductByID(ctx context.Context, id string) (mod
 	return product, nil
 }
 
-func (p productStoreHandler) GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error) {
+func (p productStoreHandler) VendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error) {
 	filter := bson.M{}
 	filter["vendor_id"] = request.VendorID
 	if len(request.ProductStatus) > 0 {
@@ -109,8 +108,7 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request query.Res
 	//extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetSkip(*pagingOptions.Skip+*pagingOptions.Limit).SetLimit(1))
 	extraDocumentCursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, options.Find().SetLimit(1))
 	if err != nil {
-		p.logger.Error("error getting extra document", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error getting extra documents: %w", err)
 	}
 	defer func(extraDocumentCursor *mongo.Cursor, ctx context.Context) {
 		err = extraDocumentCursor.Close(ctx)
@@ -121,13 +119,11 @@ func (p productStoreHandler) ListProducts(ctx context.Context, request query.Res
 
 	cursor, err := p.col(models.ProductCollectionName).Find(updatedCtx, filter, pagingOptions)
 	if err != nil {
-		p.logger.Error("error finding products", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error finding products: %w", err)
 	}
 	products = make([]models.Product, cursor.RemainingBatchLength())
 	if err = cursor.All(ctx, &products); err != nil {
-		p.logger.Error("error getting remaining product batch", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error getting remaining bacth products: %w", err)
 	}
 
 	return products, uint64(totalRecord), nil

@@ -1,4 +1,4 @@
-package pkg
+package jwtmiddleware
 
 import (
 	"context"
@@ -7,10 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/rs/zerolog/log"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
 	"net/http"
 	"strings"
@@ -25,27 +24,26 @@ type UserClaims struct {
 	Role     models.UserCategory `json:"role"`
 }
 
-type TokenHandler struct {
+type Manager struct {
 	publicKey  *rsa.PublicKey
 	privateKey *rsa.PrivateKey
-	logger     *zap.Logger
 }
 
 type TokenManager interface {
 	ParseToken(signedTokenString string) (*UserClaims, error)
 	putClaimsOnContext(ctx context.Context, claims *UserClaims) (context.Context, error)
-	GetClaimsFromCtx(ctx context.Context) (*UserClaims, error)
+	ExtractUserClaims(ctx context.Context) (*UserClaims, error)
 }
 
-var _ TokenManager = &TokenHandler{}
+var _ TokenManager = &Manager{}
 
 var AuthenticatedUserMetadataKey = "AuthenticatedUser"
 
-func NewMiddlewares(publicKey, privateKey string, logger *zap.Logger) (*TokenHandler, error) {
-	return generateKey(publicKey, privateKey, logger)
+func New(publicKey, privateKey string) (*Manager, error) {
+	return generateKey(publicKey, privateKey)
 }
 
-func generateKey(publicKey, privateKey string, logger *zap.Logger) (*TokenHandler, error) {
+func generateKey(publicKey, privateKey string) (*Manager, error) {
 	tokenGeneratorPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse public key: %w", err)
@@ -54,14 +52,13 @@ func generateKey(publicKey, privateKey string, logger *zap.Logger) (*TokenHandle
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
-	return &TokenHandler{
+	return &Manager{
 		publicKey:  tokenGeneratorPublicKey,
 		privateKey: tokenGeneratorPrivateKey,
-		logger:     logger,
 	}, nil
 }
 
-func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (string, error) {
+func (handler *Manager) GenerateTokenWithExpiration(claims *UserClaims) (string, error) {
 	claims.ExpiresAt = time.Now().Add(time.Hour * 24).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
@@ -69,7 +66,7 @@ func (handler *TokenHandler) GenerateTokenWithExpiration(claims *UserClaims) (st
 }
 
 // BuildAuthResponse Set user details and generate token
-func (handler *TokenHandler) BuildAuthResponse(email, userID, deviceID string, role models.UserCategory) (string, error) {
+func (handler *Manager) BuildAuthResponse(email, userID, deviceID string, role models.UserCategory) (string, error) {
 	claims := UserClaims{
 		Email:    email,
 		UserID:   userID,
@@ -86,7 +83,7 @@ func (claims *UserClaims) Valid() error {
 	return nil
 }
 
-func (handler *TokenHandler) ParseToken(signedTokenString string) (*UserClaims, error) {
+func (handler *Manager) ParseToken(signedTokenString string) (*UserClaims, error) {
 	t, err := jwt.ParseWithClaims(signedTokenString, &UserClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if t.Method.Alg() != jwt.SigningMethodRS256.Alg() {
 			return nil, errors.New("invalid signing algorithm")
@@ -103,7 +100,7 @@ func (handler *TokenHandler) ParseToken(signedTokenString string) (*UserClaims, 
 }
 
 // PutClaimsOnContext put user token on context
-func (handler *TokenHandler) putClaimsOnContext(ctx context.Context, claims *UserClaims) (context.Context, error) {
+func (handler *Manager) putClaimsOnContext(ctx context.Context, claims *UserClaims) (context.Context, error) {
 	jsonClaims, err := json.Marshal(claims)
 	if err != nil {
 		return nil, err
@@ -113,14 +110,14 @@ func (handler *TokenHandler) putClaimsOnContext(ctx context.Context, claims *Use
 }
 
 // ValidateMiddleware middleware required endpoints: verify claims and put claims on context
-func (handler *TokenHandler) ValidateMiddleware(next http.Handler) http.Handler {
+func (handler *Manager) ValidateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorizationHeader := r.Header.Get("authorization")
 		if authorizationHeader != "" {
 			handler.validateHeaderToken(authorizationHeader, next, w, r, false)
 		} else {
-			handler.logger.Error("ParseToken", zap.Error(errors.New("no token supplied")))
-			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
+			errMsg := errors.New("no token in authorization header")
+			WriteJSONResponse(w, errs.Body(errs.ErrorUnauthorized, errMsg), http.StatusUnauthorized)
 			return
 		}
 
@@ -130,47 +127,43 @@ func (handler *TokenHandler) ValidateMiddleware(next http.Handler) http.Handler 
 // ValidateRestrictedAccessMiddleware middleware required endpoints: verify claims
 // extensively check if they have superior access to these endpoints
 // and put claims on context
-func (handler *TokenHandler) ValidateRestrictedAccessMiddleware(next http.Handler) http.Handler {
+func (handler *Manager) ValidateRestrictedAccessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorizationHeader := r.Header.Get("authorization")
 		if authorizationHeader != "" {
 			handler.validateHeaderToken(authorizationHeader, next, w, r, true)
 		} else {
-			handler.logger.Error("ParseToken", zap.Error(errors.New("no token supplied")))
-			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
+			WriteJSONResponse(w, errs.Body(errs.ErrorUnauthorized, errors.New("no token in authorization header")), http.StatusUnauthorized)
 			return
 		}
 
 	})
 }
 
-func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, next http.Handler, w http.ResponseWriter, r *http.Request, isAdminPrivileged bool) {
+func (handler *Manager) validateHeaderToken(authorizationHeader string, next http.Handler, w http.ResponseWriter, r *http.Request, isAdminPrivileged bool) {
 	bearerToken := strings.Split(authorizationHeader, " ")
 	if len(bearerToken) == 1 {
-		handler.logger.Error("bearerToken", zap.Error(errors.New("no token supplied")))
-		EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, errors.New("no token supplied")), http.StatusUnauthorized)
+		WriteJSONResponse(w, errs.Body(errs.ErrorUnauthorized, errors.New("malformed token in authorization header")), http.StatusUnauthorized)
 	}
 
 	if len(bearerToken) == 2 {
 		if bearerToken[1] == "" {
-			handler.logger.Error("bearerToken", zap.Error(errors.New("token is empty")))
+			log.Error().Msg("bearer token is empty")
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		claims, err := handler.ParseToken(bearerToken[1])
 		if err != nil {
-
-			handler.logger.Error("ParseToken", zap.Error(err))
-			EncodeResult(w, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err), http.StatusUnauthorized)
-
+			log.Error().Msgf("unable to parse token string: %v", err)
+			WriteJSONResponse(w, errs.Body(errs.ErrorUnauthorized, err), http.StatusUnauthorized)
 			return
 		}
 
 		if isAdminPrivileged {
 			// validate that user if user has permission to access the endpoint
 			if claims.Role == models.CustomerCategory {
-				EncodeResult(w, leetError.ErrorResponseBody(leetError.RestrictedAccessError, err), http.StatusUnauthorized)
+				WriteJSONResponse(w, errs.Body(errs.RestrictedAccessError, err), http.StatusUnauthorized)
 				return
 			}
 		}
@@ -182,8 +175,8 @@ func (handler *TokenHandler) validateHeaderToken(authorizationHeader string, nex
 
 }
 
-// GetClaimsFromCtx returns claims from an authenticated user
-func (handler *TokenHandler) GetClaimsFromCtx(ctx context.Context) (*UserClaims, error) {
+// ExtractUserClaims returns claims from an authenticated user
+func (handler *Manager) ExtractUserClaims(ctx context.Context) (*UserClaims, error) {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if !ok {
 		return nil, errors.New("unable to parse authenticated user")
@@ -202,7 +195,7 @@ func (handler *TokenHandler) GetClaimsFromCtx(ctx context.Context) (*UserClaims,
 	return &claims, nil
 }
 
-func EncodeResult(w http.ResponseWriter, result any, code int) {
+func WriteJSONResponse(w http.ResponseWriter, result any, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 
@@ -222,7 +215,7 @@ func EncodeResult(w http.ResponseWriter, result any, code int) {
 
 }
 
-func EncodeErrorResult(w http.ResponseWriter, code int, err error) {
+func WriteJSONErrorResponse(w http.ResponseWriter, code int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 

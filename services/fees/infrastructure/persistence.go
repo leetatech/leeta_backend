@@ -2,42 +2,42 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/leetatech/leeta_backend/pkg/database"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
-	"time"
 )
 
 type feeStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
 }
 
-func (f feeStoreHandler) col(collectionName string) *mongo.Collection {
+func (f *feeStoreHandler) col(collectionName string) *mongo.Collection {
 	return f.client.Database(f.databaseName).Collection(collectionName)
 }
 
-func NewFeesPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.FeesRepository {
-	return &feeStoreHandler{client: client, databaseName: databaseName, logger: logger}
+func New(client *mongo.Client, databaseName string) domain.FeesRepository {
+	return &feeStoreHandler{client: client, databaseName: databaseName}
 }
 
-func (f feeStoreHandler) CreateFees(ctx context.Context, request models.Fee) error {
+func (f *feeStoreHandler) Create(ctx context.Context, request models.Fee) error {
 	_, err := f.col(models.FeesCollectionName).InsertOne(ctx, request)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
 }
 
-func (f feeStoreHandler) GetActiveFees(ctx context.Context, status models.FeesStatuses) ([]models.Fee, error) {
+func (f *feeStoreHandler) FeesByStatus(ctx context.Context, status models.FeesStatuses) ([]models.Fee, error) {
 	filter := bson.M{"status": status}
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filter)
@@ -60,7 +60,7 @@ func (f feeStoreHandler) GetActiveFees(ctx context.Context, status models.FeesSt
 	return fees, nil
 }
 
-func (f feeStoreHandler) UpdateFees(ctx context.Context, status models.FeesStatuses, feeType models.FeeType, lga models.LGA, productID string) error {
+func (f *feeStoreHandler) Update(ctx context.Context, status models.FeesStatuses, feeType models.FeeType, lga models.LGA, productID string) error {
 	filter := bson.M{}
 	if status != "" {
 		filter["status"] = models.FeesActive
@@ -81,13 +81,13 @@ func (f feeStoreHandler) UpdateFees(ctx context.Context, status models.FeesStatu
 	update := bson.M{"$set": bson.M{"status": status, "status_ts": time.Now().Unix()}}
 	_, err := f.col(models.FeesCollectionName).UpdateMany(ctx, filter, update)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
 }
 
-func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fee, error) {
+func (f *feeStoreHandler) ByProductID(ctx context.Context, productID string, status models.FeesStatuses) (*models.Fee, error) {
 	filter := bson.M{"product_id": productID, "status": status}
 	fee := &models.Fee{}
 
@@ -102,7 +102,7 @@ func (f feeStoreHandler) GetFeeByProductID(ctx context.Context, productID string
 	return fee, nil
 }
 
-func (f feeStoreHandler) FetchFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
+func (f *feeStoreHandler) Fees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
 	feesFilterMapping := map[string]string{
 		"lga": "lga.lga",
 	}
@@ -113,14 +113,12 @@ func (f feeStoreHandler) FetchFees(ctx context.Context, request query.ResultSele
 
 	cursor, err := f.col(models.FeesCollectionName).Find(ctx, filterQuery)
 	if err != nil {
-		f.logger.Error("error getting fees", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error getting fees: %w", err)
 	}
 
 	fees := make([]models.Fee, cursor.RemainingBatchLength())
 	if err := cursor.All(ctx, &fees); err != nil {
-		f.logger.Error("error getting fees", zap.Error(err))
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("error getting remaining batch length of fees: %w", err)
 	}
 
 	defer func(cursor *mongo.Cursor, ctx context.Context) {

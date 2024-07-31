@@ -2,24 +2,26 @@ package infrastructure
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/state/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 )
 
 type StateStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
+}
+
+func New(client *mongo.Client, databaseName string) domain.StateRepository {
+	return &StateStoreHandler{client: client, databaseName: databaseName}
 }
 
 func (s *StateStoreHandler) SaveStates(ctx context.Context, states []any) error {
 	_, err := s.col(models.NGNStatesCollectionName).InsertMany(ctx, states)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	return nil
@@ -53,8 +55,4 @@ func (s *StateStoreHandler) GetAllStates(ctx context.Context) ([]models.State, e
 
 func (s *StateStoreHandler) col(collectionName string) *mongo.Collection {
 	return s.client.Database(s.databaseName).Collection(collectionName)
-}
-
-func NewStatePersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.StateRepository {
-	return &StateStoreHandler{client: client, databaseName: databaseName, logger: logger}
 }

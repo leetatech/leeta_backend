@@ -2,23 +2,26 @@ package application
 
 import (
 	"context"
+	"time"
+
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/encrypto"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/idgenerator"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
-	"go.uber.org/zap"
-	"time"
 )
 
 type userAppHandler struct {
-	tokenHandler  pkg.TokenHandler
-	encryptor     pkg.EncryptorManager
-	idGenerator   pkg.IDGenerator
-	otpGenerator  pkg.OtpGenerator
-	logger        *zap.Logger
-	EmailClient   postmarkClient.MailerClient
-	allRepository pkg.Repositories
+	jwtManager    jwtmiddleware.Manager
+	encryptor     encrypto.Manager
+	idGenerator   idgenerator.Generator
+	otpGenerator  otp.Generator
+	EmailClient   mailer.Client
+	allRepository pkg.RepositoryManager
 }
 
 type UserApplication interface {
@@ -28,26 +31,25 @@ type UserApplication interface {
 	UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error)
 }
 
-func NewUserApplication(request pkg.DefaultApplicationRequest) UserApplication {
+func New(request pkg.ApplicationContext) UserApplication {
 	return &userAppHandler{
-		tokenHandler:  request.TokenHandler,
-		encryptor:     pkg.NewEncryptor(),
-		idGenerator:   pkg.NewIDGenerator(),
-		otpGenerator:  pkg.NewOTPGenerator(),
-		logger:        request.Logger,
-		EmailClient:   request.EmailClient,
-		allRepository: request.AllRepository,
+		jwtManager:    request.JwtManager,
+		encryptor:     encrypto.New(),
+		idGenerator:   idgenerator.New(),
+		otpGenerator:  otp.New(),
+		EmailClient:   request.Mailer,
+		allRepository: request.RepositoryManager,
 	}
 }
 
 func (u *userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
-	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	if claims.Role != models.VendorCategory {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	vendorUpdateRequest := domain.VendorDetailsUpdateRequest{
@@ -88,14 +90,14 @@ func (u *userAppHandler) VendorVerification(ctx context.Context, request domain.
 }
 
 func (u *userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
-	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 	if claims.Role != models.AdminCategory {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
-	_, err = u.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
+	_, err = u.allRepository.AuthRepository.AdminByEmail(ctx, claims.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +145,9 @@ func (u *userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ve
 }
 
 func (u *userAppHandler) UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error) {
-	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	customer, err := u.allRepository.UserRepository.GetCustomerByID(claims.UserID)
@@ -176,9 +178,9 @@ func (u *userAppHandler) UpdateRecord(ctx context.Context, request models.User) 
 }
 
 func (u *userAppHandler) Data(ctx context.Context) (*models.Customer, error) {
-	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	customer, err := u.allRepository.UserRepository.GetCustomerByID(claims.UserID)

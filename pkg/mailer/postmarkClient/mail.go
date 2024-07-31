@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/leetatech/leeta_backend/services/models"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -14,19 +14,18 @@ const (
 	fromLeeta                     = "admin@getleeta.com"
 )
 
-// Ensure implementation of EmailClient interface
-var _ MailerClient = (*EmailClient)(nil)
+// Ensure implementation of EmailService interface
+var _ Client = (*EmailService)(nil)
 
-type EmailClient struct {
+type EmailService struct {
 	RESTClient *resty.Client
-	logger     *zap.Logger
 }
 
-type MailerClient interface {
-	SendEmailWithTemplate(message models.Message) error
+type Client interface {
+	SendWithTemplate(message models.Message) error
 }
 
-func NewMailerClient(postmarkServerToken string, logger *zap.Logger) MailerClient {
+func New(postmarkServerToken string) Client {
 	// Build REST client
 	restClient := resty.New()
 	restClient.SetBaseURL(postmarkAPIURL)
@@ -35,26 +34,21 @@ func NewMailerClient(postmarkServerToken string, logger *zap.Logger) MailerClien
 	restClient.SetHeader("X-Postmark-Server-Token", postmarkServerToken)
 	restClient.SetDebug(true)
 
-	client := EmailClient{
+	client := EmailService{
 		RESTClient: restClient,
-		logger:     logger,
 	}
 	return &client
 }
 
-func (c *EmailClient) SendEmailWithTemplate(message models.Message) error {
+func (c *EmailService) SendWithTemplate(message models.Message) error {
 	if c.RESTClient != nil {
-		c.logger.Info("RESTClient is initialized")
+		log.Debug().Msg("RESTClient is initialized")
 	} else {
-		c.logger.Error("RESTClient is not initialized")
+		log.Debug().Msg("RESTClient is not initialized")
 	}
 
 	if c.RESTClient == nil {
 		return fmt.Errorf("RESTClient is not initialized")
-	}
-
-	if c.logger == nil {
-		return fmt.Errorf("logger is not initialized")
 	}
 
 	payload := map[string]interface{}{
@@ -74,26 +68,19 @@ func (c *EmailClient) SendEmailWithTemplate(message models.Message) error {
 		SetError(&errorResponse).
 		Post(sendEmailWithTemplateEndpoint)
 	if err != nil {
-		c.logger.Error("failed to send email", zap.Error(err))
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
 	if resp == nil {
-		c.logger.Error("resp is nil")
 		return fmt.Errorf("resp is nil")
 	}
 
 	if resp.IsError() {
 		if resp.StatusCode() == http.StatusNotFound {
-			c.logger.Error("email template not found")
 			return fmt.Errorf("email template not found")
 		}
-
-		c.logger.Error("failed to send email", zap.Any("error", errorResponse))
 		return fmt.Errorf("failed to send email: %s", resp.Status())
 	}
-
-	c.logger.Info("email sent successfully", zap.Any("response", result))
 
 	return nil
 }

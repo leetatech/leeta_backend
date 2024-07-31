@@ -2,8 +2,8 @@ package interfaces
 
 import (
 	"errors"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 func checkFormFileSpecification(r *http.Request) (*domain.VendorVerificationRequest, error) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("failed to parse multipart form"))
+		return nil, errs.Body(errs.FormParseError, errors.New("failed to parse multipart form"))
 	}
 
 	var (
@@ -36,7 +36,7 @@ func checkFormFileSpecification(r *http.Request) (*domain.VendorVerificationRequ
 
 	file, header, err := r.FormFile("image")
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("failed to get image from the request"))
+		return nil, errs.Body(errs.FormParseError, errors.New("failed to get image from the request"))
 	}
 	defer file.Close()
 
@@ -52,20 +52,20 @@ func checkFormFileSpecification(r *http.Request) (*domain.VendorVerificationRequ
 
 	encodedImage, err := helpers.EncodeImageToBase64(img, imageFormat)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
+		return nil, errs.Body(errs.EncryptionError, err)
 	}
 
 	businessCategory, err := models.SetBusinessCategory(models.BusinessCategory(category))
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, err)
+		return nil, errs.Body(errs.FormParseError, err)
 	}
 	latitude, err := strconv.ParseFloat(latitudeStr, 64)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.UnmarshalError, err)
+		return nil, errs.Body(errs.UnmarshalError, err)
 	}
 	longitude, err := strconv.ParseFloat(longitudeStr, 64)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.UnmarshalError, err)
+		return nil, errs.Body(errs.UnmarshalError, err)
 	}
 
 	request := domain.VendorVerificationRequest{

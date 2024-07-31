@@ -4,51 +4,51 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/paging"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/idgenerator"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/pkg/mailer"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
-type FeesHandler struct {
-	idGenerator   pkg.IDGenerator
-	tokenHandler  pkg.TokenHandler
-	logger        *zap.Logger
-	EmailClient   postmarkClient.MailerClient
-	allRepository pkg.Repositories
+type FeesManager struct {
+	idgenerator       idgenerator.Generator
+	jwtManager        jwtmiddleware.Manager
+	EmailClient       mailer.Client
+	repositoryManager pkg.RepositoryManager
 }
 
-type FeesApplication interface {
-	FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error)
-	ListFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error)
+type Fees interface {
+	HandleFeeQuotationRequest(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error)
+	Fees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error)
 }
 
-func NewFeesApplication(request pkg.DefaultApplicationRequest) FeesApplication {
-	return &FeesHandler{
-		idGenerator:   pkg.NewIDGenerator(),
-		logger:        request.Logger,
-		tokenHandler:  request.TokenHandler,
-		EmailClient:   request.EmailClient,
-		allRepository: request.AllRepository,
+func New(applicationContext pkg.ApplicationContext) Fees {
+	return &FeesManager{
+		idgenerator:       idgenerator.New(),
+		jwtManager:        applicationContext.JwtManager,
+		EmailClient:       applicationContext.Mailer,
+		repositoryManager: applicationContext.RepositoryManager,
 	}
 }
 
-func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error) {
-	lga, err := f.feeTypeValidation(ctx, request)
+func (fm *FeesManager) HandleFeeQuotationRequest(ctx context.Context, request domain.FeeQuotationRequest) (*pkg.DefaultResponse, error) {
+	lga, err := fm.typeValidation(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
 	newFees := models.Fee{
-		ID:        f.idGenerator.Generate(),
+		ID:        fm.idgenerator.Generate(),
 		ProductID: request.ProductID,
 		FeeType:   request.FeeType,
 		LGA:       *lga,
@@ -87,56 +87,52 @@ func (f *FeesHandler) FeeQuotation(ctx context.Context, request domain.FeeQuotat
 		Paging: &paging.Request{},
 	}
 
-	fees, _, err := f.allRepository.FeesRepository.FetchFees(ctx, getRequest)
+	fees, _, err := fm.repositoryManager.FeesRepository.Fees(ctx, getRequest)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			err = f.allRepository.FeesRepository.CreateFees(ctx, newFees)
+			err = fm.repositoryManager.FeesRepository.Create(ctx, newFees)
 			if err != nil {
-				f.logger.Error("create fees", zap.Error(err))
-				return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+				return nil, errs.Body(errs.DatabaseError, fmt.Errorf("error creating fees: %w", err))
 			}
 
 			return &pkg.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 		}
-		return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return nil, errs.Body(errs.DatabaseError, err)
 	}
 
 	if fees != nil {
-		err = f.allRepository.FeesRepository.UpdateFees(ctx, models.FeesInactive, request.FeeType, *lga, request.ProductID)
+		err = fm.repositoryManager.FeesRepository.Update(ctx, models.FeesInactive, request.FeeType, *lga, request.ProductID)
 		if err != nil {
-			f.logger.Error("update fees", zap.Error(err))
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+			return nil, errs.Body(errs.DatabaseError, fmt.Errorf("error updating fees: %w", err))
 		}
-		err = f.allRepository.FeesRepository.CreateFees(ctx, newFees)
+		err = fm.repositoryManager.FeesRepository.Create(ctx, newFees)
 		if err != nil {
-			f.logger.Error("create fees after inactivating the previous one", zap.Error(err))
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+			return nil, errs.Body(errs.DatabaseError, fmt.Errorf("create fees after inactivating stale fee: %w", err))
 		}
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "Fee created successfully"}, nil
 }
 
-func (f *FeesHandler) validateProductFeeRequest(ctx context.Context, request domain.FeeQuotationRequest) error {
+func (fm *FeesManager) validateProductFeeRequest(ctx context.Context, request domain.FeeQuotationRequest) error {
 	if request.FeeType == models.ProductFee && request.ProductID != "" {
-		product, err := f.allRepository.ProductRepository.GetProductByID(ctx, request.ProductID)
+		product, err := fm.repositoryManager.ProductRepository.Product(ctx, request.ProductID)
 		if err != nil {
-			f.logger.Error("get product by id", zap.Error(err))
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				return leetError.ErrorResponseBody(leetError.InvalidProductIdError, err)
+				return errs.Body(errs.InvalidProductIdError, fmt.Errorf("no product found with product id %s: %w", request.ProductID, err))
 			}
-			return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+			return errs.Body(errs.DatabaseError, err)
 		}
 
 		switch product.ParentCategory {
 		case models.LNGProductCategory, models.LPGProductCategory:
 			if request.Cost.CostPerKG <= 0 {
-				return leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("cost per kg is required for product fee"))
+				return errs.Body(errs.InvalidRequestError, errors.New("cost per kg is required for product fee"))
 			}
 
 		default:
 			if request.Cost.CostPerQt <= 0 {
-				return leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("cost per quantity is required for product fee"))
+				return errs.Body(errs.InvalidRequestError, errors.New("cost per quantity is required for product fee"))
 			}
 		}
 	}
@@ -144,11 +140,11 @@ func (f *FeesHandler) validateProductFeeRequest(ctx context.Context, request dom
 	return nil
 }
 
-func (f *FeesHandler) validateLGA(ctx context.Context, lga models.LGA) error {
+func (fm *FeesManager) validateLGA(ctx context.Context, lga models.LGA) error {
 
-	state, err := f.allRepository.StatesRepository.GetState(ctx, lga.State)
+	state, err := fm.repositoryManager.StatesRepository.GetState(ctx, lga.State)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 
 	// check if the lga exists in the state
@@ -158,12 +154,12 @@ func (f *FeesHandler) validateLGA(ctx context.Context, lga models.LGA) error {
 		}
 	}
 
-	return leetError.ErrorResponseBody(leetError.InvalidRequestError, errors.New("invalid lga"))
+	return errs.Body(errs.InvalidRequestError, errors.New("invalid lga"))
 }
 
-func (f *FeesHandler) feeTypeValidation(ctx context.Context, request domain.FeeQuotationRequest) (*models.LGA, error) {
+func (fm *FeesManager) typeValidation(ctx context.Context, request domain.FeeQuotationRequest) (*models.LGA, error) {
 
-	err := f.validateProductFeeRequest(ctx, request)
+	err := fm.validateProductFeeRequest(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +168,7 @@ func (f *FeesHandler) feeTypeValidation(ctx context.Context, request domain.FeeQ
 
 	if request.FeeType == models.DeliveryFee && request.LGA.State != "" && request.LGA.LGA != "" {
 		lga = models.LGA{LGA: request.LGA.LGA, State: strings.ToUpper(request.LGA.State)}
-		err = f.validateLGA(ctx, lga)
+		err = fm.validateLGA(ctx, lga)
 		if err != nil {
 			return nil, err
 		}
@@ -181,16 +177,15 @@ func (f *FeesHandler) feeTypeValidation(ctx context.Context, request domain.FeeQ
 	return &lga, nil
 }
 
-func (f *FeesHandler) ListFees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
-
-	fees, totalRecord, err := f.allRepository.FeesRepository.FetchFees(ctx, request)
+func (fm *FeesManager) Fees(ctx context.Context, request query.ResultSelector) ([]models.Fee, uint64, error) {
+	fees, totalRecord, err := fm.repositoryManager.FeesRepository.Fees(ctx, request)
 	if err != nil {
-		return nil, 0, leetError.ErrorResponseBody(leetError.InternalError, fmt.Errorf("error fetching fees: %w", err))
+		return nil, 0, errs.Body(errs.InternalError, fmt.Errorf("error fetching fees: %w", err))
 	}
 
 	for _, field := range request.Filter.Fields {
 		if field.Name == "lga" && len(fees) == 0 {
-			return nil, 0, leetError.ErrorResponseBody(leetError.LGANotFoundError, fmt.Errorf("lga not found, leeta is not available in this region: %s", field.Name))
+			return nil, 0, errs.Body(errs.LGANotFoundError, fmt.Errorf("lga not found, leeta is not available in this region: %s", field.Name))
 		}
 	}
 
