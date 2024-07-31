@@ -56,7 +56,10 @@ const (
 	InvalidServiceFeeError       ErrorCode = 1043
 	RestrictedAccessError        ErrorCode = 1044
 	FeesError                    ErrorCode = 1045
-	LGANotFoundError             ErrorCode = 1046
+	TemplateCreationError        ErrorCode = 1046
+	AwsSessionError              ErrorCode = 1047
+	SesSendEmailError            ErrorCode = 1048
+	LGANotFoundError             ErrorCode = 1049
 )
 
 var (
@@ -106,6 +109,9 @@ var (
 		InvalidServiceFeeError:       "InvalidServiceFeeError",
 		RestrictedAccessError:        "RestrictedAccessError",
 		FeesError:                    "FeesError",
+		TemplateCreationError:        "TemplateCreationError",
+		AwsSessionError:              "AwsSessionError",
+		SesSendEmailError:            "SesSendEmailError",
 		LGANotFoundError:             "LGANotFoundError",
 	}
 
@@ -155,6 +161,9 @@ var (
 		InvalidServiceFeeError:       "An error occurred because the service fee is invalid",
 		RestrictedAccessError:        "User do not have authorization to access this endpoint",
 		FeesError:                    "There is an error with the application fees",
+		TemplateCreationError:        "An error occurred while creating template",
+		AwsSessionError:              "An error occurred while creating aws session",
+		SesSendEmailError:            "An error occurred while sending email",
 		LGANotFoundError:             "Leeta is not available in your region",
 	}
 )

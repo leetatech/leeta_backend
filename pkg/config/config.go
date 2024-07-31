@@ -18,14 +18,15 @@ const (
 )
 
 type ServerConfig struct {
-	AppEnv     string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
-	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
-	Database   DatabaseConfig
-	PrivateKey string `env:"PRIVATE_KEY"`
-	PublicKey  string `env:"PUBLIC_KEY"`
-	Postmark   PostmarkConfig
-	Leeta      LeetaConfig
-	NgnStates  NgnStatesConfig // configure resource API to retrieve NGN states
+	AppEnv       string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
+	HTTPPort     int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
+	Database     DatabaseConfig
+	PrivateKey   string `env:"PRIVATE_KEY"`
+	PublicKey    string `env:"PUBLIC_KEY"`
+	Postmark     PostmarkConfig
+	Notification NotificationConfig
+	NgnStates    NgnStatesConfig // configure resource API to retrieve NGN states
+	AWSConfig    AWSConfig
 }
 
 type DatabaseConfig struct {
@@ -43,12 +44,20 @@ type PostmarkConfig struct {
 	Key string `env:"POSTMARK_KEY"`
 }
 
-type LeetaConfig struct {
-	Domain string `env:"DOMAIN"`
+type NotificationConfig struct {
+	Domain            string `env:"DOMAIN"`
+	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL" envDefault:"admin@getleeta.com"`
+	DoNotReplyEmail   string `env:"LEETA_DONOTREPLY_EMAIL"`
 }
 
 type NgnStatesConfig struct {
 	URL string `env:"URL" envDefault:"https://api.facts.ng/v1"`
+}
+
+type AWSConfig struct {
+	Region   string `env:"AWS_REGION"`
+	Endpoint string `env:"AWS_ENDPOINT"`
+	Secret   string `env:"AWS_SECRET"`
 }
 
 func LoadEnv(configFile string) error {
@@ -70,8 +79,9 @@ func ReadConfig(configFile string) (*ServerConfig, error) {
 		&serverConfig,
 		&serverConfig.Database,
 		&serverConfig.Postmark,
-		&serverConfig.Leeta,
+		&serverConfig.Notification,
 		&serverConfig.NgnStates,
+		&serverConfig.AWSConfig,
 	}
 
 	for _, target := range targets {

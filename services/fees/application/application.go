@@ -14,7 +14,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,7 +23,7 @@ import (
 type FeesManager struct {
 	idgenerator       idgenerator.Generator
 	jwtManager        jwtmiddleware.Manager
-	EmailClient       mailer.Client
+	EmailClient       aws.MailClient
 	repositoryManager pkg.RepositoryManager
 }
 
@@ -36,7 +36,7 @@ func New(applicationContext pkg.ApplicationContext) Fees {
 	return &FeesManager{
 		idgenerator:       idgenerator.New(),
 		jwtManager:        applicationContext.JwtManager,
-		EmailClient:       applicationContext.Mailer,
+		EmailClient:       applicationContext.MailClient,
 		repositoryManager: applicationContext.RepositoryManager,
 	}
 }

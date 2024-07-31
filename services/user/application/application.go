@@ -9,7 +9,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
@@ -20,7 +20,7 @@ type userAppHandler struct {
 	encryptor     encrypto.Manager
 	idGenerator   idgenerator.Generator
 	otpGenerator  otp.Generator
-	EmailClient   mailer.Client
+	EmailClient   aws.MailClient
 	allRepository pkg.RepositoryManager
 }
 
@@ -37,7 +37,7 @@ func New(request pkg.ApplicationContext) UserApplication {
 		encryptor:     encrypto.New(),
 		idGenerator:   idgenerator.New(),
 		otpGenerator:  otp.New(),
-		EmailClient:   request.Mailer,
+		EmailClient:   request.MailClient,
 		allRepository: request.RepositoryManager,
 	}
 }

@@ -3,6 +3,7 @@ module github.com/leetatech/leeta_backend
 go 1.22.5
 
 require (
+	github.com/aws/aws-sdk-go v1.53.16
 	github.com/badoux/checkmail v1.2.4
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -33,6 +34,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

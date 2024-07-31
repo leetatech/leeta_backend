@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -23,8 +25,6 @@ import (
 	cartInterface "github.com/leetatech/leeta_backend/services/cart/interfaces"
 
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
-
 	orderApplication "github.com/leetatech/leeta_backend/services/order/application"
 	orderInfrastructure "github.com/leetatech/leeta_backend/services/order/infrastructure"
 	orderInterface "github.com/leetatech/leeta_backend/services/order/interfaces"
@@ -41,10 +41,11 @@ import (
 	feesInfrastructure "github.com/leetatech/leeta_backend/services/fees/infrastructure"
 	feeInterface "github.com/leetatech/leeta_backend/services/fees/interfaces"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"net/http"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type Application struct {
@@ -52,7 +53,7 @@ type Application struct {
 	Db                *mongo.Client
 	Ctx               context.Context
 	Router            *chi.Mux
-	MailClient        mailer.Client
+	EmailClient       aws.MailClient
 	RepositoryManager pkg.RepositoryManager
 }
 
@@ -83,14 +84,20 @@ func New(configFile string) (*Application, error) {
 		return nil, errors.New("error pinging database")
 	}
 
-	app.MailClient = mailer.New(pkg.PostMarkAPIToken)
+	app.EmailClient = aws.MailClient{
+		Config: &app.Config.AWSConfig,
+	}
+	err = app.EmailClient.Connect()
+	if err != nil {
+		return nil, err
+	}
 
 	jwtManager, err := jwtmiddleware.New(app.Config.PublicKey, app.Config.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
-	allInterfaces := app.buildApplicationConnection(*jwtManager)
+	allInterfaces := app.buildApplicationConnection(*jwtManager, *app.Config)
 
 	router, _, err := routes.SetupRouter(jwtManager, allInterfaces)
 	if err != nil {
@@ -139,7 +146,7 @@ func (app *Application) buildConfig(configFile string) (*config.ServerConfig, er
 	return config.ReadConfig(configFile)
 }
 
-func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Manager) *routes.AllHTTPHandlers {
+func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Manager, config config.ServerConfig) *routes.AllHTTPHandlers {
 	authPersistence := authInfrastructure.New(app.Db, app.Config.Database.DBName)
 	orderPersistence := orderInfrastructure.New(app.Db, app.Config.Database.DBName)
 	userPersistence := userInfrastructure.New(app.Db, app.Config.Database.DBName)
@@ -163,8 +170,9 @@ func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Mana
 	request := pkg.ApplicationContext{
 		JwtManager:        jwtManager,
 		RepositoryManager: repositoryManager,
-		Mailer:            app.MailClient,
-		Domain:            app.Config.Leeta.Domain,
+		MailClient:        app.EmailClient,
+		Domain:            app.Config.Notification.Domain,
+		Config:            config,
 	}
 
 	orderApplications := orderApplication.New(request)

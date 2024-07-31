@@ -1,9 +1,10 @@
 package pkg
 
 import (
+	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
@@ -31,8 +32,9 @@ type DefaultResponse struct {
 type ApplicationContext struct {
 	JwtManager        jwtmiddleware.Manager
 	RepositoryManager RepositoryManager
-	Mailer            mailer.Client
 	Domain            string
+	MailClient        aws.MailClient
+	Config            config.ServerConfig
 }
 
 type DefaultErrorResponse struct {
