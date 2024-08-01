@@ -26,11 +26,15 @@ type authAppHandler struct {
 	encryptor         encrypto.Manager
 	idGenerator       idgenerator.Generator
 	otpGenerator      otp.Generator
-	mailer            mailer.Client
+	notification      notification
 	domain            string
 	repositoryManager pkg.RepositoryManager
-	AWSSMSClient      sms.Client
 	mailerConfig      config.NotificationConfig
+}
+
+type notification struct {
+	mail mailer.Client
+	sms  sms.Client
 }
 
 type Auth interface {
@@ -49,13 +53,15 @@ type Auth interface {
 
 func New(request pkg.ApplicationContext) Auth {
 	return &authAppHandler{
-		jwtManager:        request.JwtManager,
-		encryptor:         encrypto.New(),
-		idGenerator:       idgenerator.New(),
-		otpGenerator:      otp.New(),
-		mailer:            request.MailClient,
+		jwtManager:   request.JwtManager,
+		encryptor:    encrypto.New(),
+		idGenerator:  idgenerator.New(),
+		otpGenerator: otp.New(),
+		notification: notification{
+			mail: request.MailClient,
+			sms:  request.SMSClient,
+		},
 		domain:            request.Domain,
-		AWSSMSClient:      request.SMSClient,
 		repositoryManager: request.RepositoryManager,
 		mailerConfig:      request.Config.Notification,
 	}
@@ -116,14 +122,14 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		return nil, errs.Body(errs.DatabaseError, fmt.Errorf("error saving early access: %w", err))
 	}
 
-	err = a.mailer.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
+	err = a.notification.mail.Send(pkg.EarlyAccessTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     request.Email,
 		TemplateID: pkg.EarlyAccessTemplatePath,
 		Title:      "Get the VIP Treatment: Exclusive Early Access Inside!",
 		Sender:     a.mailerConfig.VerificationEmail,
 		DataMap: map[string]string{
-			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/",
+			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/", // TODO: load landing page from environment variable
 		},
 		Recipients: []string{
 			request.Email,
@@ -202,7 +208,7 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.OTPRequest) 
 	}
 	switch request.Type {
 	case models.EMAIL:
-		err = a.mailer.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
+		err = a.notification.mail.Send(pkg.ForgotPasswordTemplatePath, models.Message{
 			ID:         a.idGenerator.Generate(),
 			UserID:     request.Target,
 			TemplateID: pkg.ForgotPasswordTemplatePath,
@@ -223,7 +229,7 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.OTPRequest) 
 		}
 	case models.SMS:
 		var messageBody string
-		err = a.AWSSMSClient.SendSMS(models.Message{
+		err = a.notification.sms.Send(models.Message{
 			Target: request.Target,
 			Body:   messageBody,
 		})

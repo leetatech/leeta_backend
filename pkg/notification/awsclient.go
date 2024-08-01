@@ -8,8 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/errs"
-	"github.com/leetatech/leeta_backend/services/models"
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"time"
 )
@@ -36,7 +35,7 @@ func (awsClient *AWSClient) Connect() error {
 	}
 	awsSession, err := session.NewSession(awsConfig)
 	if err != nil {
-		log.Println("Error occurred while creating awsEmail session", err)
+		log.Error().Err(err).Msg("Failed to create AWS session")
 		return errs.Body(errs.AwsSessionError, err)
 	}
 
@@ -45,9 +44,4 @@ func (awsClient *AWSClient) Connect() error {
 	awsClient.SNS = sns.New(awsClient.Session)
 
 	return nil
-}
-
-type AWSClientInterface interface {
-	SendEmail(templatePath string, message models.Message) error
-	SendSMS(message models.Message) error
 }

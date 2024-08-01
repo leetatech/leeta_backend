@@ -17,7 +17,7 @@ func New(awsClient notification.AWSClient) Client {
 	return Client{Client: awsClient}
 }
 
-func (client *Client) SendEmail(templatePath string, message models.Message) error {
+func (client *Client) Send(templatePath string, message models.Message) error {
 	templateBody, err := parseTemplates.CreateSingleTemplate(templatePath, message)
 	if err != nil {
 		return fmt.Errorf("failed to create email template: %w", err)

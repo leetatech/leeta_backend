@@ -17,7 +17,7 @@ func New(awsClient notification.AWSClient) Client {
 	return Client{Client: awsClient}
 }
 
-func (awsClient Client) SendSMS(message models.Message) error {
+func (awsClient Client) Send(message models.Message) error {
 	input := &sns.PublishInput{
 		PhoneNumber: aws.String(message.Target),
 		Message:     aws.String(message.Body),
@@ -29,6 +29,6 @@ func (awsClient Client) SendSMS(message models.Message) error {
 		return errs.Body(errs.SnsSendSMSError, err)
 	}
 
-	log.Debug().Msg("SMS sent successfully")
+	log.Debug().Str("phone", message.Target).Msg("SMS sent successfully")
 	return nil
 }

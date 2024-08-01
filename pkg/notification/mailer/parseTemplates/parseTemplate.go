@@ -14,19 +14,16 @@ import (
 type Template struct{}
 
 func CreateSingleTemplate(templatePath string, data models.Message) (string, error) {
-	templateStore := map[string]string{}
+	var buf bytes.Buffer
 
 	t := Template{}
-	buf := new(bytes.Buffer)
 
-	err := t.Create(buf, templatePath, data)
+	err := t.Create(&buf, templatePath, data)
 	if err != nil {
 		return "", errs.Body(errs.TemplateCreationError, err)
 	}
 
-	templateStore[templatePath] = buf.String()
-
-	return templateStore[templatePath], nil
+	return buf.String(), nil
 }
 
 var functions = template.FuncMap{}
@@ -34,24 +31,24 @@ var functions = template.FuncMap{}
 func (t *Template) Create(buf io.Writer, fileName string, data any) error {
 	dir, err := os.Getwd()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get working directory: %w", err)
 	}
 	page := fmt.Sprintf("%s/%s", filepath.Join(dir, "pkg/messaging/mailer/templates"), fileName)
 
 	ts, err := template.New(fileName).Funcs(functions).ParseFiles(page)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse template file %s: %w", fileName, err)
 	}
 
-	ts, err = ts.ParseGlob("./pkg/messaging/mailer/templates/*.layout.gohtml")
+	ts, err = ts.ParseGlob(filepath.Join(dir, "pkg/messaging/mailer/templates/*.layout.gohtml"))
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse layout templates: %w", err)
 	}
 
 	if err = ts.Execute(buf, data); err != nil {
-		return err
+		return fmt.Errorf("failed to execute template: %w", err)
 	}
 	return nil
 }
