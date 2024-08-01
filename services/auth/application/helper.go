@@ -25,8 +25,7 @@ func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullNa
 	if err != nil {
 		return fmt.Errorf("error creating OTP: %w", err)
 	}
-
-	err = a.mailer.SendEmail(templateAlias, models.Message{
+	err = a.notification.mail.Send(templateAlias, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
 		TemplateID: templateAlias,

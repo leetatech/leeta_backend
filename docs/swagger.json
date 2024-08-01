@@ -533,7 +533,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/OrderResponse"
+                                "$ref": "#/definitions/Response"
                             }
                         }
                     },
@@ -711,11 +711,11 @@
                 "parameters": [
                     {
                         "description": "update order by status request body",
-                        "name": "domain.UpdateOrderStatusRequest",
+                        "name": "domain.UpdateStatusRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/UpdateOrderStatusRequest"
+                            "$ref": "#/definitions/UpdateStatusRequest"
                         }
                     }
                 ],
@@ -1637,6 +1637,80 @@
                 }
             }
         },
+        "/user/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "The endpoint to get user record from current user jwt token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get authenticated user data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Customer"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Update user data is the endpoint used to make changes to a user database record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User data",
+                "parameters": [
+                    {
+                        "description": "update user record",
+                        "name": "models.User",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DefaultErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/admin/vendor": {
             "post": {
                 "security": [
@@ -1956,6 +2030,9 @@
         "Address": {
             "type": "object",
             "properties": {
+                "address_type": {
+                    "$ref": "#/definitions/models.AddressType"
+                },
                 "city": {
                     "type": "string"
                 },
@@ -1964,6 +2041,9 @@
                 },
                 "coordinate": {
                     "$ref": "#/definitions/Coordinates"
+                },
+                "default_delivery_address": {
+                    "type": "boolean"
                 },
                 "full_address": {
                     "type": "string"
@@ -1983,7 +2063,10 @@
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Address"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
                 },
                 "department": {
                     "type": "string"
@@ -2132,11 +2215,61 @@
                 }
             }
         },
+        "Customer": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "$ref": "#/definitions/Email"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "has_pin": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Statuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "ts": {
+                    "type": "integer"
+                }
+            }
+        },
         "DefaultErrorResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/leetError.ErrorResponse"
+                    "$ref": "#/definitions/errs.Response"
                 }
             }
         },
@@ -2352,47 +2485,6 @@
                 }
             }
         },
-        "OrderResponse": {
-            "type": "object",
-            "properties": {
-                "customer": {
-                    "$ref": "#/definitions/Admin"
-                },
-                "customer_id": {
-                    "type": "string"
-                },
-                "delivery_fee": {
-                    "type": "number"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "product_details": {
-                    "$ref": "#/definitions/Product"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/models.OrderStatuses"
-                },
-                "status_ts": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "number"
-                },
-                "ts": {
-                    "type": "integer"
-                },
-                "vat": {
-                    "type": "number"
-                },
-                "vendor_id": {
-                    "type": "string"
-                }
-            }
-        },
         "Phone": {
             "type": "object",
             "properties": {
@@ -2490,6 +2582,47 @@
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "Response": {
+            "type": "object",
+            "properties": {
+                "customer": {
+                    "$ref": "#/definitions/Admin"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "delivery_fee": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "product_details": {
+                    "$ref": "#/definitions/Product"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.OrderStatuses"
+                },
+                "status_ts": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "ts": {
+                    "type": "integer"
+                },
+                "vat": {
+                    "type": "number"
+                },
+                "vendor_id": {
                     "type": "string"
                 }
             }
@@ -2597,7 +2730,7 @@
                 }
             }
         },
-        "UpdateOrderStatusRequest": {
+        "UpdateStatusRequest": {
             "type": "object",
             "properties": {
                 "order_id": {
@@ -2636,6 +2769,134 @@
                     "items": {
                         "$ref": "#/definitions/Product"
                     }
+                }
+            }
+        },
+        "errs.ErrorCode": {
+            "type": "integer",
+            "enum": [
+                1001,
+                1002,
+                1003,
+                1004,
+                1005,
+                1006,
+                1007,
+                1008,
+                1009,
+                1010,
+                1011,
+                1012,
+                1013,
+                1014,
+                1015,
+                1016,
+                1017,
+                1018,
+                1019,
+                1020,
+                1021,
+                1022,
+                1023,
+                1024,
+                1025,
+                1026,
+                1027,
+                1028,
+                1029,
+                1030,
+                1031,
+                1032,
+                1033,
+                1034,
+                1035,
+                1036,
+                1037,
+                1038,
+                1039,
+                1040,
+                1041,
+                1042,
+                1043,
+                1044,
+                1045,
+                1046,
+                1047,
+                1048,
+                1049,
+                1050
+            ],
+            "x-enum-comments": {
+                "InvalidRequestError": "generic"
+            },
+            "x-enum-varnames": [
+                "DatabaseError",
+                "DatabaseNoRecordError",
+                "UnmarshalError",
+                "MarshalError",
+                "PasswordValidationError",
+                "EncryptionError",
+                "DecryptionError",
+                "DuplicateUserError",
+                "UserNotFoundError",
+                "IdentityNotFoundError",
+                "UserLockedError",
+                "CredentialsValidationError",
+                "TokenGenerationError",
+                "TokenValidationError",
+                "UserCategoryError",
+                "EmailSendingError",
+                "BusinessCategoryError",
+                "StatusesError",
+                "ErrorUnauthorized",
+                "EmailFormatError",
+                "ValidEmailHostError",
+                "ValidLeetaDomainError",
+                "FormParseError",
+                "OrderStatusesError",
+                "ProductCategoryError",
+                "ProductSubCategoryError",
+                "ProductStatusError",
+                "ForgotPasswordError",
+                "MissingUserNames",
+                "InvalidUserRoleError",
+                "InvalidIdentityError",
+                "InvalidOTPError",
+                "CartStatusesError",
+                "AmountPaidError",
+                "FeesStatusesError",
+                "InvalidPageRequestError",
+                "CartItemQuantityError",
+                "CartItemRequestQuantityError",
+                "InvalidRequestError",
+                "InternalError",
+                "InvalidProductIdError",
+                "InvalidDeliveryFeeError",
+                "InvalidServiceFeeError",
+                "RestrictedAccessError",
+                "FeesError",
+                "TemplateCreationError",
+                "AwsSessionError",
+                "SesSendEmailError",
+                "SnsSendSMSError",
+                "LGANotFoundError"
+            ]
+        },
+        "errs.Response": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "$ref": "#/definitions/errs.ErrorCode"
+                },
+                "error_reference": {
+                    "type": "string"
+                },
+                "error_type": {
+                    "type": "string"
+                },
+                "internal_error_message": {},
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -2829,131 +3090,16 @@
                 }
             }
         },
-        "leetError.ErrorCode": {
-            "type": "integer",
+        "models.AddressType": {
+            "type": "string",
             "enum": [
-                1001,
-                1002,
-                1003,
-                1004,
-                1005,
-                1006,
-                1007,
-                1008,
-                1009,
-                1010,
-                1011,
-                1012,
-                1013,
-                1014,
-                1015,
-                1016,
-                1017,
-                1018,
-                1019,
-                1020,
-                1021,
-                1022,
-                1023,
-                1024,
-                1025,
-                1026,
-                1027,
-                1028,
-                1029,
-                1030,
-                1031,
-                1032,
-                1033,
-                1034,
-                1035,
-                1036,
-                1037,
-                1038,
-                1039,
-                1040,
-                1041,
-                1042,
-                1043,
-                1044,
-                1045,
-                1046,
-                1047,
-                1048,
-                1049
+                "customer_resident_address",
+                "delivery_address"
             ],
-            "x-enum-comments": {
-                "InvalidRequestError": "generic"
-            },
             "x-enum-varnames": [
-                "DatabaseError",
-                "DatabaseNoRecordError",
-                "UnmarshalError",
-                "MarshalError",
-                "PasswordValidationError",
-                "EncryptionError",
-                "DecryptionError",
-                "DuplicateUserError",
-                "UserNotFoundError",
-                "IdentityNotFoundError",
-                "UserLockedError",
-                "CredentialsValidationError",
-                "TokenGenerationError",
-                "TokenValidationError",
-                "UserCategoryError",
-                "EmailSendingError",
-                "BusinessCategoryError",
-                "StatusesError",
-                "ErrorUnauthorized",
-                "EmailFormatError",
-                "ValidEmailHostError",
-                "ValidLeetaDomainError",
-                "FormParseError",
-                "OrderStatusesError",
-                "ProductCategoryError",
-                "ProductSubCategoryError",
-                "ProductStatusError",
-                "ForgotPasswordError",
-                "MissingUserNames",
-                "InvalidUserRoleError",
-                "InvalidIdentityError",
-                "InvalidOTPError",
-                "CartStatusesError",
-                "AmountPaidError",
-                "FeesStatusesError",
-                "InvalidPageRequestError",
-                "CartItemQuantityError",
-                "CartItemRequestQuantityError",
-                "InvalidRequestError",
-                "InternalError",
-                "InvalidProductIdError",
-                "InvalidDeliveryFeeError",
-                "InvalidServiceFeeError",
-                "RestrictedAccessError",
-                "FeesError",
-                "TemplateCreationError",
-                "AwsSessionError",
-                "SesSendEmailError",
-                "SnsSendSMSError"
+                "CustomerResidentAddress",
+                "DeliveryAddress"
             ]
-        },
-        "leetError.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error_code": {
-                    "$ref": "#/definitions/leetError.ErrorCode"
-                },
-                "error_reference": {
-                    "type": "string"
-                },
-                "error_type": {
-                    "type": "string"
-                },
-                "internal_error_message": {},
-                "message": {
-                    "type": "string"
-                }
-            }
         },
         "models.Cart": {
             "type": "object",
@@ -3222,6 +3368,50 @@
                 "Exited",
                 "Locked"
             ]
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Address"
+                    }
+                },
+                "dob": {
+                    "type": "string"
+                },
+                "email": {
+                    "$ref": "#/definitions/Email"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "has_pin": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked_reason": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "$ref": "#/definitions/Phone"
+                },
+                "pin_blocked": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.Statuses"
+                }
+            }
         },
         "models.UserCategory": {
             "type": "string",
