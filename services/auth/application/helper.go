@@ -9,7 +9,6 @@ import (
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 	"time"
 )
 
@@ -24,42 +23,9 @@ func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullNa
 	}
 	otpResponse, err := a.createOTP(ctx, requestOTP)
 	if err != nil {
-		a.logger.Error("SignUp", zap.Any("createOTP", err))
-		return err
-	}
-
-	err = a.AWSEmailClient.SendEmail(templateAlias, models.Message{
-		ID:         a.idGenerator.Generate(),
-		UserID:     userID,
-		TemplateID: templateAlias,
-		Title:      "Sign Up Verification",
-		Sender:     a.LeetaConfig.VerificationEmail,
-		DataMap: map[string]string{
-			"User": fullName,
-			"OTP":  otpResponse.Message,
-		},
-		Recipients: []*string{
-			&target,
-		},
-		Ts: time.Now().Unix(),
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (a authAppHandler) passwordValidationEncryption(password string) (string, error) {
-	err := a.encryptor.IsValidPassword(password)
-	if err != nil {
-		a.logger.Error("passwordValidationEncryption", zap.Error(err))
-		return "", err
-	}
-	otpResponse, err := a.createOTP(ctx, requestOTP)
-	if err != nil {
 		return fmt.Errorf("error creating OTP: %w", err)
 	}
+
 	err = a.mailer.SendEmail(templateAlias, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
@@ -85,7 +51,7 @@ func (a authAppHandler) passwordValidationEncryption(password string) (string, e
 func (a authAppHandler) validateAndEncryptPassword(password string) (string, error) {
 	err := a.encryptor.ValidatePasswordStrength(password)
 	if err != nil {
-		return "", fmt.Errorf("error validation encryption password strength: %w", err)
+		return "", fmt.Errorf("error validating encryption password strength: %w", err)
 	}
 	passByte, err := a.encryptor.Generate(password)
 	if err != nil {

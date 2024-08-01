@@ -19,7 +19,6 @@ type AuthRepository interface {
 	AdminByEmail(ctx context.Context, email string) (*models.Admin, error)
 	UserByEmail(ctx context.Context, email string) (*models.Customer, error)
 	CreateUser(ctx context.Context, user any) error
-	UpdateEmailVerify(ctx context.Context, email string, status bool) error
 	SetEmailVerificationStatus(ctx context.Context, userID string, status bool) error
 	UpdateGuestRecord(ctx context.Context, guest models.Guest) error
 	GetUserByEmailOrPhone(ctx context.Context, target string) (*models.Customer, error)

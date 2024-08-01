@@ -1,4 +1,4 @@
-package messaging
+package notification
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
@@ -7,31 +7,29 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/leetatech/leeta_backend/pkg/config"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
-	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"time"
 )
 
 type AWSClient struct {
-	Config  *config.ServerConfig
-	Log     *zap.Logger
+	Config  *config.AWSConfig
 	Session *session.Session
 	SES     *ses.SES
 	SNS     *sns.SNS
 }
 
-func (awsClient *AWSClient) ConnectAWS() error {
+func (awsClient *AWSClient) Connect() error {
 	httpClient := &http.Client{
 		Timeout: 60 * time.Second,
 	}
 	awsConfig := &aws.Config{
-		Region: aws.String(awsClient.Config.AWSConfig.Region),
+		Region: aws.String(awsClient.Config.Region),
 		Credentials: credentials.NewStaticCredentials(
-			awsClient.Config.AWSConfig.Endpoint,
-			awsClient.Config.AWSConfig.Secret,
+			awsClient.Config.Endpoint,
+			awsClient.Config.Secret,
 			"",
 		),
 		HTTPClient: httpClient,
@@ -39,7 +37,7 @@ func (awsClient *AWSClient) ConnectAWS() error {
 	awsSession, err := session.NewSession(awsConfig)
 	if err != nil {
 		log.Println("Error occurred while creating awsEmail session", err)
-		return leetError.ErrorResponseBody(leetError.AwsSessionError, err)
+		return errs.Body(errs.AwsSessionError, err)
 	}
 
 	awsClient.Session = awsSession

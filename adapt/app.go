@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/leetatech/leeta_backend/pkg/notification"
+	sms "github.com/leetatech/leeta_backend/pkg/notification/sms/aws"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/leetatech/leeta_backend/adapt/routes"
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/database"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
-	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/awsEmail"
-	"github.com/leetatech/leeta_backend/pkg/messaging/sms/awsSMS"
+	mailer "github.com/leetatech/leeta_backend/pkg/notification/mailer/aws"
 	stateApplication "github.com/leetatech/leeta_backend/services/state/application"
 	stateInfrastructure "github.com/leetatech/leeta_backend/services/state/infrastructure"
 	stateInterface "github.com/leetatech/leeta_backend/services/state/interfaces"
@@ -51,12 +51,12 @@ import (
 )
 
 type Application struct {
-	Config            *config.ServerConfig
-	Db                *mongo.Client
-	Ctx               context.Context
-	Router            *chi.Mux
-	EmailClient       aws.MailClient
-	RepositoryManager pkg.RepositoryManager
+	Config              *config.ServerConfig
+	Db                  *mongo.Client
+	Ctx                 context.Context
+	Router              *chi.Mux
+	NotificationService notification.AWSClient
+	RepositoryManager   pkg.RepositoryManager
 }
 
 // New instances a new application
@@ -86,10 +86,10 @@ func New(configFile string) (*Application, error) {
 		return nil, errors.New("error pinging database")
 	}
 
-	app.EmailClient = aws.MailClient{
+	app.NotificationService = notification.AWSClient{
 		Config: &app.Config.AWSConfig,
 	}
-	err = app.EmailClient.Connect()
+	err = app.NotificationService.Connect()
 	if err != nil {
 		return nil, err
 	}
@@ -169,16 +169,16 @@ func (app *Application) buildApplicationConnection(jwtManager jwtmiddleware.Mana
 
 	app.RepositoryManager = repositoryManager
 
-	awsEmailClient := awsEmail.NewAWSEmailClient(app.AWSClient)
-	awsSMSClient := awsSMS.NewAWSSMSClient(app.AWSClient)
+	awsEmailClient := mailer.New(app.NotificationService)
+	awsSMSClient := sms.New(app.NotificationService)
 
 	request := pkg.ApplicationContext{
 		JwtManager:        jwtManager,
 		RepositoryManager: repositoryManager,
-		MailClient:        app.EmailClient,
+		MailClient:        awsEmailClient,
 		Domain:            app.Config.Notification.Domain,
 		Config:            config,
-		AWSSMSClient:      awsSMSClient,
+		SMSClient:         awsSMSClient,
 	}
 
 	orderApplications := orderApplication.New(request)

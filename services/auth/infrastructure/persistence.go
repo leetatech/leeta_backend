@@ -228,7 +228,7 @@ func (a authStoreHandler) UpdatePhoneVerify(ctx context.Context, phone string, s
 	update := bson.M{"$set": bson.M{dtos.PhoneVerificationStatus: status}}
 	_, err := a.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 	return nil
 }

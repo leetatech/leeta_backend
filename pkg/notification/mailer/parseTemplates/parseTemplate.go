@@ -3,7 +3,7 @@ package parseTemplates
 import (
 	"bytes"
 	"fmt"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"html/template"
 	"io"
@@ -21,7 +21,7 @@ func CreateSingleTemplate(templatePath string, data models.Message) (string, err
 
 	err := t.Create(buf, templatePath, data)
 	if err != nil {
-		return "", leetError.ErrorResponseBody(leetError.TemplateCreationError, err)
+		return "", errs.Body(errs.TemplateCreationError, err)
 	}
 
 	templateStore[templatePath] = buf.String()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	mailer "github.com/leetatech/leeta_backend/pkg/notification/mailer/aws"
 	"strings"
 	"time"
 
@@ -11,12 +12,9 @@ import (
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/paging"
 	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
-	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,7 +23,7 @@ import (
 type FeesManager struct {
 	idgenerator       idgenerator.Generator
 	jwtManager        jwtmiddleware.Manager
-	EmailClient       aws.MailClient
+	EmailClient       mailer.Client
 	repositoryManager pkg.RepositoryManager
 }
 
