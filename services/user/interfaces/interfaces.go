@@ -1,17 +1,21 @@
 package interfaces
 
 import (
-	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/helpers"
-	"github.com/leetatech/leeta_backend/services/user/application"
+	"encoding/json"
 	"net/http"
+
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/helpers"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/services/models"
+	"github.com/leetatech/leeta_backend/services/user/application"
 )
 
 type UserHttpHandler struct {
 	UserApplication application.UserApplication
 }
 
-func NewUserHttpHandler(userApplication application.UserApplication) *UserHttpHandler {
+func New(userApplication application.UserApplication) *UserHttpHandler {
 	return &UserHttpHandler{
 		UserApplication: userApplication,
 	}
@@ -55,7 +59,7 @@ func (handler *UserHttpHandler) VendorVerificationHandler(w http.ResponseWriter,
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
 }
 
 // AddVendorByAdminHandler godoc
@@ -96,5 +100,55 @@ func (handler *UserHttpHandler) AddVendorByAdminHandler(w http.ResponseWriter, r
 		helpers.CheckErrorType(err, w)
 		return
 	}
-	pkg.EncodeResult(w, token, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, token, http.StatusOK)
+}
+
+// UpdateUserData godoc
+// @Summary Update User data
+// @Description Update user data is the endpoint used to make changes to a user database record
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param models.User body models.User true "update user record"
+// @Security BearerToken
+// @Success 204 {object} pkg.DefaultResponse
+// @Failure 401 {object} pkg.DefaultErrorResponse
+// @Failure 400 {object} pkg.DefaultErrorResponse
+// @Router /user/ [put]
+func (handler *UserHttpHandler) UpdateUserData(w http.ResponseWriter, r *http.Request) {
+	var request models.User
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := handler.UserApplication.UpdateRecord(r.Context(), request)
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
+}
+
+// Data godoc
+// @Summary Get authenticated user data
+// @Description The endpoint to get user record from current user jwt token
+// @Tags User
+// @Produce json
+// @Security BearerToken
+// @Success 200 {object} models.Customer
+// @error 400 {object} pkg.DefaultErrorResponse
+// @error 401 {object} pkg.DefaultErrorResponse
+// @Router /user/ [get]
+func (handler *UserHttpHandler) Data(w http.ResponseWriter, r *http.Request) {
+	resp, err := handler.UserApplication.Data(r.Context())
+	if err != nil {
+		helpers.CheckErrorType(err, w)
+		return
+	}
+
+	jwtmiddleware.WriteJSONResponse(w, resp, http.StatusOK)
 }

@@ -1,0 +1,21 @@
+{{template "base" .}}
+
+{{define "content"}}
+
+<h1>Account Verification</h1>
+
+<div class="sign-up">
+    <p>You have been added as a Leeta Admin. To ensure the security of your account, we require a one-time password (OTP) for verification purposes.</p>
+    <p>Please find below your unique OTP:</p>
+    <p>OTP: {{ .DataMap.OTP }}</p>
+
+    <p>This OTP is valid for a limited time and will expire in five minutes. To complete the account verification process, please follow these steps:</p>
+
+    <ol>
+        <li>Visit the dashboard and navigate to the account verification section.</li>
+        <li>Enter the provided OTP in the designated field.</li>
+        <li>Click on the "Verify Account"  to proceed.</li>
+    </ol>
+</div>
+
+{{end}}

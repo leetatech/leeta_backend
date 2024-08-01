@@ -3,8 +3,8 @@ package interfaces
 import (
 	"errors"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/helpers"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
 	"net/http"
@@ -14,7 +14,7 @@ import (
 func checkFormFileAndAddProducts(r *http.Request) (*domain.ProductRequest, error) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("failed to parse multipart form"))
+		return nil, errs.Body(errs.FormParseError, errors.New("failed to parse multipart form"))
 	}
 
 	var (
@@ -87,13 +87,13 @@ func GetImages(r *http.Request) ([]string, error) {
 	var images []string
 	files := r.MultipartForm.File["images"]
 	if files == nil {
-		return nil, leetError.ErrorResponseBody(leetError.UnmarshalError, errors.New("images field cannot be empty"))
+		return nil, errs.Body(errs.UnmarshalError, errors.New("images field cannot be empty"))
 	}
 
 	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
 		if err != nil {
-			return nil, leetError.ErrorResponseBody(leetError.FormParseError, errors.New("failed to get image from the request"))
+			return nil, errs.Body(errs.FormParseError, errors.New("failed to get image from the request"))
 		}
 		defer file.Close()
 
@@ -109,7 +109,7 @@ func GetImages(r *http.Request) ([]string, error) {
 
 		encodedImage, err := helpers.EncodeImageToBase64(img, imageFormat)
 		if err != nil {
-			return nil, leetError.ErrorResponseBody(leetError.EncryptionError, err)
+			return nil, errs.Body(errs.EncryptionError, err)
 		}
 
 		images = append(images, encodedImage)
@@ -121,7 +121,7 @@ func GetImages(r *http.Request) ([]string, error) {
 func stringToFloat64(strValue string) (float64, error) {
 	value, err := strconv.ParseFloat(strValue, 64)
 	if err != nil {
-		return 0, leetError.ErrorResponseBody(leetError.UnmarshalError, err)
+		return 0, errs.Body(errs.UnmarshalError, err)
 	}
 
 	return value, nil

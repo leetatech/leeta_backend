@@ -2,31 +2,31 @@ package helpers
 
 import (
 	"errors"
-	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"net/http"
 )
 
 func CheckErrorType(err error, w http.ResponseWriter) {
-	var lerr leetError.ErrorResponse
+	var lerr *errs.Response
 	switch {
 	case errors.As(err, &lerr):
 		switch lerr.ErrorCode {
-		case leetError.ErrorUnauthorized:
-			pkg.EncodeErrorResult(w, http.StatusUnauthorized, err)
+		case errs.ErrorUnauthorized:
+			jwtmiddleware.WriteJSONErrorResponse(w, http.StatusUnauthorized, err)
 			return
-		case leetError.DatabaseNoRecordError:
-			pkg.EncodeErrorResult(w, http.StatusNotFound, err)
+		case errs.DatabaseNoRecordError, errs.LGANotFoundError:
+			jwtmiddleware.WriteJSONErrorResponse(w, http.StatusNotFound, err)
 			return
-		case leetError.InvalidRequestError:
-			pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		case errs.InvalidRequestError:
+			jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 			return
 		default:
-			pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+			jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 			return
 		}
 	default:
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 

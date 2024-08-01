@@ -6,55 +6,58 @@ import (
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/encrypto"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/idgenerator"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
+	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/product/domain"
-	"go.uber.org/zap"
 	"time"
 )
 
 type productAppHandler struct {
-	tokenHandler  pkg.TokenHandler
-	encryptor     pkg.EncryptorManager
-	idGenerator   pkg.IDGenerator
-	otpGenerator  pkg.OtpGenerator
-	logger        *zap.Logger
-	EmailClient   postmarkClient.MailerClient
-	allRepository pkg.Repositories
+	jwtManager    jwtmiddleware.Manager
+	encryptor     encrypto.Manager
+	idGenerator   idgenerator.Generator
+	otpGenerator  otp.Generator
+	EmailClient   aws.MailClient
+	allRepository pkg.RepositoryManager
 }
 
-type ProductApplication interface {
-	CreateProduct(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error)
-	GetProductByID(ctx context.Context, id string) (models.Product, error)
-	GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error)
-	ListProducts(ctx context.Context, request query.ResultSelector) (products []models.Product, totalResults uint64, err error)
-	CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error)
+type Product interface {
+	Create(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error)
+	ProductByID(ctx context.Context, id string) (models.Product, error)
+	VendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error)
+	Products(ctx context.Context, request query.ResultSelector) (products []models.Product, totalResults uint64, err error)
+	CreateGas(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error)
 }
 
-func NewProductApplication(request pkg.DefaultApplicationRequest) ProductApplication {
+func New(request pkg.ApplicationContext) Product {
 	return &productAppHandler{
-		tokenHandler:  request.TokenHandler,
-		encryptor:     pkg.NewEncryptor(),
-		idGenerator:   pkg.NewIDGenerator(),
-		otpGenerator:  pkg.NewOTPGenerator(),
-		logger:        request.Logger,
-		EmailClient:   request.EmailClient,
-		allRepository: request.AllRepository,
+		jwtManager:    request.JwtManager,
+		encryptor:     encrypto.New(),
+		idGenerator:   idgenerator.New(),
+		otpGenerator:  otp.New(),
+		EmailClient:   request.MailClient,
+		allRepository: request.RepositoryManager,
 	}
 }
 
-func (p productAppHandler) CreateProduct(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error) {
-	claims, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+func (p *productAppHandler) Create(ctx context.Context, request domain.ProductRequest) (*pkg.DefaultResponse, error) {
+	claims, err := p.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	if claims.Role != models.VendorCategory && claims.Role != models.AdminCategory {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	switch claims.Role {
 	case models.AdminCategory:
-		_, err = p.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
+		_, err = p.allRepository.AuthRepository.AdminByEmail(ctx, claims.Email)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +93,7 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 		Ts:                  time.Now().Unix(),
 	}
 
-	err = p.allRepository.ProductRepository.CreateProduct(ctx, product)
+	err = p.allRepository.ProductRepository.Create(ctx, product)
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +101,10 @@ func (p productAppHandler) CreateProduct(ctx context.Context, request domain.Pro
 	return &pkg.DefaultResponse{Success: "success", Message: "Product successfully created"}, nil
 }
 
-func (p productAppHandler) CreateGasProduct(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error) {
-	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+func (p *productAppHandler) CreateGas(ctx context.Context, request domain.GasProductRequest) (*pkg.DefaultResponse, error) {
+	_, err := p.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	productCategory, err := models.SetProductCategory(request.ProductCategory)
@@ -119,7 +122,7 @@ func (p productAppHandler) CreateGasProduct(ctx context.Context, request domain.
 		Ts:             time.Now().Unix(),
 	}
 
-	err = p.allRepository.ProductRepository.CreateProduct(ctx, product)
+	err = p.allRepository.ProductRepository.Create(ctx, product)
 	if err != nil {
 		return nil, err
 	}
@@ -127,26 +130,26 @@ func (p productAppHandler) CreateGasProduct(ctx context.Context, request domain.
 	return &pkg.DefaultResponse{Success: "success", Message: "Gas Product successfully created"}, nil
 }
 
-func (p productAppHandler) GetProductByID(ctx context.Context, id string) (product models.Product, err error) {
-	_, err = p.tokenHandler.GetClaimsFromCtx(ctx)
+func (p *productAppHandler) ProductByID(ctx context.Context, id string) (product models.Product, err error) {
+	_, err = p.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return product, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return product, errs.Body(errs.ErrorUnauthorized, err)
 	}
-	product, err = p.allRepository.ProductRepository.GetProductByID(ctx, id)
+	product, err = p.allRepository.ProductRepository.Product(ctx, id)
 	if err != nil {
-		return product, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return product, errs.Body(errs.DatabaseError, err)
 	}
 
 	return product, nil
 }
 
-func (p productAppHandler) GetAllVendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error) {
-	_, err := p.tokenHandler.GetClaimsFromCtx(ctx)
+func (p *productAppHandler) VendorProducts(ctx context.Context, request domain.GetVendorProductsRequest) ([]models.Product, error) {
+	_, err := p.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
-	products, err := p.allRepository.ProductRepository.GetAllVendorProducts(ctx, request)
+	products, err := p.allRepository.ProductRepository.VendorProducts(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -154,10 +157,10 @@ func (p productAppHandler) GetAllVendorProducts(ctx context.Context, request dom
 	return products, nil
 }
 
-func (p productAppHandler) ListProducts(ctx context.Context, request query.ResultSelector) (products []models.Product, totalResults uint64, err error) {
-	_, err = p.tokenHandler.GetClaimsFromCtx(ctx)
+func (p *productAppHandler) Products(ctx context.Context, request query.ResultSelector) (products []models.Product, totalResults uint64, err error) {
+	_, err = p.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, 0, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, 0, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	products, totalResults, err = p.allRepository.ProductRepository.ListProducts(ctx, request)

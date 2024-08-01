@@ -2,27 +2,25 @@ package infrastructure
 
 import (
 	"context"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/zap"
 	"time"
 )
 
 type userStoreHandler struct {
 	client       *mongo.Client
 	databaseName string
-	logger       *zap.Logger
 }
 
 func (u userStoreHandler) col(collectionName string) *mongo.Collection {
 	return u.client.Database(u.databaseName).Collection(collectionName)
 }
 
-func NewUserPersistence(client *mongo.Client, databaseName string, logger *zap.Logger) domain.UserRepository {
-	return &userStoreHandler{client: client, databaseName: databaseName, logger: logger}
+func New(client *mongo.Client, databaseName string) domain.UserRepository {
+	return &userStoreHandler{client: client, databaseName: databaseName}
 }
 
 func (u userStoreHandler) VendorDetailsUpdate(request domain.VendorDetailsUpdateRequest) error {
@@ -33,10 +31,10 @@ func (u userStoreHandler) VendorDetailsUpdate(request domain.VendorDetailsUpdate
 	update := bson.M{"$set": bson.M{"first_name": request.FirstName, "last_name": request.LastName, "status": request.Status, "status_ts": time.Now().Unix()}}
 	result, err := u.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
 	if err != nil {
-		return leetError.ErrorResponseBody(leetError.DatabaseError, err)
+		return errs.Body(errs.DatabaseError, err)
 	}
 	if result.MatchedCount == 0 {
-		return leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+		return errs.Body(errs.DatabaseNoRecordError, err)
 	}
 	return nil
 }
@@ -65,10 +63,10 @@ func (u userStoreHandler) GetVendorByID(id string) (*models.Vendor, error) {
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+			return nil, errs.Body(errs.DatabaseNoRecordError, err)
 
 		default:
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+			return nil, errs.Body(errs.DatabaseError, err)
 		}
 	}
 
@@ -78,7 +76,7 @@ func (u userStoreHandler) GetVendorByID(id string) (*models.Vendor, error) {
 func (u userStoreHandler) GetCustomerByID(id string) (*models.Customer, error) {
 	customer := &models.Customer{}
 	filter := bson.M{
-		"id": id,
+		"user.id": id,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -88,12 +86,34 @@ func (u userStoreHandler) GetCustomerByID(id string) (*models.Customer, error) {
 	if err != nil {
 		switch err {
 		case mongo.ErrNoDocuments:
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseNoRecordError, err)
+			return nil, errs.Body(errs.DatabaseNoRecordError, err)
 
 		default:
-			return nil, leetError.ErrorResponseBody(leetError.DatabaseError, err)
+			return nil, errs.Body(errs.DatabaseError, err)
 		}
 	}
 
 	return customer, nil
+}
+
+func (u userStoreHandler) UpdateUserRecord(request *models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	filter := bson.M{
+		"user.id": request.ID,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"user": *request,
+		},
+	}
+
+	_, err := u.col(models.UsersCollectionName).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query"
 	"github.com/greenbone/opensight-golang-libraries/pkg/query/filter"
-	"github.com/leetatech/leeta_backend/pkg"
-	"github.com/leetatech/leeta_backend/pkg/leetError"
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	"github.com/leetatech/leeta_backend/services/fees/application"
 	"github.com/leetatech/leeta_backend/services/fees/domain"
 	"github.com/leetatech/leeta_backend/services/models"
@@ -15,10 +16,10 @@ import (
 )
 
 type FeesHttpHandler struct {
-	FeesApplication application.FeesApplication
+	FeesApplication application.Fees
 }
 
-func NewFeesHTTPHandler(feesApplication application.FeesApplication) *FeesHttpHandler {
+func New(feesApplication application.Fees) *FeesHttpHandler {
 	return &FeesHttpHandler{
 		FeesApplication: feesApplication,
 	}
@@ -40,21 +41,21 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 	var request domain.FeeQuotationRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		pkg.EncodeResult(w, leetError.ErrorResponseBody(leetError.UnmarshalError, err), http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, errs.Body(errs.UnmarshalError, err), http.StatusBadRequest)
 		return
 	}
 	request, err = request.FeeTypeValidation()
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, err)
 		return
 	}
 
-	response, err := handler.FeesApplication.FeeQuotation(r.Context(), request)
+	response, err := handler.FeesApplication.HandleFeeQuotationRequest(r.Context(), request)
 	if err != nil {
-		pkg.EncodeResult(w, err, http.StatusBadRequest)
+		jwtmiddleware.WriteJSONResponse(w, err, http.StatusBadRequest)
 		return
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // FetchFeesHandler is the endpoint to all fees
@@ -72,13 +73,13 @@ func (handler *FeesHttpHandler) CreateFeeHandler(w http.ResponseWriter, r *http.
 func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.Request) {
 	resultSelector, err := web.PrepareResultSelector(r, listFeesOptions, allowedSortFields, web.ResultSelectorDefaults(defaultSortingRequest))
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusBadRequest, leetError.ErrorResponseBody(leetError.InvalidRequestError, err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusBadRequest, errs.Body(errs.InvalidRequestError, err))
 		return
 	}
 
-	fees, totalRecord, err := handler.FeesApplication.ListFees(r.Context(), resultSelector)
+	fees, totalRecord, err := handler.FeesApplication.Fees(r.Context(), resultSelector)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, leetError.ErrorResponseBody(leetError.InternalError, err))
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, errs.Body(errs.InternalError, err))
 		return
 	}
 
@@ -86,7 +87,7 @@ func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.
 		Metadata: query.NewMetadata(resultSelector, totalRecord),
 		Data:     fees,
 	}
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // ListFeesOptions is the endpoint to get fees filter options
@@ -102,7 +103,7 @@ func (handler *FeesHttpHandler) FetchFeesHandler(w http.ResponseWriter, r *http.
 // @Router /fees/options [get]
 func (handler *FeesHttpHandler) ListFeesOptions(w http.ResponseWriter, r *http.Request) {
 	requestOptions := lo.Map(listFeesOptions, toFilterOption)
-	pkg.EncodeResult(w, requestOptions, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, requestOptions, http.StatusOK)
 }
 
 func toFilterOption(options filter.RequestOption, _ int) filter.RequestOption {

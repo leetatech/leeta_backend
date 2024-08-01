@@ -2,14 +2,15 @@ package config
 
 import (
 	"fmt"
-	"github.com/caarlos0/env"
-	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/caarlos0/env"
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -18,15 +19,15 @@ const (
 )
 
 type ServerConfig struct {
-	AppEnv     string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
-	HTTPPort   int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
-	Database   DatabaseConfig
-	PrivateKey string `env:"PRIVATE_KEY"`
-	PublicKey  string `env:"PUBLIC_KEY"`
-	Postmark   PostmarkConfig
-	Leeta      LeetaConfig
-	NgnStates  NgnStatesConfig // configure resource API to retrieve NGN states
-	AWSConfig  AWSConfig
+	AppEnv       string `env:"APP_ENV" envDefault:"staging" envWhitelisted:"true"`
+	HTTPPort     int    `env:"PORT" envDefault:"3000" envWhitelisted:"true"`
+	Database     DatabaseConfig
+	PrivateKey   string `env:"PRIVATE_KEY"`
+	PublicKey    string `env:"PUBLIC_KEY"`
+	Postmark     PostmarkConfig
+	Notification NotificationConfig
+	NgnStates    NgnStatesConfig // configure resource API to retrieve NGN states
+	AWSConfig    AWSConfig
 }
 
 type DatabaseConfig struct {
@@ -44,9 +45,9 @@ type PostmarkConfig struct {
 	Key string `env:"POSTMARK_KEY"`
 }
 
-type LeetaConfig struct {
+type NotificationConfig struct {
 	Domain            string `env:"DOMAIN"`
-	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL"`
+	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL" envDefault:"admin@getleeta.com"`
 	DoNotReplyEmail   string `env:"LEETA_DONOTREPLY_EMAIL"`
 	SMSenderID        string `env:"LEETA_SMS_SENDER_ID"`
 }
@@ -69,7 +70,7 @@ func LoadEnv(configFile string) error {
 	return nil
 }
 
-func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
+func ReadConfig(configFile string) (*ServerConfig, error) {
 	err := LoadEnv(configFile)
 	if err != nil {
 		return nil, err
@@ -80,7 +81,7 @@ func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
 		&serverConfig,
 		&serverConfig.Database,
 		&serverConfig.Postmark,
-		&serverConfig.Leeta,
+		&serverConfig.Notification,
 		&serverConfig.NgnStates,
 		&serverConfig.AWSConfig,
 	}
@@ -93,7 +94,7 @@ func ReadConfig(logger zap.Logger, configFile string) (*ServerConfig, error) {
 
 	overrideWithEnvVars(&serverConfig)
 	out := serverConfig.formatURI()
-	logger.Info(out)
+	log.Debug().Msgf("config: %v", out)
 
 	return &serverConfig, nil
 }

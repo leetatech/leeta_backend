@@ -2,50 +2,56 @@ package application
 
 import (
 	"context"
+	"time"
+
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/leetError"
 	"github.com/leetatech/leeta_backend/pkg/messaging/mailer/postmarkClient"
+	"github.com/leetatech/leeta_backend/pkg/encrypto"
+	"github.com/leetatech/leeta_backend/pkg/errs"
+	"github.com/leetatech/leeta_backend/pkg/idgenerator"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
+	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
+	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
-	"go.uber.org/zap"
-	"time"
 )
 
 type userAppHandler struct {
-	tokenHandler  pkg.TokenHandler
-	encryptor     pkg.EncryptorManager
-	idGenerator   pkg.IDGenerator
-	otpGenerator  pkg.OtpGenerator
-	logger        *zap.Logger
-	EmailClient   postmarkClient.MailerClient
-	allRepository pkg.Repositories
+	jwtManager    jwtmiddleware.Manager
+	encryptor     encrypto.Manager
+	idGenerator   idgenerator.Generator
+	otpGenerator  otp.Generator
+	EmailClient   aws.MailClient
+	allRepository pkg.RepositoryManager
 }
 
 type UserApplication interface {
 	VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
 	AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error)
+	Data(ctx context.Context) (*models.Customer, error)
+	UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error)
 }
 
-func NewUserApplication(request pkg.DefaultApplicationRequest) UserApplication {
+func New(request pkg.ApplicationContext) UserApplication {
 	return &userAppHandler{
-		tokenHandler:  request.TokenHandler,
-		encryptor:     pkg.NewEncryptor(),
-		idGenerator:   pkg.NewIDGenerator(),
-		otpGenerator:  pkg.NewOTPGenerator(),
-		logger:        request.Logger,
-		EmailClient:   request.EmailClient,
-		allRepository: request.AllRepository,
+		jwtManager:    request.JwtManager,
+		encryptor:     encrypto.New(),
+		idGenerator:   idgenerator.New(),
+		otpGenerator:  otp.New(),
+		EmailClient:   request.MailClient,
+		allRepository: request.RepositoryManager,
 	}
 }
 
-func (u userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
-	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+func (u *userAppHandler) VendorVerification(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	if claims.Role != models.VendorCategory {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 
 	vendorUpdateRequest := domain.VendorDetailsUpdateRequest{
@@ -85,15 +91,15 @@ func (u userAppHandler) VendorVerification(ctx context.Context, request domain.V
 	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
 }
 
-func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
-	claims, err := u.tokenHandler.GetClaimsFromCtx(ctx)
+func (u *userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.VendorVerificationRequest) (*pkg.DefaultResponse, error) {
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
 	if err != nil {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
 	if claims.Role != models.AdminCategory {
-		return nil, leetError.ErrorResponseBody(leetError.ErrorUnauthorized, err)
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
 	}
-	_, err = u.allRepository.AuthRepository.GetAdminByEmail(ctx, claims.Email)
+	_, err = u.allRepository.AuthRepository.AdminByEmail(ctx, claims.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -138,4 +144,51 @@ func (u userAppHandler) AddVendorByAdmin(ctx context.Context, request domain.Ven
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "Business successfully registered"}, nil
+}
+
+func (u *userAppHandler) UpdateRecord(ctx context.Context, request models.User) (*pkg.DefaultResponse, error) {
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
+	if err != nil {
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
+	}
+
+	customer, err := u.allRepository.UserRepository.GetCustomerByID(claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if len(request.Address) > 0 {
+		customer.Address = append(customer.Address, request.Address...)
+	}
+
+	if request.FirstName != "" {
+		customer.FirstName = request.FirstName
+	}
+
+	if request.LastName != "" {
+		customer.LastName = request.LastName
+	}
+
+	err = u.allRepository.UserRepository.UpdateUserRecord(&customer.User)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pkg.DefaultResponse{
+		Success: "success",
+		Message: "user details updated successfully",
+	}, nil
+}
+
+func (u *userAppHandler) Data(ctx context.Context) (*models.Customer, error) {
+	claims, err := u.jwtManager.ExtractUserClaims(ctx)
+	if err != nil {
+		return nil, errs.Body(errs.ErrorUnauthorized, err)
+	}
+
+	customer, err := u.allRepository.UserRepository.GetCustomerByID(claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return customer, nil
 }

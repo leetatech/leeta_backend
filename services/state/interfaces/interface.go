@@ -2,17 +2,18 @@ package interfaces
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/leetatech/leeta_backend/pkg"
+	_ "github.com/leetatech/leeta_backend/pkg"
+	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
 	_ "github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/state/application"
 	"net/http"
 )
 
 type StateHttpHandler struct {
-	StateApplication application.StateApplication
+	StateApplication application.State
 }
 
-func NewStateHttpHandler(stateApplication application.StateApplication) *StateHttpHandler {
+func New(stateApplication application.State) *StateHttpHandler {
 	return &StateHttpHandler{
 		StateApplication: stateApplication,
 	}
@@ -21,12 +22,12 @@ func NewStateHttpHandler(stateApplication application.StateApplication) *StateHt
 // RetrieveNGNStatesData is the endpoint responsible for calling external API to retrieve all states in NGN
 // should not be listed as one of our accessible APIs. only for internal use
 func (handler *StateHttpHandler) RetrieveNGNStatesData(w http.ResponseWriter, r *http.Request) {
-	err := handler.StateApplication.FetchStateDataFromAPI(r.Context())
+	err := handler.StateApplication.UpdateStatesFromAPI(r.Context())
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
-	pkg.EncodeResult(w, nil, http.StatusCreated)
+	jwtmiddleware.WriteJSONResponse(w, nil, http.StatusCreated)
 }
 
 // GetState is the endpoint to get a state.
@@ -44,13 +45,13 @@ func (handler *StateHttpHandler) RetrieveNGNStatesData(w http.ResponseWriter, r 
 func (handler *StateHttpHandler) GetState(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 
-	response, err := handler.StateApplication.GetState(r.Context(), name)
+	response, err := handler.StateApplication.StateByName(r.Context(), name)
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }
 
 // ListStates is the endpoint to get all states.
@@ -65,11 +66,11 @@ func (handler *StateHttpHandler) GetState(w http.ResponseWriter, r *http.Request
 // @Failure 400 {object} pkg.DefaultErrorResponse
 // @Router /state [get]
 func (handler *StateHttpHandler) ListStates(w http.ResponseWriter, r *http.Request) {
-	response, err := handler.StateApplication.GetAllStates(r.Context())
+	response, err := handler.StateApplication.States(r.Context())
 	if err != nil {
-		pkg.EncodeErrorResult(w, http.StatusInternalServerError, err)
+		jwtmiddleware.WriteJSONErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	pkg.EncodeResult(w, response, http.StatusOK)
+	jwtmiddleware.WriteJSONResponse(w, response, http.StatusOK)
 }

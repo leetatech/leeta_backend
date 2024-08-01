@@ -1,4 +1,4 @@
-package leetError
+package errs
 
 import (
 	"fmt"
@@ -60,6 +60,7 @@ const (
 	AwsSessionError              ErrorCode = 1047
 	SesSendEmailError            ErrorCode = 1048
 	SnsSendSMSError              ErrorCode = 1049
+	LGANotFoundError             ErrorCode = 1050
 )
 
 var (
@@ -113,6 +114,7 @@ var (
 		AwsSessionError:              "AwsSessionError",
 		SesSendEmailError:            "SesSendEmailError",
 		SnsSendSMSError:              "SnsSendSMSError",
+		LGANotFoundError:             "LGANotFoundError",
 	}
 
 	errorMessages = map[ErrorCode]string{
@@ -162,13 +164,14 @@ var (
 		RestrictedAccessError:        "User do not have authorization to access this endpoint",
 		FeesError:                    "There is an error with the application fees",
 		TemplateCreationError:        "An error occurred while creating template",
-		AwsSessionError:              "An error occurred while creating awsEmail session",
-		SesSendEmailError:            "An error occurred while sending email",
 		SnsSendSMSError:              "An error occurred while sending SMS",
+		AwsSessionError:              "An error occurred while creating aws session",
+		SesSendEmailError:            "An error occurred while sending email",
+		LGANotFoundError:             "Leeta is not available in your region",
 	}
 )
 
-type ErrorResponse struct {
+type Response struct {
 	ErrorReference uuid.UUID `json:"error_reference"`
 	ErrorCode      ErrorCode `json:"error_code"`
 	Code           ErrorCode `json:"-"`
@@ -181,17 +184,17 @@ type ErrorResponse struct {
 	TimeStamp      string    `json:"-"`
 }
 
-func (e ErrorResponse) Error() string {
+func (e *Response) Error() string {
 	return e.Format()
 }
 
-func (e ErrorResponse) Format() string {
+func (e *Response) Format() string {
 	return fmt.Sprintf("%s:%s | %s:%s | %s:%d | stackTrace:%s", e.ErrorReference, e.Err, e.ErrorType, e.Message, e.File, e.Line, e.StackTrace)
 }
 
-func ErrorResponseBody(code ErrorCode, err error) error {
+func Body(code ErrorCode, err error) error {
 	_, file, line, _ := runtime.Caller(1)
-	errorResponse := ErrorResponse{
+	errorResponse := &Response{
 		ErrorReference: uuid.New(),
 		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
@@ -207,10 +210,10 @@ func ErrorResponseBody(code ErrorCode, err error) error {
 	return errorResponse
 }
 
-func ErrorMessage(code ErrorCode) string {
+func Message(code ErrorCode) string {
 	return errorMessages[code]
 }
 
-func ErrorType(code ErrorCode) string {
+func Type(code ErrorCode) string {
 	return errorTypes[code]
 }
