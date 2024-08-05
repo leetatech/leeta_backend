@@ -14,12 +14,11 @@ import (
 
 var invalidAppErr = errors.New("you are on the wrong app")
 
-func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templateAlias string, userCategory models.UserCategory) error {
+func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templateAlias string) error {
 	requestOTP := domain.OTPRequest{
-		Topic:        "Sign Up",
-		Type:         models.EMAIL,
-		Target:       target,
-		UserCategory: userCategory,
+		Topic:  "Sign Up",
+		Type:   models.EMAIL,
+		Target: target,
 	}
 	otpResponse, err := a.createOTP(ctx, requestOTP)
 	if err != nil {
@@ -113,7 +112,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on vendor sign up: %w", err))
 			}
 
-			err = a.sendAccountVerificationEmail(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath, models.VendorCategory)
+			err = a.sendAccountVerificationEmail(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath)
 			if err != nil {
 				return nil, err
 			}
@@ -182,7 +181,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on customer sign up: %w", err))
 			}
 
-			err = a.sendAccountVerificationEmail(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath, models.CustomerCategory)
+			err = a.sendAccountVerificationEmail(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath)
 			if err != nil {
 				return nil, errs.Body(errs.InternalError, err)
 			}
@@ -361,7 +360,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on admin sign up: %w", err))
 			}
 
-			err = a.sendAccountVerificationEmail(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath, models.AdminCategory)
+			err = a.sendAccountVerificationEmail(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath)
 			if err != nil {
 				return nil, err
 			}

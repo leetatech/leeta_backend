@@ -1966,7 +1966,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: The endpoint allows client side to request for new OTP for target
+      description: The endpoint allows client side to request for new OTP for a target
       parameters:
       - description: request otp body
         in: body
@@ -1981,7 +1981,7 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/DefaultResponse'
-      summary: Request for new OTP for target email
+      summary: Request for new OTP
       tags:
       - OTP Management
   /session/otp/validate:

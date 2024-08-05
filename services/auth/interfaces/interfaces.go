@@ -49,8 +49,8 @@ func (handler *AuthHttpHandler) SignUpHandler(w http.ResponseWriter, r *http.Req
 }
 
 // RequestOTPHandler godoc
-// @Summary Request for new OTP for target email
-// @Description The endpoint allows client side to request for new OTP for target
+// @Summary Request for new OTP
+// @Description The endpoint allows client side to request for new OTP for a target
 // @Tags OTP Management
 // @Accept json
 // @Produce json

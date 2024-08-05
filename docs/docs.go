@@ -1350,7 +1350,7 @@ const docTemplate = `{
         },
         "/session/otp/request": {
             "post": {
-                "description": "The endpoint allows client side to request for new OTP for target",
+                "description": "The endpoint allows client side to request for new OTP for a target",
                 "consumes": [
                     "application/json"
                 ],
@@ -1360,7 +1360,7 @@ const docTemplate = `{
                 "tags": [
                     "OTP Management"
                 ],
-                "summary": "Request for new OTP for target email",
+                "summary": "Request for new OTP",
                 "parameters": [
                     {
                         "description": "request otp body",

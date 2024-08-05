@@ -30,10 +30,9 @@ type APIResponseWithoutToken struct {
 } // @name APIResponseWithoutToken
 
 type OTPRequest struct {
-	Topic        string                     `json:"topic" bson:"topic"`
-	Type         models.MessageDeliveryType `json:"type" bson:"type"`
-	Target       string                     `json:"target" bson:"target"`
-	UserCategory models.UserCategory        `json:"userCategory" bson:"user_category"`
+	Topic  string                     `json:"topic" bson:"topic"`
+	Type   models.MessageDeliveryType `json:"type" bson:"type"`
+	Target string                     `json:"target" bson:"target"`
 } // @name OTPRequest
 
 type EmailRequestBody struct {
