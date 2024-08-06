@@ -14,7 +14,7 @@ import (
 
 var invalidAppErr = errors.New("you are on the wrong app")
 
-func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templateAlias string, userCategory models.UserCategory) error {
+func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templatePath string, userCategory models.UserCategory) error {
 	requestOTP := domain.OTPRequest{
 		Topic:        "Sign Up",
 		Type:         models.EMAIL,
@@ -25,10 +25,10 @@ func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullNa
 	if err != nil {
 		return fmt.Errorf("error creating OTP: %w", err)
 	}
-	err = a.mailer.SendEmail(templateAlias, models.Message{
+	err = a.mailer.SendEmail(templatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
-		TemplateID: templateAlias,
+		TemplateID: templatePath,
 		Title:      "Sign Up Verification",
 		Sender:     a.mailerConfig.VerificationEmail,
 		DataMap: map[string]string{
@@ -63,8 +63,8 @@ func (a authAppHandler) validateAndEncryptPassword(password string) (string, err
 func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
 	_, err := a.repositoryManager.AuthRepository.VendorByEmail(ctx, request.Email)
 	if err != nil {
-		switch err {
-		case mongo.ErrNoDocuments:
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
 			timestamp := time.Now().Unix()
 
 			vendor := models.Vendor{
@@ -85,7 +85,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 			}
 			err = a.repositoryManager.AuthRepository.CreateUser(ctx, vendor)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("errr creating user: %w", err)
 			}
 
 			identity := models.Identity{
@@ -118,7 +118,6 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, err
 			}
 			return &domain.DefaultSigningResponse{AuthToken: response, Body: vendor.User}, nil
-
 		default:
 			return nil, errs.Body(errs.InternalError, err)
 		}
@@ -130,8 +129,8 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 func (a authAppHandler) customerSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
 	_, err := a.repositoryManager.AuthRepository.UserByEmail(ctx, request.Email)
 	if err != nil {
-		switch err {
-		case mongo.ErrNoDocuments:
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
 			timestamp := time.Now().Unix()
 
 			customer := models.Customer{
@@ -188,7 +187,6 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 			}
 
 			return &domain.DefaultSigningResponse{AuthToken: response, Body: customer.User}, nil
-
 		default:
 			return nil, errs.Body(errs.InternalError, err)
 		}
@@ -296,8 +294,8 @@ func (a authAppHandler) createNewPassword(ctx context.Context, userID, passcode 
 func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSignUpRequest) (*domain.DefaultSigningResponse, error) {
 	_, err := a.repositoryManager.AuthRepository.AdminByEmail(ctx, request.Email)
 	if err != nil {
-		switch err {
-		case mongo.ErrNoDocuments:
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
 			timestamp := time.Now().Unix()
 
 			admin := models.Admin{
@@ -322,7 +320,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				},
 			}
 
-			admin.User.Address = append(admin.User.Address, models.Address{
+			admin.User.Addresses = append(admin.User.Addresses, models.Address{
 				State:           request.Address.State,
 				City:            request.Address.City,
 				LGA:             request.Address.LGA,
@@ -367,7 +365,6 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 			}
 
 			return &domain.DefaultSigningResponse{AuthToken: response, Body: admin.User}, nil
-
 		default:
 			return nil, err
 		}

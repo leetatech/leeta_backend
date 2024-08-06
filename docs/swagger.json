@@ -2062,7 +2062,7 @@
         "Admin": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Address"
@@ -2218,7 +2218,7 @@
         "Customer": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Address"
@@ -3337,7 +3337,7 @@
         "models.User": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Address"
