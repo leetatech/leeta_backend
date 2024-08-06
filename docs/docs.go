@@ -2034,7 +2034,7 @@ const docTemplate = `{
                 "body": {}
             }
         },
-        "Addresses": {
+        "Address": {
             "type": "object",
             "properties": {
                 "address_type": {
@@ -2069,10 +2069,10 @@ const docTemplate = `{
         "Admin": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Addresses"
+                        "$ref": "#/definitions/Address"
                     }
                 },
                 "department": {
@@ -2126,7 +2126,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Addresses"
+                    "$ref": "#/definitions/Address"
                 },
                 "department": {
                     "type": "string"
@@ -2225,10 +2225,10 @@ const docTemplate = `{
         "Customer": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Addresses"
+                        "$ref": "#/definitions/Address"
                     }
                 },
                 "dob": {
@@ -2618,7 +2618,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Addresses"
+                    "$ref": "#/definitions/Address"
                 },
                 "email": {
                     "type": "string"
@@ -3202,7 +3202,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Addresses"
+                    "$ref": "#/definitions/Address"
                 },
                 "default_delivery_address": {
                     "type": "boolean"
@@ -3344,10 +3344,10 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Addresses"
+                        "$ref": "#/definitions/Address"
                     }
                 },
                 "dob": {

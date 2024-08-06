@@ -8,7 +8,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/models"
-	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
@@ -62,7 +61,6 @@ func (a authAppHandler) validateAndEncryptPassword(password string) (string, err
 }
 
 func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error) {
-	log.Debug().Msg("starting vendor sign up")
 	_, err := a.repositoryManager.AuthRepository.VendorByEmail(ctx, request.Email)
 	if err != nil {
 		switch {

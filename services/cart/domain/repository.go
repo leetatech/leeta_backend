@@ -9,6 +9,7 @@ import (
 
 type CartRepository interface {
 	AddToCart(ctx context.Context, request models.Cart) error
+	GetActiveCartByCustomerID(ctx context.Context, customerID string) (models.Cart, error)
 	GetCartByCustomerID(ctx context.Context, customerID string) (models.Cart, error)
 	GetCartByDeviceID(ctx context.Context, deviceID string) (models.Cart, error)
 	UpdateCart(ctx context.Context, request models.Cart) error
@@ -17,5 +18,5 @@ type CartRepository interface {
 	DeleteCart(ctx context.Context, id string) error
 	GetCartByCartItemID(ctx context.Context, cartItemID string) (models.Cart, error)
 	ListCartItems(ctx context.Context, request query.ResultSelector, userID string) (models.Cart, uint64, error)
-	ClearCart(ctx context.Context, cartID string) error
+	CheckoutCart(ctx context.Context, cartID string) error
 }

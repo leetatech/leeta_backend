@@ -27,7 +27,7 @@ definitions:
     type: object
   Admin:
     properties:
-      address:
+      addresses:
         items:
           $ref: '#/definitions/Address'
         type: array
@@ -129,7 +129,7 @@ definitions:
     type: object
   Customer:
     properties:
-      address:
+      addresses:
         items:
           $ref: '#/definitions/Address'
         type: array
@@ -930,7 +930,7 @@ definitions:
     - Locked
   models.User:
     properties:
-      address:
+      addresses:
         items:
           $ref: '#/definitions/Address'
         type: array

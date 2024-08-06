@@ -34,9 +34,21 @@ func (c *CartStoreHandler) AddToCart(ctx context.Context, request models.Cart) e
 	return nil
 }
 
-func (c *CartStoreHandler) GetCartByCustomerID(ctx context.Context, customerID string) (models.Cart, error) {
+func (c *CartStoreHandler) GetActiveCartByCustomerID(ctx context.Context, customerID string) (models.Cart, error) {
 	var cart models.Cart
 	filter := bson.M{"customer_id": customerID, "status": models.CartActive}
+
+	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
+	if err != nil {
+		return cart, err
+	}
+
+	return cart, nil
+}
+
+func (c *CartStoreHandler) GetCartByCustomerID(ctx context.Context, customerID string) (models.Cart, error) {
+	var cart models.Cart
+	filter := bson.M{"customer_id": customerID}
 
 	err := c.col(models.CartsCollectionName).FindOne(ctx, filter).Decode(&cart)
 	if err != nil {
@@ -181,7 +193,7 @@ func (c *CartStoreHandler) ListCartItems(ctx context.Context, request query.Resu
 	}, uint64(pipelineResp.TotalRecords), nil
 }
 
-func (c *CartStoreHandler) ClearCart(ctx context.Context, cartID string) error {
+func (c *CartStoreHandler) CheckoutCart(ctx context.Context, cartID string) error {
 	filter := bson.M{"id": cartID}
 
 	update := bson.M{
@@ -189,6 +201,7 @@ func (c *CartStoreHandler) ClearCart(ctx context.Context, cartID string) error {
 			"cart_items": []models.CartItem{},
 			"total":      0,
 			"status_ts":  time.Now().Unix(),
+			"status":     models.CartCheckedOut,
 		},
 	}
 
