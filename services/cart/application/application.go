@@ -289,7 +289,7 @@ func (c *CartApplicationManager) Checkout(ctx context.Context, request domain.Ca
 		case errors.Is(err, mongo.ErrNoDocuments):
 			return nil, errs.Body(errs.InvalidRequestError, fmt.Errorf("invalid cart id: %w", err))
 		default:
-			return nil, errs.Body(errs.InternalError, err)
+			return nil, errs.Body(errs.InternalError, fmt.Errorf("error retrieving cart item on checkout: %w", err))
 		}
 	}
 
