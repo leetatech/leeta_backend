@@ -2034,7 +2034,7 @@ const docTemplate = `{
                 "body": {}
             }
         },
-        "Address": {
+        "Addresses": {
             "type": "object",
             "properties": {
                 "address_type": {
@@ -2072,7 +2072,7 @@ const docTemplate = `{
                 "address": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Address"
+                        "$ref": "#/definitions/Addresses"
                     }
                 },
                 "department": {
@@ -2126,7 +2126,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Address"
+                    "$ref": "#/definitions/Addresses"
                 },
                 "department": {
                     "type": "string"
@@ -2228,7 +2228,7 @@ const docTemplate = `{
                 "address": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Address"
+                        "$ref": "#/definitions/Addresses"
                     }
                 },
                 "dob": {
@@ -2618,7 +2618,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Address"
+                    "$ref": "#/definitions/Addresses"
                 },
                 "email": {
                     "type": "string"
@@ -3202,7 +3202,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/Address"
+                    "$ref": "#/definitions/Addresses"
                 },
                 "default_delivery_address": {
                     "type": "boolean"
@@ -3347,7 +3347,7 @@ const docTemplate = `{
                 "address": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Address"
+                        "$ref": "#/definitions/Addresses"
                     }
                 },
                 "dob": {

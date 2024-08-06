@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
@@ -61,10 +62,9 @@ func (u userStoreHandler) GetVendorByID(id string) (*models.Vendor, error) {
 
 	err := u.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(vendor)
 	if err != nil {
-		switch err {
-		case mongo.ErrNoDocuments:
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
 			return nil, errs.Body(errs.DatabaseNoRecordError, err)
-
 		default:
 			return nil, errs.Body(errs.DatabaseError, err)
 		}
@@ -84,10 +84,9 @@ func (u userStoreHandler) GetCustomerByID(id string) (*models.Customer, error) {
 
 	err := u.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(customer)
 	if err != nil {
-		switch err {
-		case mongo.ErrNoDocuments:
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
 			return nil, errs.Body(errs.DatabaseNoRecordError, err)
-
 		default:
 			return nil, errs.Body(errs.DatabaseError, err)
 		}

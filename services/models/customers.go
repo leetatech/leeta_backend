@@ -7,18 +7,18 @@ import (
 )
 
 type User struct {
-	ID            string    `json:"id" bson:"id"`
-	FirstName     string    `json:"first_name" bson:"first_name"`
-	LastName      string    `json:"last_name" bson:"last_name"`
-	Email         Email     `json:"email" bson:"email"`
-	Address       []Address `json:"address" bson:"address"`
-	Phone         Phone     `json:"phone" bson:"phone"`
-	DOB           string    `json:"dob" bson:"dob"`
-	HasPIN        bool      `json:"has_pin" bson:"has_pin"`
-	PinBlocked    bool      `json:"pin_blocked" bson:"pin_blocked"`
-	IsBlocked     bool      `json:"is_blocked" bson:"is_blocked"`
-	BlockedReason string    `json:"is_blocked_reason" bson:"is_blocked_reason"`
-	Status        Statuses  `json:"status" bson:"status"`
+	ID            string    `json:"id,omitempty" bson:"id"`
+	FirstName     string    `json:"first_name,omitempty" bson:"first_name"`
+	LastName      string    `json:"last_name,omitempty" bson:"last_name"`
+	Email         Email     `json:"email,omitempty" bson:"email"`
+	Addresses     []Address `json:"addresses,omitempty" bson:"addresses"`
+	Phone         Phone     `json:"phone,omitempty" bson:"phone"`
+	DOB           string    `json:"dob,omitempty" bson:"dob"`
+	HasPIN        bool      `json:"has_pin,omitempty" bson:"has_pin"`
+	PinBlocked    bool      `json:"pin_blocked,omitempty" bson:"pin_blocked"`
+	IsBlocked     bool      `json:"is_blocked,omitempty" bson:"is_blocked"`
+	BlockedReason string    `json:"is_blocked_reason,omitempty" bson:"is_blocked_reason"`
+	Status        Statuses  `json:"status,omitempty" bson:"status"`
 }
 
 func (user *User) ExtractName(fullName string) error {
@@ -86,12 +86,12 @@ const (
 
 // Address model
 type Address struct {
-	State                  string      `json:"state" bson:"state"`
+	State                  string      `json:"state,omitempty" bson:"state"`
 	City                   string      `json:"city,omitempty" bson:"city"`
-	LGA                    string      `json:"lga" bson:"lga"`
-	FullAddress            string      `json:"full_address" bson:"full_address"`
+	LGA                    string      `json:"lga,omitempty" bson:"lga"`
+	FullAddress            string      `json:"full_address,omitempty" bson:"full_address"`
 	ClosestLandmark        string      `json:"closest_landmark,omitempty" bson:"closest_landmark"`
-	Coordinates            Coordinates `json:"coordinate" bson:"coordinate"`
+	Coordinates            Coordinates `json:"coordinate,omitempty" bson:"coordinate"`
 	Verified               bool        `json:"verified,omitempty" bson:"verified"`
 	DefaultDeliveryAddress bool        `json:"default_delivery_address,omitempty" bson:"default_delivery_address"`
 	AddressType            AddressType `json:"address_type,omitempty" bson:"address_type"`
