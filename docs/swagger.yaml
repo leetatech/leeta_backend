@@ -259,8 +259,6 @@ definitions:
         type: string
       type:
         $ref: '#/definitions/models.MessageDeliveryType'
-      userCategory:
-        $ref: '#/definitions/models.UserCategory'
     type: object
   OTPValidationRequest:
     properties:
@@ -797,15 +795,14 @@ definitions:
   models.CartStatuses:
     enum:
     - ACTIVE
-    - INACTIVE
+    - CHECKED_OUT
     type: string
     x-enum-comments:
       CartActive: cart has been created and active
-      CartInactive: cart has been inactivated and no longer active due to check out
-        or session expiry
+      CartCheckedOut: cart has been checkout out
     x-enum-varnames:
     - CartActive
-    - CartInactive
+    - CartCheckedOut
   models.Cost:
     properties:
       cost_per_kg:

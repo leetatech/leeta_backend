@@ -2424,9 +2424,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/models.MessageDeliveryType"
-                },
-                "userCategory": {
-                    "$ref": "#/definitions/models.UserCategory"
                 }
             }
         },
@@ -3167,15 +3164,15 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "ACTIVE",
-                "INACTIVE"
+                "CHECKED_OUT"
             ],
             "x-enum-comments": {
                 "CartActive": "cart has been created and active",
-                "CartInactive": "cart has been inactivated and no longer active due to check out or session expiry"
+                "CartCheckedOut": "cart has been checkout out"
             },
             "x-enum-varnames": [
                 "CartActive",
-                "CartInactive"
+                "CartCheckedOut"
             ]
         },
         "models.Cost": {
