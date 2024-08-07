@@ -80,9 +80,8 @@ func (a authAppHandler) SignUp(ctx context.Context, request domain.SignupRequest
 
 	category, err := models.SetUserCategory(request.UserType)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error setting user category: %w", err)
 	}
-
 	switch category {
 	case models.VendorCategory:
 		return a.vendorSignUP(ctx, request)

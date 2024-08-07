@@ -53,7 +53,7 @@ func (a authStoreHandler) VendorByEmail(ctx context.Context, email string) (*mod
 
 	err := a.col(models.UsersCollectionName).FindOne(ctx, filter).Decode(vendor)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("find vendor by email: %w", err)
 	}
 
 	return vendor, nil

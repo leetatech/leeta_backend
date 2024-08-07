@@ -92,7 +92,7 @@ func (c *CartApplicationManager) Add(ctx context.Context, request domain.CartIte
 		return cart, errs.Body(errs.InternalError, fmt.Errorf("unable to calculate cart fee %w", err))
 	}
 
-	cart, err = c.repositoryManager.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
+	cart, err = c.repositoryManager.CartRepository.GetActiveCartByCustomerID(ctx, claims.UserID)
 	if err != nil {
 		switch {
 		case errors.Is(err, mongo.ErrNoDocuments):
@@ -285,7 +285,16 @@ func (c *CartApplicationManager) Checkout(ctx context.Context, request domain.Ca
 
 	cart, err := c.repositoryManager.CartRepository.GetCartByCustomerID(ctx, claims.UserID)
 	if err != nil {
-		return nil, errs.Body(errs.DatabaseNoRecordError, err)
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, errs.Body(errs.InvalidRequestError, fmt.Errorf("invalid cart id: %w", err))
+		default:
+			return nil, errs.Body(errs.InternalError, fmt.Errorf("error retrieving cart item on checkout: %w", err))
+		}
+	}
+
+	if cart.Status == models.CartCheckedOut {
+		return nil, errs.Body(errs.InvalidRequestError, fmt.Errorf("cart id '%s' is already checked out", cart.ID))
 	}
 
 	err = c.validateFees(ctx, request.DeliveryDetails.Address, request.DeliveryFee, request.ServiceFee)
@@ -335,7 +344,7 @@ func (c *CartApplicationManager) checkout(ctx context.Context, userID string, re
 		return errs.Body(errs.InternalError, fmt.Errorf("error creating order when checking out of cart %w", err))
 	}
 
-	err = c.repositoryManager.CartRepository.ClearCart(ctx, cart.ID)
+	err = c.repositoryManager.CartRepository.CheckoutCart(ctx, cart.ID)
 	if err != nil {
 		return errs.Body(errs.InternalError, fmt.Errorf("error clearing cart %w", err))
 	}

@@ -66,6 +66,6 @@ func (c *Cart) CalculateCartTotalFee() float64 {
 type CartStatuses string
 
 const (
-	CartActive   CartStatuses = "ACTIVE"   // cart has been created and active
-	CartInactive CartStatuses = "INACTIVE" // cart has been inactivated and no longer active due to check out or session expiry
+	CartActive     CartStatuses = "ACTIVE"      // cart has been created and active
+	CartCheckedOut CartStatuses = "CHECKED_OUT" // cart has been checkout out
 )

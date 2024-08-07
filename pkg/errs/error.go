@@ -3,7 +3,6 @@ package errs
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"runtime"
 	"time"
 )
@@ -198,14 +197,11 @@ func Body(code ErrorCode, err error) error {
 		ErrorReference: uuid.New(),
 		ErrorCode:      code,
 		ErrorType:      errorTypes[code],
-		Message:        errorMessages[code],
+		Message:        fmt.Sprintf("error: %s: %v", errorMessages[code], err),
 		File:           file,
 		Line:           line,
 		TimeStamp:      time.Now().Format(time.RFC3339),
 	}
-
-	// Capture stack trace if available
-	errorResponse.StackTrace = fmt.Sprintf("%+v", errors.WithStack(err))
 
 	return errorResponse
 }

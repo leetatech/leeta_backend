@@ -2069,7 +2069,7 @@ const docTemplate = `{
         "Admin": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Address"
@@ -2225,7 +2225,7 @@ const docTemplate = `{
         "Customer": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Address"
@@ -3379,7 +3379,7 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "properties": {
-                "address": {
+                "addresses": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Address"

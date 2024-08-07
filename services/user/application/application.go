@@ -154,8 +154,8 @@ func (u *userAppHandler) UpdateRecord(ctx context.Context, request models.User) 
 	if err != nil {
 		return nil, err
 	}
-	if len(request.Address) > 0 {
-		customer.Address = append(customer.Address, request.Address...)
+	if len(request.Addresses) > 0 {
+		customer.Addresses = append(customer.Addresses, request.Addresses...)
 	}
 
 	if request.FirstName != "" {
