@@ -58,7 +58,8 @@ const (
 	TemplateCreationError        ErrorCode = 1046
 	AwsSessionError              ErrorCode = 1047
 	SesSendEmailError            ErrorCode = 1048
-	LGANotFoundError             ErrorCode = 1049
+	SnsSendSMSError              ErrorCode = 1049
+	LGANotFoundError             ErrorCode = 1050
 )
 
 var (
@@ -111,6 +112,7 @@ var (
 		TemplateCreationError:        "TemplateCreationError",
 		AwsSessionError:              "AwsSessionError",
 		SesSendEmailError:            "SesSendEmailError",
+		SnsSendSMSError:              "SnsSendSMSError",
 		LGANotFoundError:             "LGANotFoundError",
 	}
 
@@ -161,6 +163,7 @@ var (
 		RestrictedAccessError:        "User do not have authorization to access this endpoint",
 		FeesError:                    "There is an error with the application fees",
 		TemplateCreationError:        "An error occurred while creating template",
+		SnsSendSMSError:              "An error occurred while sending SMS",
 		AwsSessionError:              "An error occurred while creating aws session",
 		SesSendEmailError:            "An error occurred while sending email",
 		LGANotFoundError:             "Leeta is not available in your region",

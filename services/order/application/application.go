@@ -9,7 +9,7 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
+	mailer "github.com/leetatech/leeta_backend/pkg/notification/mailer/aws"
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/order/domain"
@@ -21,7 +21,7 @@ type orderAppHandler struct {
 	encryptor     encrypto.Manager
 	idGenerator   idgenerator.Generator
 	otpGenerator  otp.Generator
-	EmailClient   aws.MailClient
+	EmailClient   mailer.Client
 	allRepository pkg.RepositoryManager
 }
 

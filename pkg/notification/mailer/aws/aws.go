@@ -1,51 +1,23 @@
-package aws
+package mailer
 
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/leetatech/leeta_backend/pkg/config"
-	"github.com/leetatech/leeta_backend/pkg/mailer/parseTemplates"
+	"github.com/leetatech/leeta_backend/pkg/notification"
+	"github.com/leetatech/leeta_backend/pkg/notification/mailer/parseTemplates"
 	"github.com/leetatech/leeta_backend/services/models"
-	"net/http"
-	"time"
 )
 
-type MailClient struct {
-	Config  *config.AWSConfig
-	Session *session.Session
-	SVC     *ses.SES
+type Client struct {
+	Client notification.AWSClient
 }
 
-func (client *MailClient) Connect() error {
-	httpClient := &http.Client{
-		Timeout: 60 * time.Second,
-	}
-
-	awsConfig := &aws.Config{
-		Region: aws.String(client.Config.Region),
-		Credentials: credentials.NewStaticCredentials(
-			client.Config.Endpoint,
-			client.Config.Secret,
-			"",
-		),
-		HTTPClient: httpClient,
-	}
-
-	sess, err := session.NewSession(awsConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create AWS session: %w", err)
-	}
-
-	client.Session = sess
-	client.SVC = ses.New(sess)
-
-	return nil
+func New(awsClient notification.AWSClient) Client {
+	return Client{Client: awsClient}
 }
 
-func (client *MailClient) SendEmail(templatePath string, message models.Message) error {
+func (client *Client) Send(templatePath string, message models.Message) error {
 	templateBody, err := parseTemplates.CreateSingleTemplate(templatePath, message)
 	if err != nil {
 		return fmt.Errorf("failed to create email template: %w", err)
@@ -88,7 +60,7 @@ func (client *MailClient) SendEmail(templatePath string, message models.Message)
 		Source: aws.String(fmt.Sprintf("Leeta Technologies <%s>", message.Sender)),
 	}
 
-	_, err = client.SVC.SendEmail(emailInput)
+	_, err = client.Client.SES.SendEmail(emailInput) // TODO: enhance response validation
 	if err != nil {
 		return fmt.Errorf("failed to send email using aws: %w", err)
 	}

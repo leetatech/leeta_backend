@@ -21,4 +21,6 @@ type AuthRepository interface {
 	CreateUser(ctx context.Context, user any) error
 	SetEmailVerificationStatus(ctx context.Context, userID string, status bool) error
 	UpdateGuestRecord(ctx context.Context, guest models.Guest) error
+	GetUserByEmailOrPhone(ctx context.Context, target string) (*models.Customer, error)
+	UpdatePhoneVerify(ctx context.Context, phone string, status bool) error
 }

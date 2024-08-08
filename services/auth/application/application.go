@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/leetatech/leeta_backend/pkg/config"
+	mailer "github.com/leetatech/leeta_backend/pkg/notification/mailer/aws"
 	"time"
+
+	"github.com/leetatech/leeta_backend/pkg/config"
 
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/encrypto"
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
+	"github.com/leetatech/leeta_backend/pkg/notification/sms/aws"
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/auth/infrastructure"
@@ -24,15 +26,20 @@ type authAppHandler struct {
 	encryptor         encrypto.Manager
 	idGenerator       idgenerator.Generator
 	otpGenerator      otp.Generator
-	mailer            aws.MailClient
+	notification      notification
 	domain            string
 	repositoryManager pkg.RepositoryManager
 	mailerConfig      config.NotificationConfig
 }
 
+type notification struct {
+	mail mailer.Client
+	sms  sms.Client
+}
+
 type Auth interface {
 	SignUp(ctx context.Context, request domain.SignupRequest) (*domain.DefaultSigningResponse, error)
-	RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
+	RequestOTP(ctx context.Context, request domain.OTPRequest) (*pkg.DefaultResponse, error)
 	EarlyAccess(ctx context.Context, request models.EarlyAccess) (*pkg.DefaultResponse, error)
 	SignIn(ctx context.Context, request domain.SigningRequest) (*domain.DefaultSigningResponse, error)
 	ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error)
@@ -46,11 +53,14 @@ type Auth interface {
 
 func New(request pkg.ApplicationContext) Auth {
 	return &authAppHandler{
-		jwtManager:        request.JwtManager,
-		encryptor:         encrypto.New(),
-		idGenerator:       idgenerator.New(),
-		otpGenerator:      otp.New(),
-		mailer:            request.MailClient,
+		jwtManager:   request.JwtManager,
+		encryptor:    encrypto.New(),
+		idGenerator:  idgenerator.New(),
+		otpGenerator: otp.New(),
+		notification: notification{
+			mail: request.MailClient,
+			sms:  request.SMSClient,
+		},
 		domain:            request.Domain,
 		repositoryManager: request.RepositoryManager,
 		mailerConfig:      request.Config.Notification,
@@ -111,14 +121,14 @@ func (a authAppHandler) EarlyAccess(ctx context.Context, request models.EarlyAcc
 		return nil, errs.Body(errs.DatabaseError, fmt.Errorf("error saving early access: %w", err))
 	}
 
-	err = a.mailer.SendEmail(pkg.EarlyAccessTemplatePath, models.Message{
+	err = a.notification.mail.Send(pkg.EarlyAccessTemplatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     request.Email,
 		TemplateID: pkg.EarlyAccessTemplatePath,
 		Title:      "Get the VIP Treatment: Exclusive Early Access Inside!",
 		Sender:     a.mailerConfig.VerificationEmail,
 		DataMap: map[string]string{
-			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/",
+			"URL": "https://deploy-preview-3--gleeful-palmier-8efb17.netlify.app/", // TODO: load landing page from environment variable
 		},
 		Recipients: []string{
 			request.Email,
@@ -154,40 +164,40 @@ func (a authAppHandler) SignIn(ctx context.Context, request domain.SigningReques
 }
 
 func (a authAppHandler) ForgotPassword(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
-	if err := a.sendOTP(ctx, request); err != nil {
+	if err := a.sendOTP(ctx, domain.OTPRequest{
+		Topic:  "ForgotPassword",
+		Target: request.Email,
+		Type:   models.EMAIL,
+	}); err != nil {
 		return nil, err
 	}
 	return &pkg.DefaultResponse{Success: "success", Message: "An email with OTP to reset your password has been sent to you"}, nil
 }
 
-func (a authAppHandler) RequestOTP(ctx context.Context, request domain.EmailRequestBody) (*pkg.DefaultResponse, error) {
+func (a authAppHandler) RequestOTP(ctx context.Context, request domain.OTPRequest) (*pkg.DefaultResponse, error) {
 	if err := a.sendOTP(ctx, request); err != nil {
 		return nil, errs.Body(errs.ForgotPasswordError, err)
 	}
 	return &pkg.DefaultResponse{Success: "success", Message: "An email with an OTP has been sent to you"}, nil
 }
 
-func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequestBody) error {
+func (a authAppHandler) sendOTP(ctx context.Context, request domain.OTPRequest) error {
 	// get user by email
-	user, err := a.repositoryManager.AuthRepository.UserByEmail(ctx, request.Email)
+	user, err := a.repositoryManager.AuthRepository.UserByEmail(ctx, request.Target)
 	if err != nil {
 		return errs.Body(errs.UserNotFoundError, fmt.Errorf("error getting user by email: %w", err))
 	}
 
 	// check if user otp exists
-	verification, err := a.repositoryManager.AuthRepository.FindUnvalidatedVerificationByTarget(ctx, request.Email)
+	verification, err := a.repositoryManager.AuthRepository.FindUnvalidatedVerificationByTarget(ctx, request.Target)
 	if err != nil && !errors.Is(err, infrastructure.ErrItemNotFound) {
 		return errs.Body(errs.DatabaseError, err)
 	}
 
-	requestOTP := domain.OTPRequest{
-		Topic:  "ForgotPassword",
-		Type:   models.EMAIL,
-		Target: request.Email,
-	}
+	// TODO set text message
 	var OTP string
 	if isVerificationValid := verification.VerifyCodeValidity(); !isVerificationValid {
-		response, err := a.createOTP(ctx, requestOTP)
+		response, err := a.createOTP(ctx, request)
 		if err != nil {
 			return err
 		}
@@ -195,25 +205,36 @@ func (a authAppHandler) sendOTP(ctx context.Context, request domain.EmailRequest
 	} else {
 		OTP = verification.Code
 	}
-
-	err = a.mailer.SendEmail(pkg.ForgotPasswordTemplatePath, models.Message{
-		ID:         a.idGenerator.Generate(),
-		UserID:     request.Email,
-		TemplateID: pkg.ForgotPasswordTemplatePath,
-		Title:      "Verification Link",
-		Sender:     a.mailerConfig.VerificationEmail,
-		DataMap: map[string]string{
-			"FirstName": user.FirstName,
-			"LastName":  user.LastName,
-			"OTP":       OTP,
-		},
-		Recipients: []string{
-			request.Email,
-		},
-		Ts: time.Now().Unix(),
-	})
-	if err != nil {
-		return err
+	switch request.Type {
+	case models.EMAIL:
+		err = a.notification.mail.Send(pkg.ForgotPasswordTemplatePath, models.Message{
+			ID:         a.idGenerator.Generate(),
+			UserID:     request.Target,
+			TemplateID: pkg.ForgotPasswordTemplatePath,
+			Title:      "Verification Link",
+			Sender:     a.mailerConfig.VerificationEmail,
+			DataMap: map[string]string{
+				"FirstName": user.FirstName,
+				"LastName":  user.LastName,
+				"OTP":       OTP,
+			},
+			Recipients: []string{
+				request.Target,
+			},
+			Ts: time.Now().Unix(),
+		})
+		if err != nil {
+			return err
+		}
+	case models.SMS:
+		var messageBody string
+		err = a.notification.sms.Send(models.Message{
+			Target: request.Target,
+			Body:   messageBody,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -241,9 +262,17 @@ func (a authAppHandler) ValidateOTP(ctx context.Context, request domain.OTPValid
 		return nil, fmt.Errorf("error validating otp: %w", err)
 	}
 
-	err = a.repositoryManager.AuthRepository.SetEmailVerificationStatus(ctx, verification.Target, true)
-	if err != nil {
-		return nil, fmt.Errorf("error setting email verification status")
+	switch verification.Type {
+	case models.EMAIL:
+		err = a.repositoryManager.AuthRepository.SetEmailVerificationStatus(ctx, verification.Target, true)
+		if err != nil {
+			return nil, fmt.Errorf("error validating user with email %s: %w", verification.Target, err)
+		}
+	case models.SMS:
+		err = a.repositoryManager.AuthRepository.UpdatePhoneVerify(ctx, verification.Target, true)
+		if err != nil {
+			return nil, fmt.Errorf("error validating user with phone number %s: %w", verification.Target, err)
+		}
 	}
 
 	return &pkg.DefaultResponse{Success: "success", Message: "OTP validated"}, nil

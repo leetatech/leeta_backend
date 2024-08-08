@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	mailer "github.com/leetatech/leeta_backend/pkg/notification/mailer/aws"
 	"time"
 
 	"github.com/leetatech/leeta_backend/pkg"
@@ -9,7 +10,6 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/idgenerator"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
 	"github.com/leetatech/leeta_backend/pkg/otp"
 	"github.com/leetatech/leeta_backend/services/models"
 	"github.com/leetatech/leeta_backend/services/user/domain"
@@ -20,7 +20,7 @@ type userAppHandler struct {
 	encryptor     encrypto.Manager
 	idGenerator   idgenerator.Generator
 	otpGenerator  otp.Generator
-	EmailClient   aws.MailClient
+	EmailClient   mailer.Client
 	allRepository pkg.RepositoryManager
 }
 

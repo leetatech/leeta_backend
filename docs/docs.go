@@ -1350,7 +1350,7 @@ const docTemplate = `{
         },
         "/session/otp/request": {
             "post": {
-                "description": "The endpoint allows client side to request for new OTP for target",
+                "description": "The endpoint allows client side to request for new OTP for a target",
                 "consumes": [
                     "application/json"
                 ],
@@ -1360,15 +1360,15 @@ const docTemplate = `{
                 "tags": [
                     "OTP Management"
                 ],
-                "summary": "Request for new OTP for target email",
+                "summary": "Request for new OTP",
                 "parameters": [
                     {
                         "description": "request otp body",
-                        "name": "domain.EmailRequestBody",
+                        "name": "domain.OTPRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/EmailRequestBody"
+                            "$ref": "#/definitions/OTPRequest"
                         }
                     }
                 ],
@@ -2413,6 +2413,20 @@ const docTemplate = `{
                 }
             }
         },
+        "OTPRequest": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.MessageDeliveryType"
+                }
+            }
+        },
         "OTPValidationRequest": {
             "type": "object",
             "properties": {
@@ -2421,6 +2435,9 @@ const docTemplate = `{
                 },
                 "target": {
                     "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.MessageDeliveryType"
                 }
             }
         },
@@ -2810,7 +2827,8 @@ const docTemplate = `{
                 1046,
                 1047,
                 1048,
-                1049
+                1049,
+                1050
             ],
             "x-enum-comments": {
                 "InvalidRequestError": "generic"
@@ -2864,6 +2882,7 @@ const docTemplate = `{
                 "TemplateCreationError",
                 "AwsSessionError",
                 "SesSendEmailError",
+                "SnsSendSMSError",
                 "LGANotFoundError"
             ]
         },
@@ -3145,15 +3164,15 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "ACTIVE",
-                "INACTIVE"
+                "CHECKED_OUT"
             ],
             "x-enum-comments": {
                 "CartActive": "cart has been created and active",
-                "CartInactive": "cart has been inactivated and no longer active due to check out or session expiry"
+                "CartCheckedOut": "cart has been checkout out"
             },
             "x-enum-varnames": [
                 "CartActive",
-                "CartInactive"
+                "CartCheckedOut"
             ]
         },
         "models.Cost": {
@@ -3240,6 +3259,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.MessageDeliveryType": {
+            "type": "string",
+            "enum": [
+                "SMS",
+                "EMAIL",
+                "PUSH"
+            ],
+            "x-enum-varnames": [
+                "SMS",
+                "EMAIL",
+                "PUSH"
+            ]
         },
         "models.OrderStatuses": {
             "type": "string",

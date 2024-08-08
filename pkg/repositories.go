@@ -4,7 +4,8 @@ import (
 	"github.com/leetatech/leeta_backend/pkg/config"
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/pkg/jwtmiddleware"
-	"github.com/leetatech/leeta_backend/pkg/mailer/aws"
+	mailer "github.com/leetatech/leeta_backend/pkg/notification/mailer/aws"
+	sms "github.com/leetatech/leeta_backend/pkg/notification/sms/aws"
 	authDomain "github.com/leetatech/leeta_backend/services/auth/domain"
 	cartDomain "github.com/leetatech/leeta_backend/services/cart/domain"
 	feesDomain "github.com/leetatech/leeta_backend/services/fees/domain"
@@ -33,7 +34,8 @@ type ApplicationContext struct {
 	JwtManager        jwtmiddleware.Manager
 	RepositoryManager RepositoryManager
 	Domain            string
-	MailClient        aws.MailClient
+	MailClient        mailer.Client
+	SMSClient         sms.Client
 	Config            config.ServerConfig
 }
 

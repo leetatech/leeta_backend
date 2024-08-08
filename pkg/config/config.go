@@ -2,14 +2,15 @@ package config
 
 import (
 	"fmt"
-	"github.com/caarlos0/env"
-	"github.com/joho/godotenv"
-	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/caarlos0/env"
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -48,6 +49,7 @@ type NotificationConfig struct {
 	Domain            string `env:"DOMAIN"`
 	VerificationEmail string `env:"LEETA_VERIFICATION_EMAIL" envDefault:"admin@getleeta.com"`
 	DoNotReplyEmail   string `env:"LEETA_DONOTREPLY_EMAIL"`
+	SMSenderID        string `env:"LEETA_SMS_SENDER_ID"`
 }
 
 type NgnStatesConfig struct {

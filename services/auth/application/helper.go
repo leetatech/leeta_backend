@@ -4,28 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/leetatech/leeta_backend/pkg"
 	"github.com/leetatech/leeta_backend/pkg/errs"
 	"github.com/leetatech/leeta_backend/services/auth/domain"
 	"github.com/leetatech/leeta_backend/services/models"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 var invalidAppErr = errors.New("you are on the wrong app")
 
-func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templatePath string, userCategory models.UserCategory) error {
+func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullName, userID, target, templatePath string) error {
 	requestOTP := domain.OTPRequest{
-		Topic:        "Sign Up",
-		Type:         models.EMAIL,
-		Target:       target,
-		UserCategory: userCategory,
+		Topic:  "Sign Up",
+		Type:   models.EMAIL,
+		Target: target,
 	}
 	otpResponse, err := a.createOTP(ctx, requestOTP)
 	if err != nil {
 		return fmt.Errorf("error creating OTP: %w", err)
 	}
-	err = a.mailer.SendEmail(templatePath, models.Message{
+	err = a.notification.mail.Send(templatePath, models.Message{
 		ID:         a.idGenerator.Generate(),
 		UserID:     userID,
 		TemplateID: templatePath,
@@ -50,7 +50,7 @@ func (a authAppHandler) sendAccountVerificationEmail(ctx context.Context, fullNa
 func (a authAppHandler) validateAndEncryptPassword(password string) (string, error) {
 	err := a.encryptor.ValidatePasswordStrength(password)
 	if err != nil {
-		return "", fmt.Errorf("error validation encryption password strength: %w", err)
+		return "", fmt.Errorf("error validating encryption password strength: %w", err)
 	}
 	passByte, err := a.encryptor.Generate(password)
 	if err != nil {
@@ -113,7 +113,7 @@ func (a authAppHandler) vendorSignUP(ctx context.Context, request domain.SignupR
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on vendor sign up: %w", err))
 			}
 
-			err = a.sendAccountVerificationEmail(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath, models.VendorCategory)
+			err = a.sendAccountVerificationEmail(ctx, request.FullName, vendor.ID, vendor.Email.Address, pkg.VerifySignUPTemplatePath)
 			if err != nil {
 				return nil, err
 			}
@@ -181,7 +181,7 @@ func (a authAppHandler) customerSignUP(ctx context.Context, request domain.Signu
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on customer sign up: %w", err))
 			}
 
-			err = a.sendAccountVerificationEmail(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath, models.CustomerCategory)
+			err = a.sendAccountVerificationEmail(ctx, request.FullName, customer.ID, customer.Email.Address, pkg.VerifySignUPTemplatePath)
 			if err != nil {
 				return nil, errs.Body(errs.InternalError, err)
 			}
@@ -359,7 +359,7 @@ func (a authAppHandler) adminSignUp(ctx context.Context, request domain.AdminSig
 				return nil, errs.Body(errs.TokenGenerationError, fmt.Errorf("error building authentication response on admin sign up: %w", err))
 			}
 
-			err = a.sendAccountVerificationEmail(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath, models.AdminCategory)
+			err = a.sendAccountVerificationEmail(ctx, fmt.Sprintf("%s %s", request.FirstName, request.LastName), admin.ID, admin.User.Email.Address, pkg.AdminSignUpTemplatePath)
 			if err != nil {
 				return nil, err
 			}
